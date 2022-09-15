@@ -14,6 +14,13 @@ on:
       JENKINS_TOKEN:
         required: true
         description: 'Jenkins USER'
+    outputs:
+      version:
+        description: 'Version'
+        value: ${{ jobs.build-docker.outputs.version }}
+      cluster_environment:
+        description: 'Cluster Environment'
+        value: ${{ jobs.build-docker.outputs.cluster_environment }}
   push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]
