@@ -70,15 +70,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy-to-kubernetes:
-    needs: build-docker
-    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@test
-    with:
-      repository_name: ${{ github.event.repository.name }}
-      version: ${{ needs.build-docker.outputs.version }}
-      cluster_environment: ${{ needs.build-docker.outputs.cluster_environment }}
-    secrets:
-      namespace: ${{ secrets.NAMESPACE }}
-      JENKINS_URL: ${{ secrets.JENKINS_URL }}
-      JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+#  deploy-to-kubernetes:
+#    needs: build-docker
+#    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@test
+#    with:
+#      repository_name: ${{ github.event.repository.name }}
+#      version: ${{ needs.build-docker.outputs.version }}
+#      cluster_environment: ${{ needs.build-docker.outputs.cluster_environment }}
+#    secrets:
+#      namespace: ${{ secrets.NAMESPACE }}
+#      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+#      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+#      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
