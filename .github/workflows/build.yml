@@ -1,10 +1,18 @@
 name: Calance generic CI-CD
 on:
-  workflow_call:
+  workflow_call: 
+    outputs:
+      version:
+        description: 'Version'
+        value: ${{ jobs.build-docker.outputs.version }}
+      cluster_environment:
+        description: 'Cluster Environment'
+        value: ${{ jobs.build-docker.outputs.cluster_environment }}
   push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]
       - v[0-9]+.[0-9]+.[0-9]+
+
 
 jobs:
   build-docker:
@@ -39,7 +47,6 @@ jobs:
         id: version
         run: |
           echo "::set-output name=build_version::${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
-          echo "${{ secrets.NAMESPACE }}"
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
         run: |
@@ -57,12 +64,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy-to-kubernetes:
-    needs: build-docker
-    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@main
-    with:
-      repository_name: ${{ github.event.repository.name }}
-      version: ${{ needs.build-docker.outputs.version }}
-      cluster_environment: ${{ needs.build-docker.outputs.cluster_environment }}
-    secrets:  
-      namespace: ${{ secrets.NAMESPACE }}

@@ -12,8 +12,8 @@ on:
         required: true
         type: choice
         options:
-        - "testing"
-        - "production"
+          - "testing"
+          - "production"
       version:
         description: 'Enter the application version:'
         required: true
@@ -38,20 +38,28 @@ on:
         required: true
         type: string
     secrets:
-      namespace:
+      NAMESPACE:
         required: true
         description: 'Enter the application namespace:'
-#        type: string
+      JENKINS_URL:
+        required: true
+        description: 'Jenkins URL'
+      JENKINS_USER:
+        required: true
+        description: 'Jenkins USER'
+      JENKINS_TOKEN:
+        required: true
+        description: 'Jenkins TOKEN'
 
 jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
-    steps:                                
+    steps:
       - name: Trigger Jenkins Job
-        uses: prempratap09/build-jenkins-job@master
+        uses: Calance-US/build-jenkins-job@main
         with:
-          jenkins-url: ${{ secrets.JENKINS_URL }}
-          jenkins-token: ${{ secrets.JENKINS_TOKEN }}
-          user: ${{ secrets.JENKINS_USER }}
+          jenkins-url: "${{ secrets.JENKINS_URL }}"
+          jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
+          user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ secrets.namespace }}" }'
+          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
