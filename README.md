@@ -1,51 +1,78 @@
-[![GitHub Super-Linter](https://github.com/Calance-US/public-repository-template/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/marketplace/actions/super-linter)
+[![GitHub Super-Linter](https://github.com/Calance-US/calance-workflow/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/marketplace/actions/super-linter)
 
 
-## :black_nib: Project Title
-*Write about the project in a small paragraph*
+
+## :black_nib: resuable workflow
+*Now you can reference an existing workflow with a single line of configuration rather than copying and pasting from one workflow to another.*
 
 ## :loop: Workflow
-*Write a brief workflow of the tool along with a graphical flow chart representation*
+**
 
-## :page_facing_up: Documentation
-*Specify the link to the project documentation or if using something like a Swagger, Mkdocs, specify instructions to use them*
+
+
 
 ## :baby: Requirements and Depedencies
-*Project requirements and dependencies need to be highlighted here along with versions*
-
-## :hourglass_flowing_sand: Installation
-*Write installation instructions for the project*
+*Jenkins: Jenkin server should be up and running and jenkins job that need to be trigger should be available*
 
 ## :cyclone: Environment variables
-*Define all the environment variables that your project needs*
+*JENKINS_TOKEN, JENKINS_URL, JENKINS_USER, NAMESPACE*
+
+*INPUT VARIABLES*
+
+*repository_name, version, cluster_environment*
 
 ## :tada: Running the project
-*Write the commands and run instructions for the project under the following headers*
+*How To Trigger This Workflow*
 
-### Local
-*Commands to run the command in local along with some brief instructions*
+*Manually*
 
-### Docker
-*Commands to build image and run in local along with some brief instructions. Specify the path to Dockerfile and context relative to the root of the project*
+*In manual you have you have provide input, this process is made to ease deployment and to re-deployment to previous version*
 
-## :computer: Debugging the code
+*Below digram gives you how to trigger this workflow*
 
-### Debug tool used
-*Specify which debugging tool is used along with link or instructions on how to use it*
 
-### Debug instructions
-*Specify the debugging instructions and how to install all the dependencies*
+
+
+*Trigger from current repository*
+
+*This workflow will trigger on push of new tags to the repository after you make change to your code and push is to the branch*
+
+*$ git add <file-name>*
+
+*$ git commit -m "message"*
+
+*$ git push*
+
+*$ git tag v1.0.1*
+
+*$ git push --tags*
+
+
+*Reusing-Workflow from another repository (caller)*
+
+
+*This workflow will trigger on push of new tags to the repository*
+
+*Commands to create and push tags*
+
+*$ git tag v1.0.1*
+
+*$ git push --tags*
 
 ## :flashlight: Testing
-*Specify the testing scenario of the project along with the command to run the tests*
+*Tested via public-templated-repository*
+
+*created a build.yaml file*
 
 ## :information_desk_person: Contributors
 Want to reach out to the folks who have tirelessly worked on this project, please reach out to the following folks.
 
+*The entire purpose of the workflow is to build jenkins job from github action, for this we have used GoldenspearLLC/build-jenkins-job which is created by GoldenSpear*
+
 **Project Manager/s:**
-- [Manager-Name1](Github profile url of Manager1)
-- [Manager-Name2](Github profile url of Manager2)
+- [Arpit Goyal](https://github.com/agoyalcalance)
 
 **Developer/s:**
-- [Developer-1](Github profile url of developer-1)
-- [Developer-2](Github profile url of developer-2)
+- [Prem Pratap Singh](https://github.com/ppsinghcalance)
+- [Nilesh Mathur](https://github.com/nmathur478)
+
