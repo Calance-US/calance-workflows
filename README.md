@@ -1,25 +1,26 @@
-[![GitHub Super-Linter](https://github.com/Calance-US/calance-workflow/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/marketplace/actions/super-linter)
-
-
-
 ## :black_nib: resuable workflow
-*Now you can reference an existing workflow with a single line of configuration rather than copying and pasting from one workflow to another.*
+*This repository is used to build a docker image, push it repository and deploy to kubernetes cluster using jenkins job.*
 
 ## :loop: Workflow
-**
-
+*We are using the workflow created in calance-workflow from anothe repository*
+![sample](images/workflow.jpg)
 
 
 
 ## :baby: Requirements and Depedencies
-*Jenkins: Jenkin server should be up and running and jenkins job that need to be trigger should be available*
+ - Jenkins
 
 ## :cyclone: Environment variables
-*JENKINS_TOKEN, JENKINS_URL, JENKINS_USER, NAMESPACE*
+- JENKINS_TOKEN
+- JENKINS_URL
+- JENKINS_USER
+- NAMESPACE
 
 *INPUT VARIABLES*
 
-*repository_name, version, cluster_environment*
+- repository_name
+- version
+- cluster_environment
 
 ## :tada: Running the project
 *How To Trigger This Workflow*
@@ -30,13 +31,23 @@
 
 *Below digram gives you how to trigger this workflow*
 
+*Click on Action and select option Deploy-to-Kubernetes*
 
+![sample](images/Action-Deploy.jpg)
 
+*Click on Run workflow on right*
 
-*Trigger from current repository*
+![sample](images/Run-Workflow.jpg)
+
+*place your input selecting through which branch you want to run the deployment*
+
+![sample](images/workflow-input.jpg)
+
+**Trigger from current repository**
 
 *This workflow will trigger on push of new tags to the repository after you make change to your code and push is to the branch*
 
+```bash
 *$ git add <file-name>*
 
 *$ git commit -m "message"*
@@ -46,19 +57,19 @@
 *$ git tag v1.0.1*
 
 *$ git push --tags*
-
-
-*Reusing-Workflow from another repository (caller)*
+```
+**Reusing-Workflow from another repository (caller)**
 
 
 *This workflow will trigger on push of new tags to the repository*
 
 *Commands to create and push tags*
 
+```bash
 *$ git tag v1.0.1*
 
 *$ git push --tags*
-
+```
 ## :flashlight: Testing
 *Tested via public-templated-repository*
 
@@ -67,7 +78,7 @@
 ## :information_desk_person: Contributors
 Want to reach out to the folks who have tirelessly worked on this project, please reach out to the following folks.
 
-*The entire purpose of the workflow is to build jenkins job from github action, for this we have used GoldenspearLLC/build-jenkins-job which is created by GoldenSpear*
+*The entire purpose of the workflow is to build jenkins job from github action, for this we have used GoldenspearLLC/build-jenkins-job which is created by [GoldenSpear](https://github.com/GoldenspearLLC/build-jenkins-job)*
 
 **Project Manager/s:**
 - [Arpit Goyal](https://github.com/agoyalcalance)
