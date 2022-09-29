@@ -9,19 +9,20 @@
 
 ## :baby: Requirements and Dependencies
 
-    * Jenkins 
+* Jenkins
 
 ## :cyclone: Environment variables
 
-    * JENKINS_TOKEN
-    * JENKINS_URL
-    * JENKINS_USER
+* JENKINS_TOKEN
+* JENKINS_URL
+* JENKINS_USER
+* NAMESPACE
 
     **INPUT VARIABLES**
 
-    * repository_name
-    * version
-    * cluster_environment
+  * repository_name
+  * version
+  * cluster_environment
 
 ## :tada: Running the project
 
@@ -50,15 +51,11 @@
 *This workflow will trigger on push of new tags to the repository after you make change to your code and push is to the branch*
 
 ```bash
-*$ git add <file-name>*
-
-*$ git commit -m "message"*
-
-*$ git push*
-
-*$ git tag v1.0.1*
-
-*$ git push --tags*
+git add <file-name>
+git commit -m "message"
+git push
+git tag v1.0.1
+git push --tags
 ```
 
 ## **Reusing-Workflow from another repository (caller)**
@@ -68,9 +65,8 @@
 *Commands to create and push tags*
 
 ```bash
-*$ git tag v1.0.1*
-
-*$ git push --tags*
+git tag v1.0.1
+git push --tags
 ```
 
 ## :flashlight: Testing
