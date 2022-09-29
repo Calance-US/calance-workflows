@@ -4,25 +4,24 @@
 
 ## :loop: Workflow
 
-*We are using the workflow created in calance-workflow from anothe repository*
+*We are using the workflow created in calance-workflow from another repository*
 ![sample](images/workflow.jpg)
 
-## :baby: Requirements and Depedencies
+## :baby: Requirements and Dependencies
 
- * Jenkins
+    * Jenkins 
 
 ## :cyclone: Environment variables
 
- * JENKINS_TOKEN
- * JENKINS_URL
- * JENKINS_USER
- * NAMESPACE
+    * JENKINS_TOKEN
+    * JENKINS_URL
+    * JENKINS_USER
 
-**INPUT VARIABLES**
+    **INPUT VARIABLES**
 
- * repository_name
- * version
- * cluster_environment
+    * repository_name
+    * version
+    * cluster_environment
 
 ## :tada: Running the project
 
