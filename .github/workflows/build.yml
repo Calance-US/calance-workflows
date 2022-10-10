@@ -9,7 +9,7 @@ on:
         description: 'Cluster Environment'
         value: ${{ jobs.build-docker.outputs.cluster_environment }}
     secrets:
-      password:
+      GHCR_TOKEN:
         required: true
         description: 'secret for GHRC'
   push:
@@ -36,7 +36,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -67,5 +67,3 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
