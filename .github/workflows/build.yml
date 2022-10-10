@@ -18,9 +18,8 @@ jobs:
   build-docker:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
-      pull-requests: write
     outputs:
       version: ${{ steps.version.outputs.build_version }}
       cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
