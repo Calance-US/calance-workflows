@@ -12,6 +12,9 @@ on:
       GHCR_TOKEN:
         required: true
         description: 'secret for GHRC'
+      REPOSITORY_OWNER:
+        required: true
+        description: 'username of repository owner'
   push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]
@@ -35,7 +38,7 @@ jobs:
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.REPOSITORY_OWNER }}
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
