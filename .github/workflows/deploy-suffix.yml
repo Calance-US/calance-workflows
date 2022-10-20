@@ -22,6 +22,10 @@ on:
         required: true
         description: 'Enter the application namespace:'
         type: string
+      suffix:
+        description: 'Environment suffix'
+        required: true
+        type: string
 
   workflow_call:
     inputs:
@@ -35,6 +39,10 @@ on:
         type: string
       version:
         description: 'Enter the application version:'
+        required: true
+        type: string
+      suffix:
+        description: 'Environment suffix'
         required: true
         type: string
     secrets:
