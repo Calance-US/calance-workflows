@@ -1,9 +1,9 @@
 name: Build & publish image
 on:
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]
-      - v[0-9]+.[0-9]+.[0-9]+
+  push: 
+    branches:
+      - '8-feature-support-for-multiple-service-deployment-from-same-repository'
+  
 jobs:
  build-and-push-dockerimages:
     strategy:
