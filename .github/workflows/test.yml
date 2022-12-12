@@ -1,6 +1,8 @@
 name: Build & publish image
 on:
   push: 
+    tags:
+      - v1.*.*.*
     branches:
       - '8-feature-support-for-multiple-service-deployment-from-same-repository'
   
