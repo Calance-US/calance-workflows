@@ -1,25 +1,41 @@
 name: Calance generic CI-CD
 on:
-  workflow_call: 
+  workflow_call:
     outputs:
       version:
-        description: 'Version'
+        description: "Version"
         value: ${{ jobs.build-docker.outputs.version }}
       cluster_environment:
-        description: 'Cluster Environment'
+        description: "Cluster Environment"
         value: ${{ jobs.build-docker.outputs.cluster_environment }}
     secrets:
       GHCR_TOKEN:
         required: true
-        description: 'secret for GHRC'
+        description: "secret for GHRC"
       REPOSITORY_OWNER:
         required: true
-        description: 'username of repository owner'
+        description: "username of repository owner"
+    inputs:
+      docker_context_path:
+        description: "Enter docker context path:"
+        required: false
+        type: string
+        default: "."
+      dockerfile_path:
+        description: "Enter dockerfile path:"
+        required: false
+        type: string
+        default: "./Dockerfile"
+      image_name:
+        description: "Enter image name:"
+        required: false
+        type: string
+        default: "${{ github.repository }}"
+
   push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]
       - v[0-9]+.[0-9]+.[0-9]+
-
 
 jobs:
   build-docker:
@@ -46,7 +62,7 @@ jobs:
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-            ghcr.io/${{ github.repository }}
+            ghcr.io/${{ inputs.image_name }}
           tags: |
             type=semver,pattern={{version}}
 
@@ -66,7 +82,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          context: ${{ inputs.docker_context_path }}
+          file: ${{ inputs.dockerfile_path }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
