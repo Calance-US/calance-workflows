@@ -4,52 +4,61 @@ on:
   workflow_dispatch:
     inputs:
       repository_name:
-        description: 'Enter repository name:'
+        description: "Enter repository name:"
+        required: true
+        type: string
+      image_name:
+        description: "Enter image name:"
         required: true
         type: string
       cluster_environment:
-        description: 'Which environment you want to deploy?'
+        description: "Which environment you want to deploy?"
         required: true
         type: choice
         options:
           - "testing"
           - "production"
       version:
-        description: 'Enter the application version:'
+        description: "Enter the application version:"
         required: true
         type: string
       namespace:
         required: true
-        description: 'Enter the application namespace:'
+        description: "Enter the application namespace:"
         type: string
 
   workflow_call:
     inputs:
       repository_name:
-        description: 'Enter repository name:'
+        description: "Enter repository name:"
         required: true
         type: string
+      image_name:
+        description: "Enter image name:"
+        required: true
+        type: string
+        default: "${{ github.repository }}"
       cluster_environment:
-        description: 'Which environment you want to deploy?'
+        description: "Which environment you want to deploy?"
         required: true
         type: string
       version:
-        description: 'Enter the application version:'
+        description: "Enter the application version:"
         required: true
         type: string
     secrets:
       NAMESPACE:
         required: true
-        description: 'Enter the application namespace:'
+        description: "Enter the application namespace:"
       JENKINS_URL:
         required: true
-        description: 'Jenkins URL'
+        description: "Jenkins URL"
       JENKINS_USER:
         required: true
-        description: 'Jenkins USER'
+        description: "Jenkins USER"
       JENKINS_TOKEN:
         required: true
-        description: 'Jenkins TOKEN'
+        description: "Jenkins TOKEN"
 
 jobs:
   trigger-jenkins-job:
@@ -62,4 +71,4 @@ jobs:
           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
           user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
+          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "IMAGE_NAME" : "${{ inputs.image_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
