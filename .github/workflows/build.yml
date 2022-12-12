@@ -64,6 +64,7 @@ jobs:
           images: |
             ghcr.io/${{ inputs.image_name }}
           tags: |
+            type=ref,event=branch
             type=semver,pattern={{version}}
 
       - name: Setting application version
