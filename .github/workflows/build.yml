@@ -87,5 +87,10 @@ jobs:
           context: ${{ inputs.docker_context_path }}
           file: ${{ inputs.dockerfile_path }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}  
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+        if: runner.os != 'Windows'
