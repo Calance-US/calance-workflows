@@ -66,6 +66,12 @@ jobs:
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
+            
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+        if: runner.os != 'Windows'      
 
       - name: Setting application version
         id: version
