@@ -3,7 +3,7 @@ on:
   workflow_call:
     outputs:
       version:
-        description: "Version"
+        description: "Application Version"
         value: ${{ jobs.build-docker.outputs.version }}
       cluster_environment:
         description: "Cluster Environment"
@@ -11,7 +11,7 @@ on:
     secrets:
       GHCR_TOKEN:
         required: true
-        description: "secret for GHRC"
+        description: "secret for Github Container Registry"
       REPOSITORY_OWNER:
         required: true
         description: "username of repository owner"

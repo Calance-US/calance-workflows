@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       cluster_environment:
-        description: "Which environment you want to deploy?"
+        description: "Cluster environment to deploy your image"
         required: true
         type: choice
         options:
@@ -39,7 +39,7 @@ on:
         type: string
         default: "${{ github.repository }}"
       cluster_environment:
-        description: "Which environment you want to deploy?"
+        description: "Cluster environment to deploy your image"
         required: true
         type: string
       version:
