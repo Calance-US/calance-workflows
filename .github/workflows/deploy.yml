@@ -35,7 +35,7 @@ on:
         type: string
       image_name:
         description: "Enter image name:"
-        required: true
+        required: false
         type: string
         default: "${{ github.repository }}"
       cluster_environment:
