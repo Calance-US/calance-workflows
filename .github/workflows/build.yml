@@ -64,9 +64,11 @@ jobs:
           images: |
             ghcr.io/${{ inputs.image_name }}
           tags: |
-            type=ref,event=tag
-            type=ref,event=branch
-            type=semver,pattern={{version}}
+            type=sha
+            
+            # type=ref,event=tag
+            # type=ref,event=branch
+            # type=semver,pattern={{version}}
 
       - name: Dump GitHub context
         env:
