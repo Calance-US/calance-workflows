@@ -60,13 +60,13 @@ jobs:
             ghcr.io/${{ inputs.image_name }}
           tags: |      
             type=semver,pattern={{version}}
-            type=ref,event=branch
+ #           type=ref,event=branch
             
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-        if: runner.os != 'Windows'      
+        if: runner.os != 'Windows' 
 
       - name: Setting application version
         id: version
