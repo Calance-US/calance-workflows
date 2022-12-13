@@ -19,11 +19,7 @@ jobs:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}  
-    uses: ./.github/workflows/build.yml  
-    #with:
-    #  image_name: ${{ matrix.project }} 
-    # docker_context_path: ${{ matrix.project }}
-    # dockerfile_path: ./${{ matrix.project }}/Dockerfile
+    uses: ./.github/workflows/build.yml 
      
  deploy-to-kubernetes:
     needs: build-and-push-dockerimages
@@ -37,7 +33,6 @@ jobs:
     uses: ./.github/workflows/deploy.yml 
     with:
       repository_name: ${{ github.event.repository.name }}
-     # image_name: ${{ matrix.project }} 
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
     secrets:
