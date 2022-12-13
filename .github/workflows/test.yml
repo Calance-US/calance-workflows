@@ -9,13 +9,6 @@ on:
   
 jobs:
  build-and-push-dockerimages:
-    strategy:
-     fail-fast: false 
-     matrix:
-       project: [hrms_admin]
-    permissions:
-      contents: read
-      packages: write
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}  
@@ -26,7 +19,7 @@ jobs:
     strategy:
      fail-fast: false
      matrix:
-       project: [hrms_admin, hrms_client]
+       project: [calance-workflows-release-1, calance-workflows-release-2]
     permissions:
       contents: read
       packages: write
