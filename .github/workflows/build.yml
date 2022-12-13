@@ -57,7 +57,7 @@ jobs:
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-            ghcr.io/${{ inputs.image_name }}
+            ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
           tags: |      
             type=semver,pattern={{version}}
  #           type=ref,event=branch
@@ -91,6 +91,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}  
           labels: ${{ steps.meta.outputs.labels }}
+
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
