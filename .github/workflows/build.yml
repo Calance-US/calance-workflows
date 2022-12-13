@@ -30,7 +30,7 @@ on:
         description: "Enter image name:"
         required: false
         type: string
-        default: "${{ github.repository.name }}"
+        default: "${{ github.event.repository.name }}"
         
 jobs:
   build-docker:
