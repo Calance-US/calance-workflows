@@ -11,6 +11,11 @@ on:
         description: "Enter image name:"
         required: true
         type: string
+      release_name:
+        description: 'Enter release name:'
+        required: false
+        type: string
+        default: ""
       cluster_environment:
         description: "Cluster environment to deploy your image"
         required: true
@@ -38,6 +43,11 @@ on:
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
+      release_name:
+        description: 'Enter release name:'
+        required: false
+        type: string
+        default: ""
       cluster_environment:
         description: "Cluster environment to deploy your image"
         required: true
@@ -71,4 +81,4 @@ jobs:
           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
           user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "IMAGE_NAME" : "${{ inputs.image_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
+          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "RELEASE_NAME" : "${{ inputs.release_name }}", "IMAGE_NAME" : "${{ inputs.image_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'

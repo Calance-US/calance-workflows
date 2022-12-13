@@ -12,7 +12,7 @@ jobs:
     strategy:
      fail-fast: false 
      matrix:
-       project: [hrms_admin, hrms_client]
+       project: [hrms_admin]
     permissions:
       contents: read
       packages: write
