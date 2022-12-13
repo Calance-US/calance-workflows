@@ -65,7 +65,7 @@ jobs:
             ghcr.io/${{ inputs.image_name }}
           tags: |
             type=sha
-            
+
             # type=ref,event=tag
             # type=ref,event=branch
             # type=semver,pattern={{version}}
@@ -102,5 +102,8 @@ jobs:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+        run: |
+          echo "$GITHUB_CONTEXT"
+          echo "${{fromJSON(steps.meta.outputs.json)}}"
+         
         if: runner.os != 'Windows'
