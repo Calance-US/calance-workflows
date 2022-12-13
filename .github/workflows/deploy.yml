@@ -37,7 +37,7 @@ on:
         description: "Enter image name:"
         required: false
         type: string
-        default: "${{ github.repository }}"
+        default: "${{ github.event.repository.name }}"
       cluster_environment:
         description: "Cluster environment to deploy your image"
         required: true
