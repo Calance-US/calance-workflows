@@ -31,7 +31,7 @@ on:
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
-        
+
 jobs:
   build-docker:
     runs-on: ubuntu-latest
@@ -58,22 +58,20 @@ jobs:
         with:
           images: |
             ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-          tags: |      
+          tags: |
             type=semver,pattern={{version}}
- #           type=ref,event=branch
-            
+
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-        if: runner.os != 'Windows' 
+        if: runner.os != 'Windows'
 
       - name: Setting application version
         id: version
         run: |
           echo "::set-output name=build_version::${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
-          echo "${{ steps.meta.outputs.tags }}"
-          echo "${{inputs.image_name}}"
+
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
         run: |
@@ -89,14 +87,5 @@ jobs:
           context: ${{ inputs.docker_context_path }}
           file: ${{ inputs.dockerfile_path }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}  
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          echo "$GITHUB_CONTEXT"
-          echo "${{fromJSON(steps.meta.outputs.json)}}"
-         
-        if: runner.os != 'Windows'
