@@ -29,11 +29,12 @@ jobs:
        project: [hrms_admin, hrms_client]
     permissions:
       contents: read
-      packages: write    
+      packages: write
     uses: ./.github/workflows/deploy.yml 
     with:
       repository_name: ${{ github.event.repository.name }}
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+      release_name: ${{ matrix.projects }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
     secrets:
       NAMESPACE: ${{ secrets.NAMESPACE }}
