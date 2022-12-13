@@ -58,9 +58,10 @@ jobs:
         with:
           images: |
             ghcr.io/${{ inputs.image_name }}
-          tags: |
+          tags: |      
             type=semver,pattern={{version}}
-
+            type=ref,event=branch
+            
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
