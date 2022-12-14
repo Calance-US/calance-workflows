@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       repository_name:
-        description: "Enter repository name:"
+        description: "repository name in which application code is present"
         required: true
         type: string
       image_name:
-        description: "Enter image name:"
+        description: "image name of our application's dockerfile"
         required: true
         type: string
       release_name:
-        description: 'Enter release name:'
+        description: "application release name"
         required: false
         type: string
         default: ""
@@ -24,27 +24,27 @@ on:
           - "testing"
           - "production"
       version:
-        description: "Enter the application version:"
+        description: "application version:"
         required: true
         type: string
       namespace:
         required: true
-        description: "Enter the application namespace:"
+        description: "cluseter namespace in which application is going to depolyed"
         type: string
 
   workflow_call:
     inputs:
       repository_name:
-        description: "Enter repository name:"
+        description: "repository name in which application code is present"
         required: true
         type: string
       image_name:
-        description: "Enter image name:"
+        description: "image name of our application's dockerfile"
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
       release_name:
-        description: 'Enter release name:'
+        description: 'application release name'
         required: false
         type: string
         default: ""
@@ -53,13 +53,13 @@ on:
         required: true
         type: string
       version:
-        description: "Enter the application version:"
+        description: "application version"
         required: true
         type: string
     secrets:
       NAMESPACE:
         required: true
-        description: "Enter the application namespace:"
+        description: "cluster namespace in which application is going to be deployed"
       JENKINS_URL:
         required: true
         description: "Jenkins URL"
