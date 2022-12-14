@@ -57,7 +57,6 @@ jobs:
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-#            ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
              ghcr.io/${{ github.repository }}
           tags: |
             type=semver,pattern={{version}}
