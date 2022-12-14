@@ -1,4 +1,4 @@
-name: Build & publish image
+name: TestCase 2 - Monorepo
 on:
   push: 
     tags:

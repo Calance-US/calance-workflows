@@ -1,4 +1,4 @@
-name: Build & publish image
+name: TestCase 1 - Basic Repository
 on:
   push: 
     tags:

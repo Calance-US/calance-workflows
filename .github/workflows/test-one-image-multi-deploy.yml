@@ -1,4 +1,4 @@
-name: Build & publish image
+name: TestCase 3 - Single image multi-deploy
 on:
   push: 
     tags:
