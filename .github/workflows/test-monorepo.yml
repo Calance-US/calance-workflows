@@ -35,6 +35,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml 
     with:
       repository_name: ${{ github.event.repository.name }}
+      image_name: ${{ matrix.project }}
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
       release_name: ${{ matrix.project }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}

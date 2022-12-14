@@ -25,6 +25,7 @@ jobs:
     with:
       repository_name: ${{ github.event.repository.name }}
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+      image_name: ${{ matrix.project }}
       release_name: ${{ matrix.project }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
     secrets:

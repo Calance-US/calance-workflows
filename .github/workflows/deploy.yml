@@ -4,27 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       repository_name:
-        description: "repository name in which application code is present"
+        description: "name of the service to be deployed (usually it is the same as the repository name)"
         required: true
         type: string
       image_name:
-        description: "image name of our application's dockerfile"
+        description: "name of the image to deployed (excluding the registry & owner details), ex: atcost-ospos"
         required: true
         type: string
       release_name:
-        description: "application release name"
+        description: "name of the helm release to be created (should only contain alpha-numeric & hyphen characters)"
         required: false
         type: string
         default: ""
       cluster_environment:
-        description: "Cluster environment to deploy your image"
+        description: "environment where application will be deployed, ex: testing, production, etc."
         required: true
         type: choice
         options:
           - "testing"
           - "production"
       version:
-        description: "application version:"
+        description: "application version"
         required: true
         type: string
       namespace:

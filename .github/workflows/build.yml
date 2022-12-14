@@ -6,7 +6,7 @@ on:
         description: "Application Version"
         value: ${{ jobs.build-docker.outputs.version }}
       cluster_environment:
-        description: "Cluster Environment-production or testing "
+        description: "Cluster environment where application will be deployed, ex: testing, production, etc. "
         value: ${{ jobs.build-docker.outputs.cluster_environment }}
     secrets:
       GHCR_TOKEN:
@@ -14,20 +14,20 @@ on:
         description: "secret for Github Container Registry"
       REPOSITORY_OWNER:
         required: true
-        description: "username of repository owner"
+        description: "username of GHCR owner"
     inputs:
       docker_context_path:
-        description: "docker context path:"
+        description: "docker context path"
         required: false
         type: string
         default: "."
       dockerfile_path:
-        description: "Enter dockerfile path that is will be used to create a image"
+        description: "Enter path to the Dockerfile that will be used to create a image"
         required: false
         type: string
         default: "./Dockerfile"
       image_name:
-        description: "image name of docker image for current application"
+        description: "name for the image that will be built (defaults to repository name)"
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
