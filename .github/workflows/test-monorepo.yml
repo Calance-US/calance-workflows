@@ -7,7 +7,9 @@ on:
   
 jobs:
  build-and-push-dockerimages:
-    matrix:
+    strategy:
+     fail-fast: false 
+     matrix:
        project: [calance-workflows-release-1, calance-workflows-release-2]
     permissions:
       contents: read
