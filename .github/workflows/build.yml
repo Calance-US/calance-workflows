@@ -22,7 +22,7 @@ on:
         type: string
         default: "."
       dockerfile_path:
-        description: "Enter path to the Dockerfile that will be used to create a image"
+        description: "path to the Dockerfile"
         required: false
         type: string
         default: "./Dockerfile"

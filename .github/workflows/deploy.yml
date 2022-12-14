@@ -24,18 +24,18 @@ on:
           - "testing"
           - "production"
       version:
-        description: "application version"
+        description: "application version (image tag) to be deployed"
         required: true
         type: string
       namespace:
         required: true
-        description: "cluseter namespace in which application is going to depolyed"
+        description: "cluseter namespace in which application is going to be depolyed"
         type: string
 
   workflow_call:
     inputs:
       repository_name:
-        description: "repository name in which application code is present"
+        description: "name of the service to be deployed (usually it is the same as the repository name)"
         required: true
         type: string
       image_name:
@@ -81,4 +81,12 @@ jobs:
           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
           user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "RELEASE_NAME" : "${{ inputs.release_name }}", "IMAGE_NAME" : "${{ inputs.image_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
+          job-params: |
+                      {
+                        "SERVICE_NAME" : "${{ inputs.repository_name }}", 
+                        "RELEASE_NAME" : "${{ inputs.release_name }}", 
+                        "IMAGE_NAME" : "${{ inputs.image_name }}", 
+                        "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
+                        "VERSION": "${{ inputs.version }}", 
+                        "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" 
+                      }
