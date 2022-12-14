@@ -19,9 +19,8 @@ jobs:
       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}  
     uses: ./.github/workflows/build.yml 
     with:
-    # dockerfile_path: ./Dockerfile
-    #  image_name: ${{ matrix.project }} 
-    #  docker_context_path: ${{ matrix.project }}
+      image_name: ${{ matrix.project }} 
+      docker_context_path: ${{ matrix.project }}
       dockerfile_path: ./${{ matrix.project }}/Dockerfile
      
  deploy-to-kubernetes:
