@@ -1,6 +1,6 @@
 name: Deploy to Kubernetes
 
-on:  
+on:
   workflow_call:
     inputs:
       repository_name:
@@ -13,7 +13,7 @@ on:
         type: string
         default: "${{ github.event.repository.name }}"
       release_name:
-        description: 'application release name'
+        description: "application release name"
         required: false
         type: string
         default: ""
@@ -51,11 +51,11 @@ jobs:
           user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
           job-params: |
-                      {
-                        "SERVICE_NAME" : "${{ inputs.repository_name }}", 
-                        "RELEASE_NAME" : "${{ inputs.release_name }}", 
-                        "IMAGE_NAME" : "${{ inputs.image_name }}", 
-                        "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
-                        "VERSION": "${{ inputs.version }}", 
-                        "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" 
-                      }
+            {
+              "SERVICE_NAME" : "${{ inputs.repository_name }}", 
+              "RELEASE_NAME" : "${{ inputs.release_name }}", 
+              "IMAGE_NAME" : "${{ inputs.image_name }}", 
+              "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
+              "VERSION": "${{ inputs.version }}", 
+              "NAMESPACE": "${{ secrets.NAMESPACE }}" 
+            }
