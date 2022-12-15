@@ -1,37 +1,6 @@
 name: Deploy to Kubernetes
 
-on:
-  workflow_dispatch:
-    inputs:
-      repository_name:
-        description: "name of the service to be deployed (usually it is the same as the repository name)"
-        required: true
-        type: string
-      image_name:
-        description: "name of the image to deployed (excluding the registry & owner details), ex: atcost-ospos"
-        required: true
-        type: string
-      release_name:
-        description: "name of the helm release to be created (should only contain alpha-numeric & hyphen characters)"
-        required: false
-        type: string
-        default: ""
-      cluster_environment:
-        description: "environment where application will be deployed, ex: testing, production, etc."
-        required: true
-        type: choice
-        options:
-          - "testing"
-          - "production"
-      version:
-        description: "application version (image tag) to be deployed"
-        required: true
-        type: string
-      namespace:
-        required: true
-        description: "cluseter namespace in which application is going to be depolyed"
-        type: string
-
+on:  
   workflow_call:
     inputs:
       repository_name:
