@@ -1,55 +1,43 @@
 name: Deploy to Kubernetes
 
 on:
-  workflow_dispatch:
-    inputs:
-      repository_name:
-        description: 'Enter repository name:'
-        required: true
-        type: string
-      cluster_environment:
-        description: 'Which environment you want to deploy?'
-        required: true
-        type: choice
-        options:
-          - "testing"
-          - "production"
-      version:
-        description: 'Enter the application version:'
-        required: true
-        type: string
-      namespace:
-        required: true
-        description: 'Enter the application namespace:'
-        type: string
-
   workflow_call:
     inputs:
       repository_name:
-        description: 'Enter repository name:'
+        description: "name of the service to be deployed (usually it is the same as the repository name)"
         required: true
         type: string
+      image_name:
+        description: "image name of our application's dockerfile"
+        required: false
+        type: string
+        default: "${{ github.event.repository.name }}"
+      release_name:
+        description: "application release name"
+        required: false
+        type: string
+        default: ""
       cluster_environment:
-        description: 'Which environment you want to deploy?'
+        description: "Cluster environment to deploy your image"
         required: true
         type: string
       version:
-        description: 'Enter the application version:'
+        description: "application version"
         required: true
         type: string
     secrets:
       NAMESPACE:
         required: true
-        description: 'Enter the application namespace:'
+        description: "cluster namespace in which application is going to be deployed"
       JENKINS_URL:
         required: true
-        description: 'Jenkins URL'
+        description: "Jenkins URL"
       JENKINS_USER:
         required: true
-        description: 'Jenkins USER'
+        description: "Jenkins USER"
       JENKINS_TOKEN:
         required: true
-        description: 'Jenkins TOKEN'
+        description: "Jenkins TOKEN"
 
 jobs:
   trigger-jenkins-job:
@@ -62,4 +50,12 @@ jobs:
           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
           user: "${{ secrets.JENKINS_USER }}"
           job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: '{"SERVICE_NAME" : "${{ inputs.repository_name }}", "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , "VERSION": "${{ inputs.version }}", "NAMESPACE": "${{ inputs.namespace || secrets.NAMESPACE }}" }'
+          job-params: |
+            {
+              "SERVICE_NAME" : "${{ inputs.repository_name }}", 
+              "RELEASE_NAME" : "${{ inputs.release_name }}", 
+              "IMAGE_NAME" : "${{ inputs.image_name }}", 
+              "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
+              "VERSION": "${{ inputs.version }}", 
+              "NAMESPACE": "${{ secrets.NAMESPACE }}" 
+            }
