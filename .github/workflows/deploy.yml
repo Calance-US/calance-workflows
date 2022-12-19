@@ -51,15 +51,15 @@ on:
 
 jobs:
   trigger-jenkins-job:
+    runs-on: ubuntu-latest
     outputs:
       namespace: ${{steps.set_namespace.outputs.NAMESPACE}}
-    runs-on: ubuntu-latest
     steps:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
             if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
-                echo ':: set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
+                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
                 echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
