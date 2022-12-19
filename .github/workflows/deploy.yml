@@ -65,7 +65,7 @@ jobs:
                 echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             else 
-              echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
+                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
             fi
   
       - name: Trigger Jenkins Job
