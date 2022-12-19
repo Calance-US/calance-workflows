@@ -45,7 +45,9 @@ on:
         required: true
         description: "Jenkins TOKEN"
     outputs: 
-      namespace: ${{jobs.trigger-jenkins-job.outputs.namespace}}     
+      namespace: 
+        description: "namespace output"
+        value: ${{jobs.trigger-jenkins-job.outputs.namespace}}     
 
 jobs:
   trigger-jenkins-job:

@@ -34,8 +34,11 @@ jobs:
 
  assertion:
    needs: deploy-to-kubernetes
-   if: ${{needs.deploy-to-kubernetes.outputs.namespace}} == "null" }}
-   run: |
-      echo "namespace is missing"
+   runs-on: ubuntu-latest
+   steps:
+     - name:
+       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} == "null" }}
+       run: |
+            echo "namespace is missing"
 
    
