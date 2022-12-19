@@ -58,7 +58,7 @@ jobs:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
-            if [[ "${{inputs.env_specific_namespaces}}" == "true" ]]; then
+            if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
                 echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
