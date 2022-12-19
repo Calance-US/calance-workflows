@@ -25,6 +25,12 @@ on:
         description: "application version"
         required: true
         type: string
+      namespace_swith:
+        description: "namespace switch for testing and production"
+        required: true
+        type: boolean
+        default: false
+           
     secrets:
       NAMESPACE:
         required: true
@@ -43,6 +49,19 @@ jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
     steps:
+      - name: check the deployment namespace 
+        id: set_namespace
+        run: |
+            if [[ "${{ inputs.namespace_swith}}" == "true" && ""${{inputs.cluster_enviorment}}" == "testing" ]]; then
+                echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing"
+          
+            if [[ "${{ inputs.namespace_swith}}" == "true" && ""${{inputs.cluster_enviorment}}" == "production" ]]; then
+                echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
+
+            else [["${{inputs.namespace_swith}}" == "false"]]; then
+               echo ":: set-output name=NAMESPACE::${{secrets.NAMESPACE}}    
+
+         
       - name: Trigger Jenkins Job
         uses: Calance-US/build-jenkins-job@main
         with:
@@ -57,5 +76,5 @@ jobs:
               "IMAGE_NAME" : "${{ inputs.image_name }}", 
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
               "VERSION": "${{ inputs.version }}", 
-              "NAMESPACE": "${{ secrets.NAMESPACE }}" 
+              "NAMESPACE": "${{ steps.set_namespace.outputs.NAMESPACE }}" 
             }
