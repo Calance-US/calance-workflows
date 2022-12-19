@@ -52,10 +52,10 @@ jobs:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
-            if [[ "${{ inputs.namespace_swith}}" == "true" && ""${{inputs.cluster_enviorment}}" == "testing" ]]; then
+            if [[ "${{ inputs.namespace_swith}}" == "true" && "${{inputs.cluster_enviorment}}" == "testing" ]]; then
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing"
           
-            if [[ "${{ inputs.namespace_swith}}" == "true" && ""${{inputs.cluster_enviorment}}" == "production" ]]; then
+            if [[ "${{ inputs.namespace_swith}}" == "true" && "${{inputs.cluster_enviorment}}" == "production" ]]; then
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
 
             else [["${{inputs.namespace_swith}}" == "false"]]; then
