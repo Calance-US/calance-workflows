@@ -44,15 +44,19 @@ on:
       JENKINS_TOKEN:
         required: true
         description: "Jenkins TOKEN"
+    outputs: 
+      namespace: ${{jobs.trigger-jenkins-job.outputs.namespace}}     
 
 jobs:
   trigger-jenkins-job:
+    outputs:
+      namespace: ${{steps.set_namespace.outputs.NAMESPACE}}
     runs-on: ubuntu-latest
     steps:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
-            if [["${{inputs.env_specific_namespaces}}" == "false"]]; then
+            if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
                 echo ':: set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
@@ -61,8 +65,7 @@ jobs:
             else 
               echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
             fi
-
-         
+  
       - name: Trigger Jenkins Job
         uses: Calance-US/build-jenkins-job@main
         with:

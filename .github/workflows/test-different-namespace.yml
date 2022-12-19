@@ -1,4 +1,4 @@
-name: check env specific namespaces
+name: TestCase 4 - env specific namespaces
 on:
   push: 
     tags:
@@ -29,4 +29,13 @@ jobs:
       NAMESPACE: ${{ secrets.NAMESPACE }}
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}   
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}  
+
+
+ assertion:
+   needs: deploy-to-kubernetes
+   if: ${{needs.deploy-to-kubernetes.outputs.namespace}} == "null" }}
+   run: |
+      echo "namespace is missing"
+
+   
