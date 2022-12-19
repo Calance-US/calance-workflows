@@ -25,7 +25,7 @@ on:
         description: "application version"
         required: true
         type: string
-      namespace_switch:
+      env_specific_namespaces:
         description: "namespace switch for testing and production"
         required: false
         type: boolean
@@ -52,14 +52,14 @@ jobs:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
-            if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "testing" ]]; then
-                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing'
-            
-            elif [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
+            if [["${{inputs.env_specific_namespaces}}" == "false"]]; then
+                echo ':: set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
+
+            elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
                 echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             else 
-               echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
+              echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
             fi
 
          
