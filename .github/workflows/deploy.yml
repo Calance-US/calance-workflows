@@ -54,6 +54,9 @@ jobs:
         run: |
             if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "testing" ]]; then
                 echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing'
+            
+            elif [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
+                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
 
             else 
                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
