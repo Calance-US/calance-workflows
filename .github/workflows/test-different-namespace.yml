@@ -18,21 +18,18 @@ jobs:
     permissions:
       contents: read
       packages: write
-    steps:   
-
-    - name: deploy to jenkins
-      id: deploy
-      uses: ./.github/workflows/deploy.yml 
-      with:
-        repository_name: ${{ github.event.repository.name }}
-        version: ${{ needs.build-and-push-dockerimages.outputs.version }}
-        cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
-        env_specific_namespaces: true
-      secrets:
-        NAMESPACE: ${{ secrets.NAMESPACE }}
-        JENKINS_URL: ${{ secrets.JENKINS_URL }}
-        JENKINS_USER: ${{ secrets.JENKINS_USER }}
-        JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}  
+    
+    uses: ./.github/workflows/deploy.yml 
+    with:
+      repository_name: ${{ github.event.repository.name }}
+      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+      env_specific_namespaces: true
+    secrets:
+      NAMESPACE: ${{ secrets.NAMESPACE }}
+      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}  
    
  assertion:
    needs: deploy-to-kubernetes
