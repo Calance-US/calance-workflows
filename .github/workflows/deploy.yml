@@ -25,7 +25,7 @@ on:
         description: "application version"
         required: true
         type: string
-      namespace_swith:
+      namespace_switch:
         description: "namespace switch for testing and production"
         required: true
         type: boolean
@@ -52,13 +52,13 @@ jobs:
       - name: check the deployment namespace 
         id: set_namespace
         run: |
-            if [[ "${{ inputs.namespace_swith}}" == "true" && "${{inputs.cluster_enviorment}}" == "testing" ]]; then
+            if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "testing" ]]; then
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing"
           
-            if [[ "${{ inputs.namespace_swith}}" == "true" && "${{inputs.cluster_enviorment}}" == "production" ]]; then
+            if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
 
-            else [["${{inputs.namespace_swith}}" == "false"]]; then
+            else [["${{inputs.namespace_switch}}" == "false"]]; then
                echo ":: set-output name=NAMESPACE::${{secrets.NAMESPACE}}    
 
          
