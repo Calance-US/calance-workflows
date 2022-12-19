@@ -53,14 +53,11 @@ jobs:
         id: set_namespace
         run: |
             if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "testing" ]]; then
-                echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing"
-          
-            if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
-                echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
+                echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}-testing'
 
             else 
-               echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
-            fi;
+               echo '::set-output name=NAMESPACE::${{secrets.NAMESPACE}}'
+            fi
 
          
       - name: Trigger Jenkins Job
