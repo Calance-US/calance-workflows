@@ -59,7 +59,8 @@ jobs:
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
 
             else 
-               echo ":: set-output name=NAMESPACE::${{secrets.NAMESPACE}}"    
+               echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
+            fi
 
          
       - name: Trigger Jenkins Job
