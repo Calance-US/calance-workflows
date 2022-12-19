@@ -34,9 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: check namespace
-        if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  ${{secrets.NAMESPACE}}-testing
+        with:
+          namespace: ${{secrets.NAMESPACE}}
+        if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  namespace-testing
         run: |
             echo "unexpected namespace" 
             exit 1    
-    secrets:
-      NAMESPACE: ${{ secrets.NAMESPACE }}           
+            
