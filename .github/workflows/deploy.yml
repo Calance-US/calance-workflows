@@ -27,7 +27,7 @@ on:
         type: string
       namespace_switch:
         description: "namespace switch for testing and production"
-        required: true
+        required: false
         type: boolean
         default: false
            
