@@ -58,8 +58,8 @@ jobs:
             if [[ "${{ inputs.namespace_switch}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
                 echo "::set-output name=NAMESPACE::${{secrets.NAMESPACE}}"
 
-            else [["${{inputs.namespace_switch}}" == "false"]]; then
-               echo ":: set-output name=NAMESPACE::${{secrets.NAMESPACE}}    
+            else 
+               echo ":: set-output name=NAMESPACE::${{secrets.NAMESPACE}}"    
 
          
       - name: Trigger Jenkins Job
