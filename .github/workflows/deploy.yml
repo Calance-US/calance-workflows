@@ -60,15 +60,15 @@ jobs:
         id: set_namespace
         run: |
             if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
-                echo '::set-output name=namespace::${{secrets.namespace}}'
+                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
                 echo 'setting the namespace'
 
             elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
-                echo '::set-output name=namespace::${{secrets.namespace}}'
+                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
                 echo 'setting namespace for production'
 
             else 
-                echo '::set-output name=namespace::${{secrets.namespace}}-${{inputs.cluster_environment}}'
+                echo '::set-output name=namespace::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
                 echo 'setting the namespace for testing by appending the cluster enviornment'
             fi
   
