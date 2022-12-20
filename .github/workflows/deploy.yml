@@ -30,7 +30,11 @@ on:
         required: false
         type: boolean
         default: false
-           
+    outputs: 
+      namespace: 
+        description: "namespace output"
+        value: ${{ jobs.trigger-jenkins-job.outputs.namespace }}
+
     secrets:
       NAMESPACE:
         required: true
@@ -44,16 +48,13 @@ on:
       JENKINS_TOKEN:
         required: true
         description: "Jenkins TOKEN"
-    outputs: 
-      namespace: 
-        description: "namespace output"
-        value: ${{jobs.trigger-jenkins-job.outputs.namespace}}     
+        
 
 jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
     outputs:
-      namespace: ${{steps.set_namespace.outputs.NAMESPACE}}
+      namespace: ${{ steps.set_namespace.outputs.NAMESPACE }}
     steps:
       - name: check the deployment namespace 
         id: set_namespace
