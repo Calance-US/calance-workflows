@@ -26,14 +26,10 @@ on:
         required: true
         type: string
       env_specific_namespaces:
-        description: "namespace switch for testing and production"
+        description:  "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
         required: false
         type: boolean
         default: false
-    outputs: 
-      namespace: 
-        description: "namespace output"
-        value: ${{ jobs.trigger-jenkins-job.outputs.namespace }}
 
     secrets:
       NAMESPACE:
@@ -53,8 +49,6 @@ on:
 jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
-    outputs:
-      namespace: ${{ steps.set_namespace.outputs.namespace}}
     steps:
       - name: check the deployment namespace 
         id: set_namespace
