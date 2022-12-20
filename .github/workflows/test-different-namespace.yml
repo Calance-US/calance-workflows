@@ -28,20 +28,23 @@ jobs:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}  
+
+
+# assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
    
-  assertion:
-    needs: deploy-to-kubernetes
-    runs-on: ubuntu-latest
-    steps:
-      - name: check namespace
-        env:
-          namespace: ${{secrets.NAMESPACE}}
-        if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
-        run: |
-            echo 'unexpected namespace'
-            echo '${{ toJSON(needs) }}'
-            echo '${{ toJSON(needs.deploy-to-kubernetes) }}'
-            echo '${{ toJSON(needs.deploy-to-kubernetes.outputs) }}'
-            echo '${{ toJSON(needs.deploy-to-kubernetes.outputs.namespace) }}'
-            exit 1    
+  # assertion:
+  #   needs: deploy-to-kubernetes
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: check namespace
+  #       env:
+  #         namespace: ${{secrets.NAMESPACE}}
+  #       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
+  #       run: |
+  #           echo 'unexpected namespace'
+  #           echo '${{ toJSON(needs) }}'
+  #           echo '${{ toJSON(needs.deploy-to-kubernetes) }}'
+  #           echo '${{ toJSON(needs.deploy-to-kubernetes.outputs) }}'
+  #           echo '${{ toJSON(needs.deploy-to-kubernetes.outputs.namespace) }}'
+  #           exit 1    
             
