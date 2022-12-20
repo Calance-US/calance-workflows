@@ -33,18 +33,15 @@ jobs:
     needs: deploy-to-kubernetes
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
       - name: check namespace
         env:
           namespace: ${{secrets.NAMESPACE}}
         if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
         run: |
-            echo "unexpected namespace" 
-            echo "${{needs}}"
-            echo "${{needs.deploy-to-kubernetes}}"
-            echo "${{needs.deploy-to-kubernetes.outputs}}"
-            echo "${{needs.deploy-to-kubernetes.outputs.namespace}}"
+            echo 'unexpected namespace'
+            echo '${{ toJSON(needs) }}'
+            echo '${{ toJSON(needs.deploy-to-kubernetes) }}'
+            echo '${{ toJSON(needs.deploy-to-kubernetes.outputs) }}'
+            echo '${{ toJSON(needs.deploy-to-kubernetes.outputs.namespace) }}'
             exit 1    
             
