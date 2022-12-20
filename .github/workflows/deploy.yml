@@ -36,7 +36,7 @@ on:
         value: ${{ jobs.trigger-jenkins-job.outputs.namespace }}
 
     secrets:
-      namespace:
+      NAMESPACE:
         required: true
         description: "cluster namespace in which application is going to be deployed"
       JENKINS_URL:
