@@ -41,10 +41,5 @@ jobs:
   #         namespace: ${{secrets.NAMESPACE}}
   #       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
   #       run: |
-  #           echo 'unexpected namespace'
-  #           echo '${{ toJSON(needs) }}'
-  #           echo '${{ toJSON(needs.deploy-to-kubernetes) }}'
-  #           echo '${{ toJSON(needs.deploy-to-kubernetes.outputs) }}'
-  #           echo '${{ toJSON(needs.deploy-to-kubernetes.outputs.namespace) }}'
   #           exit 1    
             
