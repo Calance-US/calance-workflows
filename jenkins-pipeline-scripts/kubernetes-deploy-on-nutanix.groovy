@@ -21,8 +21,9 @@ node('master') {
             if (imageName == null || imageName == '') {
                 imageName = SERVICE_NAME
             }
+
             print "Image Name -> $imageName"
-            
+
             // RELEASE_NAME param was added later, so for old workflows
             // to work we get release name from IMAGE_NAME or SERVICE_NAME params
 
