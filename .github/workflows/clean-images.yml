@@ -1,0 +1,24 @@
+name: Delete old container images
+
+on: 
+  workflow_call:
+    inputs:
+      image_name: 
+        description: "Image Name"
+        required: true
+        type: string 
+
+jobs:
+  clean-ghcr:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all test containers older than a month
+        uses: snok/container-retention-policy@v1
+        with:
+          cut-off: One month ago UTC
+          account-type: org
+          org-name: calance
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: 5
+          token: ${{ secrets.GHCR_TOKEN }}
