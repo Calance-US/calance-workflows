@@ -9,16 +9,32 @@ on:
         type: string 
 
 jobs:
-  clean-ghcr:
+  clean-ghcr-prod:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     steps:
-      - name: Delete all test containers older than a month
+      - name: Delete all test containers in Production
         uses: snok/container-retention-policy@v1
         with:
           cut-off: One month ago UTC
-          account-type: org
-          org-name: calance
+          account-type: personal
+          filter_tags: "v*.*.*"
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: 10
+          token: ${{ secrets.GHCR_TOKEN }}
+  
+  clean-ghcr-testing:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all test containers in Testing
+        uses: snok/container-retention-policy@v1
+        with:
+          cut-off: One week ago UTC
+          account-type: personal
+          filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: 5
           token: ${{ secrets.GHCR_TOKEN }}
+
+  
