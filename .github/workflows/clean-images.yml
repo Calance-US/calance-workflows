@@ -17,7 +17,8 @@ jobs:
         uses: snok/container-retention-policy@v1
         with:
           cut-off: One month ago UTC
-          account-type: personal
+          account-type: org
+          org-name: Calance-US
           filter_tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: 10
@@ -31,7 +32,8 @@ jobs:
         uses: snok/container-retention-policy@v1
         with:
           cut-off: One week ago UTC
-          account-type: personal
+          account-type: org
+          org-name: Calance-US
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: 5
