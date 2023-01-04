@@ -6,37 +6,57 @@ on:
       image_name: 
         description: "Image Name"
         required: true
-        type: string 
+        type: string
+      minimum_images_prod:
+        description: "Minimum image versions required for Prod"
+        required: true
+        type: number
+        default: 10
+      cutoff_prod:
+        description: "Cutoff for Prod"
+        required: true
+        type: string
+        default: "One month ago UTC" 
+      minimum_images_testing:
+        description: "Minimum image versions required for Testing"
+        required: true
+        type: number
+        default: 5
+      cutoff_testing:
+        description: "Cutoff for Testing"
+        required: true
+        type: string
+        default: "One week ago UTC"
 
 jobs:
   clean-ghcr-prod:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     steps:
-      - name: Delete all test containers in Production
+      - name: Delete old containers in Production
         uses: snok/container-retention-policy@v1
         with:
-          cut-off: One month ago UTC
+          cut-off: ${{ inputs.cutoff_prod }}
           account-type: org
           org-name: Calance-US
           filter_tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
-          keep-at-least: 10
+          keep-at-least: ${{ inputs.minimum_images_prod }}
           token: ${{ secrets.GHCR_TOKEN }}
   
   clean-ghcr-testing:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     steps:
-      - name: Delete all test containers in Testing
+      - name: Delete old containers in Testing
         uses: snok/container-retention-policy@v1
         with:
-          cut-off: One week ago UTC
+          cut-off: ${{ inputs.cutoff_testing }}
           account-type: org
           org-name: Calance-US
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
-          keep-at-least: 5
+          keep-at-least: ${{ inputs.minimum_images_testing }}
           token: ${{ secrets.GHCR_TOKEN }}
 
   
