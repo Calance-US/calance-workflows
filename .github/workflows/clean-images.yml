@@ -9,7 +9,7 @@ on:
         type: string
       minimum_images_prod:
         description: "Minimum image versions required for Prod"
-        required: true
+        required: false
         type: number
         default: 10
       cutoff_prod:
@@ -19,7 +19,7 @@ on:
         default: "One month ago UTC" 
       minimum_images_testing:
         description: "Minimum image versions required for Testing"
-        required: true
+        required: false
         type: number
         default: 5
       cutoff_testing:
