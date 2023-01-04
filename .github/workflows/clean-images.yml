@@ -14,7 +14,7 @@ on:
         default: 10
       cutoff_prod:
         description: "Cutoff for Prod"
-        required: true
+        required: false
         type: string
         default: "One month ago UTC" 
       minimum_images_testing:
@@ -24,7 +24,7 @@ on:
         default: 5
       cutoff_testing:
         description: "Cutoff for Testing"
-        required: true
+        required: false
         type: string
         default: "One week ago UTC"
 
