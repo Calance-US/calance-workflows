@@ -7,7 +7,7 @@ on:
         description: "Image Name"
         required: true
         type: string
-      minimum_images_prod:
+      prod_keep_at_least:
         description: "Minimum image versions required for Prod"
         required: false
         type: number
@@ -17,7 +17,7 @@ on:
         required: false
         type: string
         default: "One month ago UTC" 
-      minimum_images_testing:
+      testing_keep_at_least:
         description: "Minimum image versions required for Testing"
         required: false
         type: number
@@ -27,6 +27,9 @@ on:
         required: false
         type: string
         default: "One week ago UTC"
+    secrets:
+      GHCR_TOKEN:
+        required: true
 
 jobs:
   clean-ghcr-prod:
@@ -34,14 +37,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Production
-        uses: snok/container-retention-policy@v1
+        uses: artazar/container-retention-policy@keep_at_least_filtered
         with:
           cut-off: ${{ inputs.cutoff_prod }}
           account-type: org
           org-name: Calance-US
           filter_tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
-          keep-at-least: ${{ inputs.minimum_images_prod }}
+          keep-at-least: ${{ inputs.prod_keep_at_least }}
           token: ${{ secrets.GHCR_TOKEN }}
   
   clean-ghcr-testing:
@@ -49,14 +52,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Testing
-        uses: snok/container-retention-policy@v1
+        uses: artazar/container-retention-policy@keep_at_least_filtered
         with:
           cut-off: ${{ inputs.cutoff_testing }}
           account-type: org
           org-name: Calance-US
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
-          keep-at-least: ${{ inputs.minimum_images_testing }}
+          keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.GHCR_TOKEN }}
-
-  
