@@ -18,6 +18,12 @@ on:
       REPOSITORY_OWNER:
         required: true
         description: "username of GHCR owner"
+      USERNAME:
+        required: false
+        description: "LDAP username used in kimai.yml"
+      PASSWORD:
+        required: false
+        description: "LDAP Password"
     inputs:
       docker_context_path:
         description: "docker context path"
