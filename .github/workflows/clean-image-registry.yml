@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Production
-        uses: artazar/container-retention-policy@keep_at_least_filtered
+        uses: snok/container-retention-policy@main
         with:
           cut-off: ${{ inputs.cutoff_prod }}
           account-type: org
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Testing
-        uses: artazar/container-retention-policy@keep_at_least_filtered
+        uses: snok/container-retention-policy@main
         with:
           cut-off: ${{ inputs.cutoff_testing }}
           account-type: org
