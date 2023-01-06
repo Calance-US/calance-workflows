@@ -1,7 +1,7 @@
 {
     "extends": "recommended",
     "rules": {
-        "comments.ClassJavadoc": "off",
+        "Convention.CompileStatic": "off",
         "formatting.Indentation": {
             "spacesPerIndentLevel": 4,
             "severity": "info"
