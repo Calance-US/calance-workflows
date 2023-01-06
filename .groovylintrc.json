@@ -1,11 +1,6 @@
 {
     "extends": "recommended",
     "rules": {
-        "Convention.CompileStatic": "off",
-        "formatting.Indentation": {
-            "spacesPerIndentLevel": 4,
-            "severity": "info"
-        },
-        "UnnecessaryReturnKeyword": "error"
+        "convention.CompileStatic": "off"
     }
 }
