@@ -1,0 +1,63 @@
+name: Delete old container images
+
+on: 
+  workflow_call:
+    inputs:
+      image_name: 
+        description: "Image Name"
+        required: true
+        type: string
+      prod_keep_at_least:
+        description: "Minimum image versions required for Prod"
+        required: false
+        type: number
+        default: 10
+      cutoff_prod:
+        description: "Cutoff for Prod"
+        required: false
+        type: string
+        default: "One month ago UTC" 
+      testing_keep_at_least:
+        description: "Minimum image versions required for Testing"
+        required: false
+        type: number
+        default: 5
+      cutoff_testing:
+        description: "Cutoff for Testing"
+        required: false
+        type: string
+        default: "One week ago UTC"
+    secrets:
+      GHCR_TOKEN:
+        required: true
+
+jobs:
+  clean-ghcr-prod:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old containers in Production
+        uses: snok/container-retention-policy@main
+        with:
+          cut-off: ${{ inputs.cutoff_prod }}
+          account-type: org
+          org-name: Calance-US
+          filter_tags: "v*.*.*"
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: ${{ inputs.prod_keep_at_least }}
+          token: ${{ secrets.GHCR_TOKEN }}
+  
+  clean-ghcr-testing:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old containers in Testing
+        uses: snok/container-retention-policy@main
+        with:
+          cut-off: ${{ inputs.cutoff_testing }}
+          account-type: org
+          org-name: Calance-US
+          filter_tags: "rc*"
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: ${{ inputs.testing_keep_at_least }}
+          token: ${{ secrets.GHCR_TOKEN }}
