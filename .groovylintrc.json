@@ -1,6 +1,6 @@
 {
     "extends": "recommended",
     "rules": {
-        "CompileStatic": "off"
+        "convention.CompileStatic": "off"
     }
 }
