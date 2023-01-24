@@ -34,6 +34,16 @@ on:
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
+      test_env_vars:
+        description: "Build time environment variables as multiline string for testing environment"
+        required: false
+        type: string
+        default: ""
+      prod_env_vars:
+        description: "Build time environment variables as multiline string for production environment"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build-docker:
@@ -80,6 +90,14 @@ jobs:
             echo '::set-output name=cluster_environment::testing'
           else
             echo '::set-output name=cluster_environment::production'
+          fi
+
+      - name: Generate .env file
+        run: |
+          if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]]; then
+            echo "${{ inputs.test_env_vars }}" >> .env
+          else
+            echo "${{ inputs.prod_env_vars }}" >> .env
           fi
 
       - name: Build and push Docker image to github container registry
