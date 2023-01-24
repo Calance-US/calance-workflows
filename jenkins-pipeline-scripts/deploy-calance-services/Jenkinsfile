@@ -1,0 +1,96 @@
+/* groovylint-disable CompileStatic */
+String imageName = ''
+String imageRepository = ''
+String cleanedReleaseName = ''
+
+node('master') {
+    stage('Identify Cluster for deployment') {
+        configFileProvider([
+            configFile(fileId: 'service-cluster-configuration.json', variable: 'CONFIG_FILE')
+        ]) {
+            Map<String, String> data = readJSON file: "$CONFIG_FILE"
+            cloudName = data["$SERVICE_NAME-$CLUSTER_ENVIRONMENT"]
+
+            if (cloudName == null || cloudName == '') {
+                error "Cluster config does not exist for $SERVICE_NAME-$CLUSTER_ENVIRONMENT"
+            }
+
+            print "For application - $SERVICE_NAME, environment - $CLUSTER_ENVIRONMENT, Chosen cloud - $cloudName"
+
+            // IMAGE_NAME param was added later, so for old workflows
+            // to work we get image name from SERVICE_NAME param
+            imageName = IMAGE_NAME
+            if (imageName == null || imageName == '') {
+                imageName = SERVICE_NAME
+            }
+            print "Image Name -> $imageName"
+
+            // RELEASE_NAME param was added later, so for old workflows
+            // to work we get release name from IMAGE_NAME or SERVICE_NAME params
+            String releaseName = RELEASE_NAME
+            if (releaseName == null || releaseName == '') {
+                releaseName = IMAGE_NAME
+            }
+            if (releaseName == null || releaseName == '') {
+                releaseName = SERVICE_NAME
+            }
+
+            // decides what is going to be the image repository if it is external or internal service
+            String externalService = EXTERNAL_SERVICE
+            imageRepository = "ghcr.io/calance-us/${imageName}"
+
+            if (externalService == 'true') {
+                imageRepository = SERVICE_NAME
+            }
+
+            // helm release names can contain only alphanumeric and hyphen characters
+            // cleans the names like this:
+            //      "abcd_def__ghi" -> "abcd-def-ghi"
+            //      "abcd def  ghi" -> "abcd-def-ghi"
+            //      "abcd-def--ghi" -> "abcd-def-ghi"
+            //      "abcd-123-!@#-ghi" -> "abcd-123-ghi"
+            cleanedReleaseName = releaseName.toLowerCase()
+                                            .replaceAll('[-_\\s]+', '-')
+                                            .replaceAll('[^a-z0-9-]', '')
+                                            /* groovylint-disable-next-line DuplicateStringLiteral */
+                                            .replaceAll('-+', '-')
+            print "Release Name -> $cleanedReleaseName"
+        }
+    }
+}
+node("$cloudName") {
+    container('helm') {
+        stage('Logging into registry') {
+            sh '''
+                set +x
+                helm registry login -u $GITHUB_USERNAME -p $GITHUB_PASSWORD ghcr.io
+                set -x
+            '''
+        }
+
+        stage('Deploying application') {
+            String valuesFilename = "${cleanedReleaseName}-${CLUSTER_ENVIRONMENT}.yml"
+            print "For release $cleanedReleaseName, picking values from config file - $valuesFilename"
+
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/main']],
+                extensions: [],
+                userRemoteConfigs: [[
+                    credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
+                    url: 'https://github.com/Calance-US/calance-services-helm-values.git'
+                ]]
+            ])
+
+            sh("""helm upgrade ${cleanedReleaseName} oci://ghcr.io/calance-us/calance-services \
+                    --install \
+                    --namespace ${NAMESPACE} \
+                    --create-namespace \
+                    --set image.tag=${VERSION} \
+                    --set image.repository=${imageRepository} \
+                    --values ${CLUSTER_ENVIRONMENT}/${SERVICE_NAME}/${valuesFilename} \
+                    --version 1.8"""
+            )
+        }
+    }
+}
