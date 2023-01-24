@@ -81,15 +81,15 @@ jobs:
       - name: Setting application version (comes from image tag/version)
         id: version
         run: |
-          echo "::set-output name=build_version::${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
+          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> $GITHUB_OUTPUT
 
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
         run: |
           if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]]; then
-            echo '::set-output name=cluster_environment::testing'
+            echo "cluster_environment=testing" >> $GITHUB_OUTPUT
           else
-            echo '::set-output name=cluster_environment::production'
+            echo "cluster_environment=production" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate .env file
