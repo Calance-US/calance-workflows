@@ -28,7 +28,7 @@ on:
         type: string
         default: "One week ago UTC"
     secrets:
-      GHCR_TOKEN:
+      CLEANUP_TOKEN:
         required: true
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
           filter_tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
-          token: ${{ secrets.GHCR_TOKEN }}
+          token: ${{ secrets.CLEANUP_TOKEN }}
   
   clean-ghcr-testing:
     name: Delete old unused container images
@@ -60,4 +60,4 @@ jobs:
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.GHCR_TOKEN }}
+          token: ${{ secrets.CLEANUP_TOKEN }}
