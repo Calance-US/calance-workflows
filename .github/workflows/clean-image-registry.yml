@@ -60,4 +60,5 @@ jobs:
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
+          token: ${{ secrets.CLEANUP_TOKEN }}
         
