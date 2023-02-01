@@ -94,7 +94,7 @@ jobs:
 
       - name: Generate .env file
         run: |
-          if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]]; then
+          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
             echo "${{ inputs.dot_env_file_testing }}" >> .env
           else
             echo "${{ inputs.dot_env_file_production }}" >> .env
