@@ -93,7 +93,7 @@ jobs:
           fi
 
       - name: Generate .env file
-        if: inputs.dot_env_file_testing != "" || inputs.dot_env_file_production != ""
+        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
         run: |
           if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
             echo "${{ inputs.dot_env_file_testing }}" >> .env
