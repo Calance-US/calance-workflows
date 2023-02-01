@@ -85,12 +85,9 @@ jobs:
 
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
-        run: |
-          if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]]; then
-            echo "cluster_environment=testing" >> "$GITHUB_OUTPUT"
-          else
-            echo "cluster_environment=production" >> "$GITHUB_OUTPUT"
-          fi
+        uses: ./actions/cluster-env-setter
+        with:
+          docker_json_metadata: ${{ steps.meta.outputs.json }}
 
       - name: Generate .env file
         if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
