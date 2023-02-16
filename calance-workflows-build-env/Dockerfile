@@ -6,4 +6,6 @@ COPY ./ ./
 
 RUN ls -a
 
+RUN cat .env
+
 CMD ["python", "-m", "http.server", "8000"]
