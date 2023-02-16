@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY ./ ./
 
-RUN cat .env
+RUN ls
 
 CMD ["python", "-m", "http.server", "8000"]
