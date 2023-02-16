@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY ./ ./
 
-RUN ls
+RUN ls -a
 
 CMD ["python", "-m", "http.server", "8000"]
