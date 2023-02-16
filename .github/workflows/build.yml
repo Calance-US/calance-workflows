@@ -96,9 +96,9 @@ jobs:
         if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
         run: |
           if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-            echo "${{ inputs.dot_env_file_testing }}" >> .env
+            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
           else
-            echo "${{ inputs.dot_env_file_production }}" >> .env
+            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
           fi
 
       - name: Build and push Docker image to github container registry
