@@ -97,10 +97,8 @@ jobs:
         run: |
           if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
             echo "${{ inputs.dot_env_file_testing }}" >> .env
-            cat .env
           else
             echo "${{ inputs.dot_env_file_production }}" >> .env
-            cat .env
           fi
 
       - name: Build and push Docker image to github container registry
