@@ -7,15 +7,18 @@ try {
   const imageVersion = dockerMetadata.labels['org.opencontainers.image.version']
 
   if (!imageVersion || typeof imageVersion !== 'string') {
-    throw new Error('Unable to get image version from metadata')
+    throw new Error('Unable to get image version from metadata.')
   }
 
-  const isTesting = imageVersion.match(/.*-rc[0-9]/)
+  const isProduction = imageVersion.match(/^v\d+\.\d+\.\d+(-rc\d+)?$/);
+  const isTesting = imageVersion.match(/^v\d+\.\d+\.\d+-rc\d+$/);
 
-  if (isTesting !== null) {
+  if (isProduction) {
+    core.setOutput('cluster_environment', 'production')
+  } else if (isTesting) {
     core.setOutput('cluster_environment', 'testing')
   } else {
-    core.setOutput('cluster_environment', 'production')
+    throw new Error('Invalid image version provided.')
   }
 } catch (error) {
   core.setFailed(error.message)
