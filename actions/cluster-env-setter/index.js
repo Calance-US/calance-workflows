@@ -10,8 +10,8 @@ try {
     throw new Error('Unable to get image version from metadata.')
   }
 
-  const isProduction = imageVersion.match(/^v\d+\.\d+\.\d+(-rc\d+)?$/);
-  const isTesting = imageVersion.match(/^v\d+\.\d+\.\d+-rc\d+$/);
+  const isProduction = imageVersion.match(/^v\d+\.\d+\.\d+(-rc\d+)?$/)
+  const isTesting = imageVersion.match(/^v\d+\.\d+\.\d+-rc\d+$/)
 
   if (isProduction) {
     core.setOutput('cluster_environment', 'production')
