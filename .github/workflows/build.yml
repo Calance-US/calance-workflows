@@ -85,7 +85,7 @@ jobs:
 
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
-        uses: ./actions/cluster-env-setter
+        uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
         with:
           docker_json_metadata: ${{ steps.meta.outputs.json }}
 
