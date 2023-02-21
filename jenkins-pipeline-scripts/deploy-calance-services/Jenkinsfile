@@ -82,14 +82,23 @@ node("$cloudName") {
                 ]]
             ])
 
-            sh("""helm upgrade ${cleanedReleaseName} oci://ghcr.io/calance-us/calance-services \
+
+            def application_name = "${cleanedReleaseName}-${CLUSTER_ENVIRONMENT}"
+            
+            def config_json = readJSON file: "${CLUSTER_ENVIRONMENT}/${SERVICE_NAME}/deployment.json"
+
+            def helm_chart_version = config_json["$application_name"][0]['helm-chart-version']
+
+            def helm_chart_url = config_json["$application_name"][0]['url']
+
+            sh("""helm upgrade ${cleanedReleaseName} $helm_chart_url \
                     --install \
                     --namespace ${NAMESPACE} \
                     --create-namespace \
                     --set image.tag=${VERSION} \
                     --set image.repository=${imageRepository} \
                     --values ${CLUSTER_ENVIRONMENT}/${SERVICE_NAME}/${valuesFilename} \
-                    --version 1.8"""
+                    --version $helm_chart_version"""
             )
         }
     }
