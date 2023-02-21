@@ -1,0 +1,46 @@
+name: money quiz deployment using workflow dispatch
+
+#  the dockerfile should be in service-name folder
+#  if you dont have dockefile in service-name folder and if it has in main source code folder then you have to change workflow for that->
+#  you have to make some changes -> {docker_context_path: .}  and {dockerfile_path: ./Dockerfile} 
+#  basically the concept is you have to tell where is dockfile path and docker_context_path would be same as dockerfile path
+on:
+  workflow_dispatch:
+    inputs:
+      service-name:
+        required: true
+        description: 'name of service you waana build and deploy'
+        type: string
+
+jobs:
+  build-and-push-dockerimages:
+    permissions:
+      contents: read
+      packages: write
+    secrets:
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
+    uses: Calance-US/calance-workflows/.github/workflows/build.yml@main
+    with:
+      image_name: ${{ github.event.repository.name }}-${{ inputs.service-name }}
+      docker_context_path: .
+      dockerfile_path: /Dockerfile
+
+  deploy-to-kubernetes:
+    needs: build-and-push-dockerimages
+    permissions:
+      contents: read
+      packages: write
+    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@main
+    with:
+      repository_name: ${{ github.event.repository.name }}
+      image_name: ${{ github.event.repository.name }}-${{ inputs.service-name }}
+      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+      release_name: ${{ github.event.repository.name }}-${{ inputs.service-name }}
+      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+      env_specific_namespaces: true
+    secrets:
+      NAMESPACE: ${{ secrets.NAMESPACE }}
+      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
