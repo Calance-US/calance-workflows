@@ -40,7 +40,7 @@ node('master') {
             imageRepository = "ghcr.io/calance-us/${imageName}"
 
             if (externalService == 'true') {
-                imageRepository = SERVICE_NAME
+                imageRepository = IMAGE_NAME
             }
 
             // helm release names can contain only alphanumeric and hyphen characters
