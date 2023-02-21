@@ -85,14 +85,16 @@ node("$cloudName") {
             String application_name = "${cleanedReleaseName}-${CLUSTER_ENVIRONMENT}"
             
             Map config_json = readJSON file: "${CLUSTER_ENVIRONMENT}/${SERVICE_NAME}/deployment.json"
-            
+
+            String namespace = config_json["${application_name}"][0]['namespace']
+ 
             String helm_chart_version = config_json["${application_name}"][0]['helm_chart_version']
 
             String helm_chart_url = config_json["${application_name}"][0]['helm_chart_url']
 
             sh("""helm upgrade ${cleanedReleaseName} ${helm_chart_url} \
                     --install \
-                    --namespace ${NAMESPACE} \
+                    --namespace ${namespace} \
                     --create-namespace \
                     --set image.tag=${VERSION} \
                     --set image.repository=${imageRepository} \
