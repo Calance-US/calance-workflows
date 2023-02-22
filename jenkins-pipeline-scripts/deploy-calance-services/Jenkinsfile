@@ -89,7 +89,7 @@ node("$cloudName") {
 
             def helm_chart_version = config_json["$application_name"][0]['helm-chart-version']
 
-            def helm_chart_url = config_json["$application_name"][0]['url']
+            def helm_chart_url = config_json["$application_name"][0]['helm-chart-url']
 
             sh("""helm upgrade ${cleanedReleaseName} $helm_chart_url \
                     --install \
