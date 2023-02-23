@@ -85,7 +85,7 @@ jobs:
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         with:
-          github-token: ${{ secrets.MY_PAT }}
+          github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
             - name: Packages Deleted
