@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Delete old containers in Production
         id: list-deleted-packages-prod
-        uses: artazar/container-retention-policy@keep_at_least_filtered
+        uses: snok/container-retention-policy@v2
         with:
           cut-off: ${{ inputs.prod_cut_off }}
           account-type: org
@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Delete old containers in Testing
         id: list-deleted-packages-testing
-        uses: artazar/container-retention-policy@keep_at_least_filtered
+        uses: snok/container-retention-policy@v2
         with:
           cut-off: ${{ inputs.testing_cut_off }}
           account-type: org
