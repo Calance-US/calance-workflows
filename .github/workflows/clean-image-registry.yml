@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Validating inputs for production
         run: | 
-            if [[ ${{ github.event.inputs.prod_keep_at_least }} -lt 10 ]]; then
+            if [[ "${{ github.event.inputs.prod_keep_at_least }}" < "10" ]]; then
                 echo "Provided value of prod_keep_at_least cannot be less than 10";
                 exit 1;
             fi
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Validating inputs for testing
         run: |
-            if [[ ${{ github.event.inputs.testing_keep_at_least }} -lt 5 ]]; then
+            if [[ "${{ github.event.inputs.testing_keep_at_least }}" < "5" ]]; then
                 echo "Provided value of testing_keep_at_least cannot be less than 5";
                 exit 1;
             fi
