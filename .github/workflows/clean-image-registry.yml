@@ -31,7 +31,12 @@ on:
       IMAGE_CLEANUP_TOKEN:
         description: Github token with permissions - read:packages, write:packages, delete-packages
         required: true
-
+      MS_TEAMS_WEBHOOK_URI:
+        description: |
+          MS Teams WEBhook URI that sends information to the corresponding Teams channel 
+          Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
+        required: true
+  
 jobs:
   clean-ghcr-prod:
     name: Delete old unused container images
@@ -90,3 +95,4 @@ jobs:
           custom-facts: |
             - name: Packages Deleted
               value: ${{ steps.delete-packages-testing.outputs.deleted }}
+              
