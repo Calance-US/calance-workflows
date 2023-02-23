@@ -28,7 +28,7 @@ on:
         type: string
         default: "One week ago UTC"
     secrets:
-      CLEANUP_TOKEN:
+      IMAGE_CLEANUP_TOKEN:
         description: Github token with permissions - read:packages, write:packages, delete-packages
         required: true
 
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Production
-        id: list-deleted-packages-prod
+        id: delete-packages-prod
         uses: snok/container-retention-policy@v2
         with:
           cut-off: ${{ inputs.prod_cut_off }}
@@ -47,14 +47,14 @@ jobs:
           filter_tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
-          token: ${{ secrets.CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
   
   clean-ghcr-testing:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Testing
-        id: list-deleted-packages-testing
+        id: delete-packages-testing
         uses: snok/container-retention-policy@v2
         with:
           cut-off: ${{ inputs.testing_cut_off }}
@@ -63,5 +63,5 @@ jobs:
           filter_tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
         
