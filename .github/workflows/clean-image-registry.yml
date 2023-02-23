@@ -59,13 +59,22 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+
       - uses: toko-bifrost/ms-teams-deploy-card@master
+        if: |
+          steps.delete-packages-prod.outputs.deleted != '' ||
+          steps.delete-packages-prod.outputs.failed != '' ||
+          steps.delete-packages-prod.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
-            - name: Packages Deleted
+            - name: Packages successfully deleted
               value: ${{ steps.delete-packages-prod.outputs.deleted }}
+            - name: Packages failed to delete
+              value: ${{ steps.delete-packages-prod.outputs.failed }}
+            - name: Packages that needs Github Assistance for deletion
+              value: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
   
   clean-ghcr-testing:
     name: Delete old unused container images
@@ -89,10 +98,17 @@ jobs:
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
+        if: |
+          steps.delete-packages-testing.outputs.deleted != '' ||
+          steps.delete-packages-testing.outputs.failed != '' ||
+          steps.delete-packages-testing.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
-            - name: Packages Deleted
+            - name: Packages successfully deleted
               value: ${{ steps.delete-packages-testing.outputs.deleted }}
-              
+            - name: Packages failed to delete
+              value: ${{ steps.delete-packages-testing.outputs.failed }}
+            - name: Packages that needs Github Assistance for deletion
+              value: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
