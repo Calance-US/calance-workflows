@@ -10,7 +10,7 @@ on:
       prod_keep_at_least:
         description: "Minimum number of production images to retain"
         required: false
-        type: number
+        type: string
         default: 10
       prod_cut_off:
         description: "Cut-off for production images (format as supported by python's dateparser)"
@@ -20,7 +20,7 @@ on:
       testing_keep_at_least:
         description: "Minimum number of testing/staging images to retain"
         required: false
-        type: number
+        type: string
         default: 5
       testing_cut_off:
         description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
