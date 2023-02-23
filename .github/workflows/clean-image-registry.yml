@@ -1,4 +1,4 @@
-name: Delete old container images
+name: Clean Image Registry
 
 on: 
   workflow_call:
@@ -8,27 +8,28 @@ on:
         required: true
         type: string
       prod_keep_at_least:
-        description: "Minimum image versions required for Prod"
+        description: "Minimum number of production images to retain"
         required: false
         type: number
         default: 10
-      cutoff_prod:
-        description: "Cutoff for Prod"
+      prod_cut_off:
+        description: "Cut-off for production images (format as supported by python's dateparser)"
         required: false
         type: string
         default: "One month ago UTC" 
       testing_keep_at_least:
-        description: "Minimum image versions required for Testing"
+        description: "Minimum number of testing/staging images to retain"
         required: false
         type: number
         default: 5
-      cutoff_testing:
-        description: "Cutoff for Testing"
+      testing_cut_off:
+        description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
         required: false
         type: string
         default: "One week ago UTC"
     secrets:
       CLEANUP_TOKEN:
+        description: Github token with permissions - read:packages, write:packages, delete-packages
         required: true
 
 jobs:
@@ -37,9 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Production
+        id: list-deleted-packages-prod
         uses: artazar/container-retention-policy@keep_at_least_filtered
         with:
-          cut-off: ${{ inputs.cutoff_prod }}
+          cut-off: ${{ inputs.prod_cut_off }}
           account-type: org
           org-name: Calance-US
           filter_tags: "v*.*.*"
@@ -52,9 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old containers in Testing
+        id: list-deleted-packages-testing
         uses: artazar/container-retention-policy@keep_at_least_filtered
         with:
-          cut-off: ${{ inputs.cutoff_testing }}
+          cut-off: ${{ inputs.testing_cut_off }}
           account-type: org
           org-name: Calance-US
           filter_tags: "rc*"
