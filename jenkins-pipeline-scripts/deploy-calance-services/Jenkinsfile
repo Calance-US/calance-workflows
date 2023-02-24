@@ -92,6 +92,14 @@ node("$cloudName") {
 
             String helm_chart_url = config_json["${application_name}"][0]['helm_chart_url']
 
+            String helm_chart_alias = config_json["${application_name}"][0]['helm_repo_alias']
+
+            String helm_chart_repo = config_json["${application_name}"][0]['helm_repo']
+
+            if (helm_chart_repo != null && helm_chart_alias != null) {
+	    	sh("helm repo add ${helm_chart_alias} ${helm_chart_repo} && helm repo update")
+            }
+
             sh("""helm upgrade ${cleanedReleaseName} ${helm_chart_url} \
                     --install \
                     --namespace ${namespace} \
