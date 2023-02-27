@@ -86,15 +86,15 @@ node("$cloudName") {
             
             Map config_json = readJSON file: "${CLUSTER_ENVIRONMENT}/${SERVICE_NAME}/deployment.json"
 
-            String namespace = config_json["${application_name}"][0]['namespace']
+            String namespace = config_json["${application_name}"]['namespace']
  
-            String helm_chart_version = config_json["${application_name}"][0]['helm_chart_version']
+            String helm_chart_version = config_json["${application_name}"]['helm_chart_version']
 
-            String helm_chart_url = config_json["${application_name}"][0]['helm_chart_url']
+            String helm_chart_url = config_json["${application_name}"]['helm_chart_url']
 
-            String helm_chart_alias = config_json["${application_name}"][0]['helm_repo_alias']
+            String helm_chart_alias = config_json["${application_name}"]['helm_repo_alias']
 
-            String helm_chart_repo = config_json["${application_name}"][0]['helm_repo']
+            String helm_chart_repo = config_json["${application_name}"]['helm_repo']
 
             if (helm_chart_repo != null && helm_chart_alias != null) {
 	    	sh("helm repo add ${helm_chart_alias} ${helm_chart_repo} && helm repo update")
