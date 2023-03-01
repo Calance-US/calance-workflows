@@ -10,7 +10,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-          package: ["ghcr.io/calance-us/calance-workflows:53.0.0-rc0,ghcr.io/calance-us/calance-workflows:54.0.0-rc0"]
+          package: ["ghcr.io/calance-us/calance-workflows:55.0.0-rc0,ghcr.io/calance-us/calance-workflows:56.0.0-rc0"]
     steps:
       - name: Checkout repository (clone the repo for use)
         uses: actions/checkout@v3

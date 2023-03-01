@@ -1,5 +1,7 @@
 FROM python:3.8-alpine
 
-RUN echo $RANDOM
+ENV PORT=$RANDOM
+
+EXPOSE ${PORT}
 
 CMD ["python", "-m", "http.server", "8000"]
