@@ -1,11 +1,7 @@
-FROM python:3.8-alpine as image1
+FROM alpine:latest
 
-ENV PORT=$RANDOM
+ARG BUILD_ARGUMENT=1
 
-CMD ["python", "-m", "http.server", "8000"]
-
-FROM python:3.8-alpine as image2
-
-ENV PORT=$RANDOM
+RUN echo ${BUILD_ARGUMENT}
 
 CMD ["python", "-m", "http.server", "8000"]
