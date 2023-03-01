@@ -35,5 +35,5 @@ jobs:
       testing_keep_at_least: 5
       testing_cut_off: "1 week ago UTC"
     secrets: 
-      IMAGE_CLEANUP_TOKEN: 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
-      MS_TEAMS_WEBHOOK_URI: https://calance1.webhook.office.com/webhookb2/7c2c62a9-70dd-43dd-8fd1-93f026d3dea4@d8a741e9-a9f4-417c-bf71-a407a2f601b8/IncomingWebhook/033d52f158a2474a89b77cdeaf4889ec/ab57efb7-c635-4785-917f-8543e61a3290
+      IMAGE_CLEANUP_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+      MS_TEAMS_WEBHOOK_URI: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
