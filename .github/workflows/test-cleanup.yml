@@ -11,7 +11,6 @@ jobs:
         fail-fast: false
         matrix:
           package: ["ghcr.io/calance-us/calance-workflows:61.0.0-rc0,ghcr.io/calance-us/calance-workflows:62.0.0-rc0"]
-          build_argument: ["101","102"]
     steps:
       - name: Checkout repository (clone the repo for use)
         uses: actions/checkout@v3
@@ -28,7 +27,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ matrix.package }}
-          build-args: ${{ matrix.build_argument }}
+          build-args: package=${{ matrix.package }}
 
   # "ghcr.io/calance-us/calance-workflows:31.2.1-rc1,ghcr.io/calance-us/calance-workflows:31.7.1-rc1,ghcr.io/calance-us/calance-workflows:31.8.2-rc1,ghcr.io/calance-us/calance-workflows:31.8.1-rc1,ghcr.io/calance-us/calance-workflows:31.3.1-rc1,ghcr.io/calance-us/calance-workflows:31.3.7-rc1"
   # delete-packages:
