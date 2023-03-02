@@ -10,7 +10,7 @@ jobs:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
-    uses: ./.github/workflows/build.yml@main
+    uses: ./.github/workflows/build.yml
 
   # deploy-to-kubernetes:
   #   needs: build-and-push-dockerimages
