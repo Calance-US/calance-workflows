@@ -1,114 +1,114 @@
-name: Clean Image Registry
+# name: Clean Image Registry
 
-on: 
-  workflow_call:
-    inputs:
-      image_name: 
-        description: "Image Name"
-        required: true
-        type: string
-      prod_keep_at_least:
-        description: "Minimum number of production images to retain"
-        required: false
-        type: number
-        default: 10
-      prod_cut_off:
-        description: "Cut-off for production images (format as supported by python's dateparser)"
-        required: false
-        type: string
-        default: "One month ago UTC" 
-      testing_keep_at_least:
-        description: "Minimum number of testing/staging images to retain"
-        required: false
-        type: number
-        default: 5
-      testing_cut_off:
-        description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
-        required: false
-        type: string
-        default: "One week ago UTC"
-    secrets:
-      IMAGE_CLEANUP_TOKEN:
-        description: Github token with permissions - read:packages, write:packages, delete-packages
-        required: true
-      MS_TEAMS_WEBHOOK_URI:
-        description: |
-          MS Teams WEBhook URI that sends information to the corresponding Teams channel 
-          Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
-        required: true
+# on: 
+#   workflow_call:
+#     inputs:
+#       image_name: 
+#         description: "Image Name"
+#         required: true
+#         type: string
+#       prod_keep_at_least:
+#         description: "Minimum number of production images to retain"
+#         required: false
+#         type: number
+#         default: 10
+#       prod_cut_off:
+#         description: "Cut-off for production images (format as supported by python's dateparser)"
+#         required: false
+#         type: string
+#         default: "One month ago UTC" 
+#       testing_keep_at_least:
+#         description: "Minimum number of testing/staging images to retain"
+#         required: false
+#         type: number
+#         default: 5
+#       testing_cut_off:
+#         description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
+#         required: false
+#         type: string
+#         default: "One week ago UTC"
+#     secrets:
+#       IMAGE_CLEANUP_TOKEN:
+#         description: Github token with permissions - read:packages, write:packages, delete-packages
+#         required: true
+#       MS_TEAMS_WEBHOOK_URI:
+#         description: |
+#           MS Teams WEBhook URI that sends information to the corresponding Teams channel 
+#           Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
+#         required: true
   
-jobs:
-  clean-ghcr-prod:
-    name: Delete old unused container images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validating inputs for production
-        run: | 
-            if [[ $(("${{ github.event.inputs.prod_keep_at_least }}")) -lt 10 ]]; then
-                echo "Provided value of prod_keep_at_least cannot be less than 10"
-                exit 1
-            fi
-      - name: Delete old containers in Production
-        id: delete-packages-prod
-        uses: snok/container-retention-policy@v2
-        with:
-          cut-off: ${{ inputs.prod_cut_off }}
-          account-type: org
-          org-name: Calance-US
-          filter_tags: "v*.*.*"
-          image-names: ${{ inputs.image_name }}
-          keep-at-least: ${{ inputs.prod_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+# jobs:
+#   clean-ghcr-prod:
+#     name: Delete old unused container images
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Validating inputs for production
+#         run: | 
+#             if [[ $(("${{ github.event.inputs.prod_keep_at_least }}")) -lt 10 ]]; then
+#                 echo "Provided value of prod_keep_at_least cannot be less than 10"
+#                 exit 1
+#             fi
+#       - name: Delete old containers in Production
+#         id: delete-packages-prod
+#         uses: snok/container-retention-policy@v2
+#         with:
+#           cut-off: ${{ inputs.prod_cut_off }}
+#           account-type: org
+#           org-name: Calance-US
+#           filter_tags: "v*.*.*"
+#           image-names: ${{ inputs.image_name }}
+#           keep-at-least: ${{ inputs.prod_keep_at_least }}
+#           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
 
-      - uses: toko-bifrost/ms-teams-deploy-card@master
-        if: |
-          steps.delete-packages-prod.outputs.deleted != '' ||
-          steps.delete-packages-prod.outputs.failed != '' ||
-          steps.delete-packages-prod.outputs.needs-github-assistance != ''
-        with:
-          github-token: ${{ github.token }}
-          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
-          custom-facts: |
-            - name: Packages successfully deleted
-              value: ${{ steps.delete-packages-prod.outputs.deleted }}
-            - name: Packages failed to delete
-              value: ${{ steps.delete-packages-prod.outputs.failed }}
-            - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
+#       - uses: toko-bifrost/ms-teams-deploy-card@master
+#         if: |
+#           steps.delete-packages-prod.outputs.deleted != '' ||
+#           steps.delete-packages-prod.outputs.failed != '' ||
+#           steps.delete-packages-prod.outputs.needs-github-assistance != ''
+#         with:
+#           github-token: ${{ github.token }}
+#           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+#           custom-facts: |
+#             - name: Packages successfully deleted
+#               value: ${{ steps.delete-packages-prod.outputs.deleted }}
+#             - name: Packages failed to delete
+#               value: ${{ steps.delete-packages-prod.outputs.failed }}
+#             - name: Packages that needs Github Assistance for deletion
+#               value: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
   
-  clean-ghcr-testing:
-    name: Delete old unused container images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validating inputs for testing
-        run: |
-            if [[ $(("${{ github.event.inputs.testing_keep_at_least }}")) -lt 5 ]]; then
-                echo "Provided value of testing_keep_at_least cannot be less than 5"
-                exit 1
-            fi
-      - name: Delete old containers in Testing
-        id: delete-packages-testing
-        uses: snok/container-retention-policy@v2
-        with:
-          cut-off: ${{ inputs.testing_cut_off }}
-          account-type: org
-          org-name: Calance-US
-          filter_tags: "rc*"
-          image-names: ${{ inputs.image_name }}
-          keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: toko-bifrost/ms-teams-deploy-card@master
-        if: |
-          steps.delete-packages-testing.outputs.deleted != '' ||
-          steps.delete-packages-testing.outputs.failed != '' ||
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
-        with:
-          github-token: ${{ github.token }}
-          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
-          custom-facts: |
-            - name: Packages successfully deleted
-              value: ${{ steps.delete-packages-testing.outputs.deleted }}
-            - name: Packages failed to delete
-              value: ${{ steps.delete-packages-testing.outputs.failed }}
-            - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
+#   clean-ghcr-testing:
+#     name: Delete old unused container images
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Validating inputs for testing
+#         run: |
+#             if [[ $(("${{ github.event.inputs.testing_keep_at_least }}")) -lt 5 ]]; then
+#                 echo "Provided value of testing_keep_at_least cannot be less than 5"
+#                 exit 1
+#             fi
+#       - name: Delete old containers in Testing
+#         id: delete-packages-testing
+#         uses: snok/container-retention-policy@v2
+#         with:
+#           cut-off: ${{ inputs.testing_cut_off }}
+#           account-type: org
+#           org-name: Calance-US
+#           filter_tags: "rc*"
+#           image-names: ${{ inputs.image_name }}
+#           keep-at-least: ${{ inputs.testing_keep_at_least }}
+#           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+#       - uses: toko-bifrost/ms-teams-deploy-card@master
+#         if: |
+#           steps.delete-packages-testing.outputs.deleted != '' ||
+#           steps.delete-packages-testing.outputs.failed != '' ||
+#           steps.delete-packages-testing.outputs.needs-github-assistance != ''
+#         with:
+#           github-token: ${{ github.token }}
+#           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+#           custom-facts: |
+#             - name: Packages successfully deleted
+#               value: ${{ steps.delete-packages-testing.outputs.deleted }}
+#             - name: Packages failed to delete
+#               value: ${{ steps.delete-packages-testing.outputs.failed }}
+#             - name: Packages that needs Github Assistance for deletion
+#               value: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}

@@ -1,84 +1,84 @@
-name: Deploy to Kubernetes
+# name: Deploy to Kubernetes
 
-on:
-  workflow_call:
-    inputs:
-      repository_name:
-        description: "name of the service to be deployed (usually it is the same as the repository name)"
-        required: true
-        type: string
-      image_name:
-        description: "image name of our application's dockerfile"
-        required: false
-        type: string
-        default: "${{ github.event.repository.name }}"
-      release_name:
-        description: "application release name"
-        required: false
-        type: string
-        default: ""
-      cluster_environment:
-        description: "Cluster environment to deploy your image"
-        required: true
-        type: string
-      version:
-        description: "application version"
-        required: true
-        type: string
-      env_specific_namespaces:
-        description:  "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
-        required: false
-        type: boolean
-        default: false
+# on:
+#   workflow_call:
+#     inputs:
+#       repository_name:
+#         description: "name of the service to be deployed (usually it is the same as the repository name)"
+#         required: true
+#         type: string
+#       image_name:
+#         description: "image name of our application's dockerfile"
+#         required: false
+#         type: string
+#         default: "${{ github.event.repository.name }}"
+#       release_name:
+#         description: "application release name"
+#         required: false
+#         type: string
+#         default: ""
+#       cluster_environment:
+#         description: "Cluster environment to deploy your image"
+#         required: true
+#         type: string
+#       version:
+#         description: "application version"
+#         required: true
+#         type: string
+#       env_specific_namespaces:
+#         description:  "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
+#         required: false
+#         type: boolean
+#         default: false
 
-    secrets:
-      NAMESPACE:
-        required: true
-        description: "cluster namespace in which application is going to be deployed"
-      JENKINS_URL:
-        required: true
-        description: "Jenkins URL"
-      JENKINS_USER:
-        required: true
-        description: "Jenkins USER"
-      JENKINS_TOKEN:
-        required: true
-        description: "Jenkins TOKEN"
+#     secrets:
+#       NAMESPACE:
+#         required: true
+#         description: "cluster namespace in which application is going to be deployed"
+#       JENKINS_URL:
+#         required: true
+#         description: "Jenkins URL"
+#       JENKINS_USER:
+#         required: true
+#         description: "Jenkins USER"
+#       JENKINS_TOKEN:
+#         required: true
+#         description: "Jenkins TOKEN"
         
 
-jobs:
-  trigger-jenkins-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: check the deployment namespace 
-        id: set_namespace
-        run: |
-            if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
-                echo 'setting the namespace'
+# jobs:
+#   trigger-jenkins-job:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: check the deployment namespace 
+#         id: set_namespace
+#         run: |
+#             if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
+#                 echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
+#                 echo 'setting the namespace'
 
-            elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
-                echo 'setting namespace for production'
+#             elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
+#                 echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
+#                 echo 'setting namespace for production'
 
-            else 
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
-                echo 'setting the namespace for testing by appending the cluster enviornment'
-            fi
+#             else 
+#                 echo '::set-output name=namespace::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
+#                 echo 'setting the namespace for testing by appending the cluster enviornment'
+#             fi
   
-      - name: Trigger Jenkins Job
-        uses: Calance-US/build-jenkins-job@main
-        with:
-          jenkins-url: "${{ secrets.JENKINS_URL }}"
-          jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
-          user: "${{ secrets.JENKINS_USER }}"
-          job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: |
-            {
-              "SERVICE_NAME" : "${{ inputs.repository_name }}", 
-              "RELEASE_NAME" : "${{ inputs.release_name }}", 
-              "IMAGE_NAME" : "${{ inputs.image_name }}", 
-              "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
-              "VERSION": "${{ inputs.version }}", 
-              "NAMESPACE": "${{ steps.set_namespace.outputs.namespace }}" 
-            }
+#       - name: Trigger Jenkins Job
+#         uses: Calance-US/build-jenkins-job@main
+#         with:
+#           jenkins-url: "${{ secrets.JENKINS_URL }}"
+#           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
+#           user: "${{ secrets.JENKINS_USER }}"
+#           job-path: "job/kubernetes-deploy-on-nutanix"
+#           job-params: |
+#             {
+#               "SERVICE_NAME" : "${{ inputs.repository_name }}", 
+#               "RELEASE_NAME" : "${{ inputs.release_name }}", 
+#               "IMAGE_NAME" : "${{ inputs.image_name }}", 
+#               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
+#               "VERSION": "${{ inputs.version }}", 
+#               "NAMESPACE": "${{ steps.set_namespace.outputs.namespace }}" 
+#             }

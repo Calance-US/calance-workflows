@@ -1,46 +1,46 @@
-name: TestCase 4 - env specific namespaces
-on:
-  push:
-    tags:
-    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+# name: TestCase 4 - env specific namespaces
+# on:
+#   push:
+#     tags:
+#     - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
 
-jobs:
-  build-and-push-dockerimages:
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
-    uses: ./.github/workflows/build.yml
+# jobs:
+#   build-and-push-dockerimages:
+#     secrets:
+#       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+#       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
+#     uses: ./.github/workflows/build.yml
 
-  deploy-to-kubernetes:
-    needs: build-and-push-dockerimages
-    permissions:
-      contents: read
-      packages: write
+#   deploy-to-kubernetes:
+#     needs: build-and-push-dockerimages
+#     permissions:
+#       contents: read
+#       packages: write
 
-    uses: ./.github/workflows/deploy.yml
-    with:
-      repository_name: ${{ github.event.repository.name }}
-      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
-      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
-      env_specific_namespaces: true
-    secrets:
-      NAMESPACE: ${{ secrets.NAMESPACE }}
-      JENKINS_URL: ${{ secrets.JENKINS_URL }}
-      JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+#     uses: ./.github/workflows/deploy.yml
+#     with:
+#       repository_name: ${{ github.event.repository.name }}
+#       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+#       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+#       env_specific_namespaces: true
+#     secrets:
+#       NAMESPACE: ${{ secrets.NAMESPACE }}
+#       JENKINS_URL: ${{ secrets.JENKINS_URL }}
+#       JENKINS_USER: ${{ secrets.JENKINS_USER }}
+#       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
 
 
-  # assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
+#   # assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
 
-  # assertion:
-  #   needs: deploy-to-kubernetes
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: check namespace
-  #       env:
-  #         namespace: ${{secrets.NAMESPACE}}
-  #       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
-  #       run: |
-  #           echo 'unexpected namespace'
-  #           exit 1
+#   # assertion:
+#   #   needs: deploy-to-kubernetes
+#   #   runs-on: ubuntu-latest
+#   #   steps:
+#   #     - name: check namespace
+#   #       env:
+#   #         namespace: ${{secrets.NAMESPACE}}
+#   #       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
+#   #       run: |
+#   #           echo 'unexpected namespace'
+#   #           exit 1
 
