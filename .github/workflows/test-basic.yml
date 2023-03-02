@@ -10,22 +10,22 @@ jobs:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build.yml@main
 
-  deploy-to-kubernetes:
-    needs: build-and-push-dockerimages
-    strategy:
-      fail-fast: false
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/deploy.yml
-    with:
-      repository_name: ${{ github.event.repository.name }}
-      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
-      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
-    secrets:
-      NAMESPACE: ${{ secrets.NAMESPACE }}
-      JENKINS_URL: ${{ secrets.JENKINS_URL }}
-      JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+  # deploy-to-kubernetes:
+  #   needs: build-and-push-dockerimages
+  #   strategy:
+  #     fail-fast: false
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   uses: ./.github/workflows/deploy.yml@main
+  #   with:
+  #     repository_name: ${{ github.event.repository.name }}
+  #     version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+  #     cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+  #   secrets:
+  #     NAMESPACE: ${{ secrets.NAMESPACE }}
+  #     JENKINS_URL: ${{ secrets.JENKINS_URL }}
+  #     JENKINS_USER: ${{ secrets.JENKINS_USER }}
+  #     JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
