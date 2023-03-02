@@ -8,7 +8,7 @@ on:
       cluster_environment:
         description: "Cluster environment where application will be deployed, ex: testing, production, etc. "
         value: ${{ jobs.build-docker.outputs.cluster_environment }}
-      image_name: 
+      image_name:
         description: "Providing the name of the image to be built"
         value: ${{jobs.build-docker.outputs.image_name}}
     secrets:
@@ -44,6 +44,11 @@ on:
         required: false
         type: string
         default: ""
+      branch_name:
+        description: "the branch we are going to deployed branch"
+        type: string
+        default: ""
+
 
 jobs:
   build-docker:
@@ -55,57 +60,59 @@ jobs:
       version: ${{ steps.version.outputs.build_version }}
       cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
       image_name: ${{ inputs.image_name }}
-    
+
     steps:
-      - name: Checkout repository (clone the repo for use)
-        uses: actions/checkout@v3
-        
-      - name: Log in to github Container registry where image is pushed and pulled from
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.REPOSITORY_OWNER }}
-          password: ${{ secrets.GHCR_TOKEN }}
+    - name: Checkout repository (clone the repo for use)
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.branch_name }} || ${{ github.ref_name }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-          #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
-          images: |
-             ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
-          tags: |
-            ${{ github.ref_name }}
+    - name: Log in to github Container registry where image is pushed and pulled from
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.REPOSITORY_OWNER }}
+        password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Setting application version (comes from image tag/version)
-        id: version
-        run: |
-          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
+        #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
+        images: |
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
+        tags: |
+          ${{ github.ref_name }}
 
-      - name: Identifying cluster in which application should be deployed
-        id: cluster_environment
-        run: |
-          if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]]; then
-            echo "cluster_environment=testing" >> "$GITHUB_OUTPUT"
-          else
-            echo "cluster_environment=production" >> "$GITHUB_OUTPUT"
-          fi
+    - name: Setting application version (comes from image tag/version)
+      id: version
+      run: |
+        echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate .env file
-        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
-        run: |
-          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-            echo "${{ inputs.dot_env_file_testing }}" >> .env
-          else
-            echo "${{ inputs.dot_env_file_production }}" >> .env
-          fi
+    - name: Identifying cluster in which application should be deployed
+      id: cluster_environment
+      run: |
+        if [[ "${{fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version']}}" =~ .*-rc[0-9] ]] || [[ github.ref_name != v*.*.*]]; then
+          echo "cluster_environment=testing" >> "$GITHUB_OUTPUT"
+        else
+          echo "cluster_environment=production" >> "$GITHUB_OUTPUT"
+        fi
 
-      - name: Build and push Docker image to github container registry
-        uses: docker/build-push-action@v3
-        with:
-          context: ${{ inputs.docker_context_path }}
-          file: ${{ inputs.dockerfile_path }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+    - name: Generate .env file
+      if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
+      run: |
+        if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+          echo "${{ inputs.dot_env_file_testing }}" >> .env
+        else
+          echo "${{ inputs.dot_env_file_production }}" >> .env
+        fi
+
+    - name: Build and push Docker image to github container registry
+      uses: docker/build-push-action@v3
+      with:
+        context: ${{ inputs.docker_context_path }}
+        file: ${{ inputs.dockerfile_path }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
