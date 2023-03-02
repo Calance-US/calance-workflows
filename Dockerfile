@@ -1,7 +1,7 @@
 FROM alpine:3
 
-ARG BUILD_ARGUMENT
+ARG build_argument
 
-RUN echo ${BUILD_ARGUMENT}
+RUN echo ${build_argument}
 
 CMD ["python", "-m", "http.server", "8000"]
