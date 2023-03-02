@@ -1,5 +1,3 @@
-FROM alpine:3.14
+FROM python:3.8-alpine
 
-ARG package
-
-RUN echo ${package}
+CMD ["python", "-m", "http.server", "8000"]

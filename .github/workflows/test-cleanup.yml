@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./Dockerfile
+          file: ./test-Dockerfile
           push: true
           tags: ${{ matrix.package }}
           build-args: package=${{ matrix.package }}
