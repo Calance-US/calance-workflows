@@ -49,6 +49,7 @@ on:
         type: string
         default: ""
 
+
 jobs:
   build-docker:
     runs-on: ubuntu-latest
@@ -61,10 +62,18 @@ jobs:
       image_name: ${{ inputs.image_name }}
 
     steps:
+    # - name: set_ref
+    #   run: |
+    #     if [[ "${{ inputs.branch_name }}" == "" ]]; then
+    #       echo "ref1="type=semver,pattern={{version}}"" >> $GITHUB_ENV
+    #     else
+    #       echo "ref1=${{ inputs.branch_name }}" >> $GITHUB_ENV
+    #     fi  
+
     - name: Checkout repository (clone the repo for use)
       uses: actions/checkout@v3
       with:
-        ref: ${{ inputs.image_name || github.ref_name }}
+        ref: ${{ inputs.branch_name || github.ref_name }}
 
     - name: Log in to github Container registry where image is pushed and pulled from
       uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -82,7 +91,7 @@ jobs:
         images: |
           ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
         tags: |
-          ${{ inputs.image_name || github.ref_name }}
+          ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
 
     - name: Setting application version (comes from image tag/version)
       id: version
@@ -112,3 +121,4 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
