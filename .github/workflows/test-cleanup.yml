@@ -1,0 +1,40 @@
+name: TestCase 6 - Image Cleanup Pipeline
+
+on: workflow_dispatch
+    
+jobs:
+  build-packages:
+    runs-on: ubuntu-latest
+    strategy:
+        fail-fast: false
+        matrix:
+          package: ["ghcr.io/calance-us/calance-workflows:67.0.0-rc0","ghcr.io/calance-us/calance-workflows:68.0.0-rc0"]
+    steps:
+      - name: Checkout repository (clone the repo for use)
+        uses: actions/checkout@v3
+      - name: Log in to github Container registry where image is pushed and pulled from
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.REPOSITORY_OWNER }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and push Docker image to github container registry
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile-test-cleanup
+          push: true
+          tags: ${{ matrix.package }}
+          build-args: package=${{ matrix.package }}
+
+  delete-packages:
+    uses: ./.github/workflows/clean-image-registry.yml
+    with:
+      image_name: calance-workflows
+      prod_keep_at_least: 5
+      prod_cut_off: "1 month ago UTC"
+      testing_keep_at_least: 2
+      testing_cut_off: "1 week ago UTC"
+    secrets: 
+      IMAGE_CLEANUP_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+      MS_TEAMS_WEBHOOK_URI: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}

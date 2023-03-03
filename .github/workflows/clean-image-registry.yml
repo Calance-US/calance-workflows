@@ -8,20 +8,20 @@ on:
         required: true
         type: string
       prod_keep_at_least:
-        description: "Minimum number of production images to retain"
+        description: "Minimum number of production images to retain after cut-off"
         required: false
         type: number
-        default: 10
+        default: 5
       prod_cut_off:
         description: "Cut-off for production images (format as supported by python's dateparser)"
         required: false
         type: string
         default: "One month ago UTC" 
       testing_keep_at_least:
-        description: "Minimum number of testing/staging images to retain"
+        description: "Minimum number of testing/staging images to retain after cut-off"
         required: false
         type: number
-        default: 5
+        default: 2
       testing_cut_off:
         description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
         required: false
@@ -44,8 +44,8 @@ jobs:
     steps:
       - name: Validating inputs for production
         run: | 
-            if [[ $(("${{ github.event.inputs.prod_keep_at_least }}")) -lt 10 ]]; then
-                echo "Provided value of prod_keep_at_least cannot be less than 10"
+            if [[ $(("${{ inputs.prod_keep_at_least }}")) -lt 5 ]]; then
+                echo "Provided value of prod_keep_at_least cannot be less than 5"
                 exit 1
             fi
       - name: Delete old containers in Production
@@ -82,8 +82,8 @@ jobs:
     steps:
       - name: Validating inputs for testing
         run: |
-            if [[ $(("${{ github.event.inputs.testing_keep_at_least }}")) -lt 5 ]]; then
-                echo "Provided value of testing_keep_at_least cannot be less than 5"
+            if [[ $(("${{ inputs.testing_keep_at_least }}")) -lt 2 ]]; then
+                echo "Provided value of testing_keep_at_least cannot be less than 2"
                 exit 1
             fi
       - name: Delete old containers in Testing
