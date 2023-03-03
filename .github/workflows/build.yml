@@ -62,14 +62,6 @@ jobs:
       image_name: ${{ inputs.image_name }}
 
     steps:
-    # - name: set_ref
-    #   run: |
-    #     if [[ "${{ inputs.branch_name }}" == "" ]]; then
-    #       echo "ref1="type=semver,pattern={{version}}"" >> $GITHUB_ENV
-    #     else
-    #       echo "ref1=${{ inputs.branch_name }}" >> $GITHUB_ENV
-    #     fi  
-
     - name: Checkout repository (clone the repo for use)
       uses: actions/checkout@v3
       with:
