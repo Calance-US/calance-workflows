@@ -44,6 +44,10 @@ on:
         required: false
         type: string
         default: ""
+      branch_name:
+        description: "the branch we are going to deployed branch"
+        type: string
+        default: ""
 
 jobs:
   build-docker:
