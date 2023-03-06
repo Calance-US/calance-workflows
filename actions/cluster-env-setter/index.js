@@ -11,14 +11,11 @@ try {
   }
 
   const isProduction = imageVersion.match(/^\d+\.\d+\.\d+$/)
-  const isTesting = imageVersion.match(/^\d+\.\d+\.\d+-rc\d+$/)
 
   if (isProduction) {
     core.setOutput('cluster_environment', 'production')
-  } else if (isTesting) {
-    core.setOutput('cluster_environment', 'testing')
   } else {
-    throw new Error('Invalid image version provided.')
+    core.setOutput('cluster_environment', 'testing')
   }
 } catch (error) {
   core.setFailed(error.message)
