@@ -55,7 +55,7 @@ jobs:
           cut-off: ${{ inputs.prod_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter_tags: "v*.*.*"
+          filter-tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
@@ -93,7 +93,7 @@ jobs:
           cut-off: ${{ inputs.testing_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter_tags: "rc*"
+          filter- tags: "rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
@@ -112,3 +112,40 @@ jobs:
               value: ${{ steps.delete-packages-testing.outputs.failed }}
             - name: Packages that needs Github Assistance for deletion
               value: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
+
+  clean-ghcr-non-semver:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validating inputs for Non-SemVer
+        run: |
+            if [[ $(("${{ inputs.non_semver_keep_at_least }}")) -lt 2 ]]; then
+                echo "Provided value of non_semver_keep_at_least cannot be less than 2"
+                exit 1
+            fi
+      - name: Delete old containers of Non-Semver pattern
+        id: delete-packages-non-semver
+        uses: snok/container-retention-policy@v2
+        with:
+          cut-off: ${{ inputs.non_semver_cut_off }}
+          account-type: org
+          org-name: Calance-US
+          skip-tags: v*.*.*, rc*, sha-*
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: ${{ inputs.non_semver_keep_at_least }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+  clean-ghcr-untagged:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old containers of Untagged versions
+        id: delete-packages-untagged
+        uses: snok/container-retention-policy@v2
+        with:
+          cut-off: ${{ inputs.untagged_cut_off }}
+          account-type: org
+          org-name: Calance-US
+          filter-tags: v*.*.*, rc*, sha-*
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: 0
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
