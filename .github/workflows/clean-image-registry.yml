@@ -27,6 +27,21 @@ on:
         required: false
         type: string
         default: "One week ago UTC"
+      non_semver_keep_at_least:
+        description: "Cut-off for Non-Semver images (format as supported by python's dateparser)"
+        required: false
+        type: number
+        default: 2
+      non_semver_cut_off:
+        description: "Cut-off for Non-SemVer images (format as supported by python's dateparser)"
+        required: false
+        type: string
+        default: "One week ago UTC"
+      untagged_cut_off:
+        description: "Cut-off for Orphan images (format as supported by python's dateparser)"
+        required: false
+        type: string
+        default: "One week ago UTC"
     secrets:
       IMAGE_CLEANUP_TOKEN:
         description: Github token with permissions - read:packages, write:packages, delete-packages
@@ -145,7 +160,7 @@ jobs:
           cut-off: ${{ inputs.untagged_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter-tags: v*.*.*, rc*, sha-*
+          untagged-only: true
           image-names: ${{ inputs.image_name }}
           keep-at-least: 0
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
