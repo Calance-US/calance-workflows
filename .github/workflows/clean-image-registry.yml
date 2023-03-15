@@ -163,5 +163,4 @@ jobs:
           org-name: Calance-US
           untagged-only: true
           image-names: ${{ inputs.image_name }}
-          keep-at-least: 0
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
