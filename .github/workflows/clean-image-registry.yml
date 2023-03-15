@@ -108,7 +108,7 @@ jobs:
           cut-off: ${{ inputs.testing_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter- tags: "rc*"
+          filter-tags: "v*.*.*-rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
@@ -145,10 +145,11 @@ jobs:
           cut-off: ${{ inputs.non_semver_cut_off }}
           account-type: org
           org-name: Calance-US
-          skip-tags: v*.*.*, rc*, sha-*
+          skip-tags: v*.*.*, v*.*.*-rc*, sha-*
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+  
   clean-ghcr-untagged:
     name: Delete old unused container images
     runs-on: ubuntu-latest
