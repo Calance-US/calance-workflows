@@ -1,5 +1,8 @@
 name: Calance generic CI-CD
 on:
+  push: 
+    tag:
+      - v*.*.*-rc*
   workflow_call:
     outputs:
       version:
@@ -112,7 +115,7 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        
+
     - name: Use the version
         run: |
           echo ${{ steps.version.outputs.version }}
