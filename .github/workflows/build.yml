@@ -116,16 +116,16 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
-    - name: Use the version
-        run: |
-          echo ${{ steps.version.outputs.version }}
-
-      - name: Use the previous version
-        run: |
-          echo ${{ steps.version.outputs.previous-version }}
-
-    - name: Create Tag
-      if : success()
-      run: |
-        git tag -a v{{ github.run_number }}
-        git push --tags
+    - name: Bump version and push tag
+      id: tag_version
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ secrets.GHCR_TOKEN }}
+    
+    - name: Create a GitHub release
+      if: ${{ steps.tag_version.outcome == 'success' }}
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ steps.tag_version.outputs.new_tag }}
+        name: Release ${{ steps.tag_version.outputs.new_tag }}
+        body: ${{ steps.tag_version.outputs.changelog }}
