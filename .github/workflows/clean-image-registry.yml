@@ -145,7 +145,8 @@ jobs:
           cut-off: ${{ inputs.non_semver_cut_off }}
           account-type: org
           org-name: Calance-US
-          skip-tags: v*.*.*, v*.*.*-rc*, sha-*
+          skip-tags: v*.*.*, v*.*.*-rc*
+          filter-include-untagged: false
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
