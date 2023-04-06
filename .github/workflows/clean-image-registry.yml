@@ -273,7 +273,7 @@ jobs:
     needs: clean-ghcr-non-semver
     steps:
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags before deletion for non-semver
+        name: List packages with tags before deletion for untagged
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -291,14 +291,14 @@ jobs:
           image-names: ${{ inputs.image_name }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags after deletion for non-semver
+        name: List packages with tags after deletion for untagged
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
           GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
           package_type: container
           organization: Calance-US 
-      - name: Packages deleted for non-semver
+      - name: Packages deleted for untagged
         uses: actions/github-script@v6
         id: packages-deleted-untagged
         with:
@@ -308,7 +308,7 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for untagged
         uses: Calance-US/calance-get-packages-url-action@1.0.0
         id: get-packages-url-untagged
         with:
