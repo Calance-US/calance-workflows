@@ -66,7 +66,7 @@ jobs:
                 echo "Provided value of prod_keep_at_least cannot be less than 5"
                 exit 1
             fi
-      - name: List packages with tags before deletion
+      - name: List packages with tags before deletion for prod
         uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         id: list-packages-with-tags-before-deletion
         with:
@@ -85,7 +85,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - name: List packages with tags after deletion
+      - name: List packages with tags after deletion for prod
         uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         id: list-packages-with-tags-after-deletion
         with:
@@ -93,7 +93,7 @@ jobs:
           GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
           package_type: container
           organization: Calance-US
-      - name: Packages deleted
+      - name: Packages deleted for prod
         uses: actions/github-script@v6
         id: packages-deleted-prod
         with:
@@ -103,7 +103,7 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for prod
         uses: Calance-US/calance-get-packages-url-action@1.0.0
         id: get-packages-url-prod
         with:
@@ -138,7 +138,7 @@ jobs:
                 exit 1
             fi
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags before deletion
+        name: List packages with tags before deletion for testing
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -157,14 +157,14 @@ jobs:
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags after deletion
+        name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
           GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
           package_type: container
           organization: Calance-US
-      - name: Packages deleted
+      - name: Packages deleted for testing
         uses: actions/github-script@v6
         id: packages-deleted-testing
         with:
@@ -174,12 +174,12 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for testing
         uses: Calance-US/calance-get-packages-url-action@1.0.0
         id: get-packages-url-testing
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-testing.outputs.failed }}
-          packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance } 
+          packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }} 
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
           steps.delete-packages-testing.outputs.deleted != '' ||
@@ -208,7 +208,7 @@ jobs:
                 exit 1
             fi
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags before deletion
+        name: List packages with tags before deletion for non-semver
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -228,14 +228,14 @@ jobs:
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags after deletion
+        name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
           GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
           package_type: container
           organization: Calance-US 
-      - name: Packages deleted
+      - name: Packages deleted for non-semver
         uses: actions/github-script@v6
         id: packages-deleted-non-semver
         with:
@@ -245,7 +245,7 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
         uses: Calance-US/calance-get-packages-url-action@1.0.0
         id: get-packages-url-non-semver
         with:
@@ -273,7 +273,7 @@ jobs:
     needs: clean-ghcr-non-semver
     steps:
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags before deletion
+        name: List packages with tags before deletion for non-semver
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -291,14 +291,14 @@ jobs:
           image-names: ${{ inputs.image_name }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
-        name: List packages with tags after deletion
+        name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
           GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
           package_type: container
           organization: Calance-US 
-      - name: Packages deleted
+      - name: Packages deleted for non-semver
         uses: actions/github-script@v6
         id: packages-deleted-untagged
         with:
@@ -308,7 +308,7 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
         uses: Calance-US/calance-get-packages-url-action@1.0.0
         id: get-packages-url-untagged
         with:
