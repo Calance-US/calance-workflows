@@ -51,6 +51,9 @@ on:
           MS Teams Webhook URI that sends information to the corresponding Teams channel 
           Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
         required: true
+      GET_PACKAGES_TOKEN:
+        description:  Github token with permissions - read:packages
+        required: true 
   
 jobs:
   clean-ghcr-prod:
@@ -250,9 +253,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-testing.outputs.deleted != '' ||
-          steps.delete-packages-testing.outputs.failed != '' ||
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
+          steps.delete-packages-non-semver.outputs.deleted != '' ||
+          steps.delete-packages-non-semver.outputs.failed != '' ||
+          steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -313,9 +316,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-untagged.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-testing.outputs.deleted != '' ||
-          steps.delete-packages-testing.outputs.failed != '' ||
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
+          steps.delete-packages-untagged.outputs.deleted != '' ||
+          steps.delete-packages-untagged.outputs.failed != '' ||
+          steps.delete-packages-untagged.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
