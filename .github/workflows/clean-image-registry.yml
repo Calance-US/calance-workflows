@@ -92,7 +92,7 @@ jobs:
           organization: Calance-US
       - name: Packages deleted
         uses: actions/github-script@v6
-        id: packages-deleted
+        id: packages-deleted-prod
         with:
           script: |
             packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
@@ -102,7 +102,7 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github assistance
         uses: Calance-US/calance-get-packages-url-action@1.0.0
-        id: get-packages-url
+        id: get-packages-url-prod
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-prod.outputs.failed }}
           packages_needs_github_assistance: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
@@ -117,11 +117,11 @@ jobs:
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
             - name: Packages successfully deleted
-              value: ${{ steps.packages-deleted.outputs.result }}
+              value: ${{ steps.packages-deleted-prod.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url.outputs.packages_failed_urls }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url.outputs.packages_needs_github_assistance_urls }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls }}
   
   clean-ghcr-testing:
     name: Delete old unused container images
@@ -163,7 +163,7 @@ jobs:
           organization: Calance-US
       - name: Packages deleted
         uses: actions/github-script@v6
-        id: packages-deleted
+        id: packages-deleted-testing
         with:
           script: |
             packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
@@ -173,7 +173,7 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github assistance
         uses: Calance-US/calance-get-packages-url-action@1.0.0
-        id: get-packages-url
+        id: get-packages-url-testing
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-testing.outputs.failed }}
           packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance } 
@@ -187,11 +187,11 @@ jobs:
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
             - name: Packages successfully deleted
-              value: ${{ steps.packages-deleted.outputs.result }}
+              value: ${{ steps.packages-deleted-testing.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url.outputs.packages_failed_urls }}
+              value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url.outputs.packages_needs_github_assistance_urls }}
+              value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls }}
 
   clean-ghcr-non-semver:
     name: Delete old unused container images
@@ -234,7 +234,7 @@ jobs:
           organization: Calance-US 
       - name: Packages deleted
         uses: actions/github-script@v6
-        id: packages-deleted
+        id: packages-deleted-non-semver
         with:
           script: |
             packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
@@ -244,7 +244,7 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github assistance
         uses: Calance-US/calance-get-packages-url-action@1.0.0
-        id: get-packages-url
+        id: get-packages-url-non-semver
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-non-semver.outputs.failed }}
           packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
@@ -258,11 +258,11 @@ jobs:
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
             - name: Packages successfully deleted
-              value: ${{ steps.packages-deleted.outputs.result }}
+              value: ${{ steps.packages-deleted-non-semver.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url.outputs.packages_failed_urls }}
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url.outputs.packages_needs_github_assistance_urls }}
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls }}
   
   clean-ghcr-untagged:
     name: Delete old unused container images
@@ -297,7 +297,7 @@ jobs:
           organization: Calance-US 
       - name: Packages deleted
         uses: actions/github-script@v6
-        id: packages-deleted
+        id: packages-deleted-untagged
         with:
           script: |
             packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
@@ -307,7 +307,7 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github assistance
         uses: Calance-US/calance-get-packages-url-action@1.0.0
-        id: get-packages-url
+        id: get-packages-url-untagged
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-untagged.outputs.failed }}
           packages_needs_github_assistance: ${{ steps.delete-packages-untagged.outputs.needs-github-assistance }}
@@ -321,8 +321,8 @@ jobs:
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
           custom-facts: |
             - name: Packages successfully deleted
-              value: ${{ steps.packages-deleted.outputs.result }}
+              value: ${{ steps.packages-deleted-untagged.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url.outputs.packages_failed_urls }}
+              value: ${{ steps.get-packages-url-untagged.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url.outputs.packages_needs_github_assistance_urls }}
+              value: ${{ steps.get-packages-url-untagged.outputs.packages_needs_github_assistance_urls }}
