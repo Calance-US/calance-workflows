@@ -51,9 +51,6 @@ on:
           MS Teams Webhook URI that sends information to the corresponding Teams channel 
           Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
         required: true
-      GET_PACKAGES_TOKEN:
-        description:  Github token with permissions - read:packages
-        required: true 
   
 jobs:
   clean-ghcr-prod:
@@ -71,7 +68,7 @@ jobs:
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Delete old containers in Production
@@ -84,13 +81,13 @@ jobs:
           filter-tags: "v*.*.*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
       - name: List packages with tags after deletion for prod
         uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US
       - name: Packages deleted for prod
@@ -142,7 +139,7 @@ jobs:
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Delete old containers in Testing
@@ -155,13 +152,13 @@ jobs:
           filter-tags: "v*.*.*-rc*"
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US
       - name: Packages deleted for testing
@@ -212,7 +209,7 @@ jobs:
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Delete old containers of Non-Semver pattern
@@ -226,13 +223,13 @@ jobs:
           filter-include-untagged: false
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Packages deleted for non-semver
@@ -277,7 +274,7 @@ jobs:
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Delete old containers of Untagged versions
@@ -289,13 +286,13 @@ jobs:
           org-name: Calance-US
           untagged-only: true
           image-names: ${{ inputs.image_name }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
       - uses: Calance-US/calance-list-packages-with-tags-action@1.0.0
         name: List packages with tags after deletion for untagged
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.GET_PACKAGES_TOKEN }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
           package_type: container
           organization: Calance-US 
       - name: Packages deleted for untagged
