@@ -4,13 +4,13 @@ try {
   const dockerJsonMetadata = core.getInput('docker_json_metadata')
   const dockerMetadata = JSON.parse(dockerJsonMetadata)
 
-  const imageVersion = dockerMetadata.labels['org.opencontainers.image.version']
+  const imageTag = dockerMetadata.labels['org.opencontainers.image.version']
 
-  if (!imageVersion || typeof imageVersion !== 'string') {
+  if (!imageTag || typeof imageTag !== 'string') {
     throw new Error('Unable to get image version from metadata.')
   }
 
-  const isProduction = imageVersion.match(/^\d+\.\d+\.\d+$/)
+  const isProduction = imageTag.match(/^\d+\.\d+\.\d+$/) || (imageTag === "main")
 
   if (isProduction) {
     core.setOutput('cluster_environment', 'production')
