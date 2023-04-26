@@ -100,6 +100,8 @@ jobs:
       run: |
         if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
           echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+        elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+          echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
         else
           echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
         fi
