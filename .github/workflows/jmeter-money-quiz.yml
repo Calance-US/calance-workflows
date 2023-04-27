@@ -1,0 +1,33 @@
+name: money-quiz-jmeter
+
+on:
+  workflow_call:
+    inputs:
+      jmxFilePath:
+        description: "jmx file path"
+        required: true
+        type: string
+        default: "${{ github.event.repository.name }}/testing-suites/script.jmx"
+
+jobs:
+  action_build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout action
+      uses: actions/checkout@v2
+
+    - name: create folder to store reults of jmeter action in artifacts
+      run: |
+        mkdir reports-money-quiz-jmeter/
+
+    - name: Run JMeter Action on a test
+      uses: rbhadti94/apache-jmeter-action@v0.5.0
+      with:
+        testFilePath: ${{ inputs.jmxFilePath }}
+        outputReportsFolder: reports-money-quiz-jmeter/
+        args: "--loglevel INFO"
+
+    - uses: actions/upload-artifact@v1
+      with:
+        name: jmeter-test-results
+        path: reports-money-quiz-jmeter/
