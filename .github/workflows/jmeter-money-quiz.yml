@@ -7,7 +7,7 @@ on:
         description: "jmx file path"
         required: true
         type: string
-        default: "${{ github.event.repository.name }}/testing-suites/script.jmx"
+        default: "${{ github.event.repository.name }}/testing-suite/script.jmx"
 
 jobs:
   action_build:
