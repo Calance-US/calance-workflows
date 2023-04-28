@@ -64,7 +64,7 @@ jobs:
   #               exit 1
   #           fi
   #     - name: List packages with tags before deletion for prod
-  #       uses: Calance-US/calance-list-packages-with-tags-action@Remove-double-quotes-from-inputs
+  #       uses: Calance-US/calance-list-packages-with-tags-action@main
   #       id: list-packages-with-tags-before-deletion
   #       with:
   #         image_name: ${{ inputs.image_name }}
@@ -134,7 +134,7 @@ jobs:
                 echo "Provided value of testing_keep_at_least cannot be less than 2"
                 exit 1
             fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@Remove-double-quotes-from-inputs
+      - uses: Calance-US/calance-list-packages-with-tags-action@main
         name: List packages with tags before deletion for testing
         id: list-packages-with-tags-before-deletion
         with:
@@ -153,7 +153,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
-      - uses: Calance-US/calance-list-packages-with-tags-action@Remove-double-quotes-from-inputs
+      - uses: Calance-US/calance-list-packages-with-tags-action@main
         name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
