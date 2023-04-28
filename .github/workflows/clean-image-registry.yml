@@ -172,6 +172,9 @@ jobs:
             console.log(packages_deleted)
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github assistance for testing
+        if: |
+          steps.delete-packages-testing.outputs.failed != '' &&
+          steps.delete-packages-testing.outputs.needs-github-assistance != ''
         uses: Calance-US/calance-get-packages-url-action@Remove-quotes-from-input-parameters
         id: get-packages-url-testing
         with:
