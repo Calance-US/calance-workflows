@@ -123,121 +123,47 @@ jobs:
   #           - name: Packages that needs Github Assistance for deletion
   #             value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls }}
   
-  clean-ghcr-testing:
-    name: Delete old unused container images
-    runs-on: ubuntu-latest
-    #needs: clean-ghcr-prod
-    steps:
-      - name: Validating inputs for testing
-        run: |
-            if [[ $(("${{ inputs.testing_keep_at_least }}")) -lt 2 ]]; then
-                echo "Provided value of testing_keep_at_least cannot be less than 2"
-                exit 1
-            fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@main
-        name: List packages with tags before deletion for testing
-        id: list-packages-with-tags-before-deletion
-        with:
-          image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
-          package_type: container
-          organization: Calance-US 
-      - name: Delete old containers in Testing
-        id: delete-packages-testing
-        uses: snok/container-retention-policy@v2
-        with:
-          cut-off: ${{ inputs.testing_cut_off }}
-          account-type: org
-          org-name: Calance-US
-          filter-tags: "v*.*.*-rc*"
-          image-names: ${{ inputs.image_name }}
-          keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
-      - uses: Calance-US/calance-list-packages-with-tags-action@main
-        name: List packages with tags after deletion for testing
-        id: list-packages-with-tags-after-deletion
-        with:
-          image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
-          package_type: container
-          organization: Calance-US
-      - name: Packages deleted for testing
-        uses: actions/github-script@v6
-        id: packages-deleted-testing
-        with:
-          script: |
-            packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
-            packages_versions_after_deletion = ${{ steps.list-packages-with-tags-after-deletion.outputs.packages-with-tags }}
-            packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
-            console.log(packages_deleted)
-            return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for testing
-        if: |
-          steps.delete-packages-testing.outputs.failed != '' &&
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
-        uses: Calance-US/calance-get-packages-url-action@Remove-quotes-from-input-parameters
-        id: get-packages-url-testing
-        with:
-          packages_failed_to_delete: ${{ steps.delete-packages-testing.outputs.failed }}
-          packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }} 
-      - uses: toko-bifrost/ms-teams-deploy-card@master
-        if: |
-          steps.delete-packages-testing.outputs.deleted != '' ||
-          steps.delete-packages-testing.outputs.failed != '' ||
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
-        with:
-          github-token: ${{ github.token }}
-          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
-          custom-facts: |
-            - name: Packages successfully deleted
-              value: ${{ steps.packages-deleted-testing.outputs.result }}
-            - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls }}
-            - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls }}
-
-  # clean-ghcr-non-semver:
+  # clean-ghcr-testing:
   #   name: Delete old unused container images
   #   runs-on: ubuntu-latest
-  #   needs: clean-ghcr-testing
+  #   #needs: clean-ghcr-prod
   #   steps:
-  #     - name: Validating inputs for Non-SemVer
+  #     - name: Validating inputs for testing
   #       run: |
-  #           if [[ $(("${{ inputs.non_semver_keep_at_least }}")) -lt 2 ]]; then
-  #               echo "Provided value of non_semver_keep_at_least cannot be less than 2"
+  #           if [[ $(("${{ inputs.testing_keep_at_least }}")) -lt 2 ]]; then
+  #               echo "Provided value of testing_keep_at_least cannot be less than 2"
   #               exit 1
   #           fi
-  #     - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
-  #       name: List packages with tags before deletion for non-semver
+  #     - uses: Calance-US/calance-list-packages-with-tags-action@main
+  #       name: List packages with tags before deletion for testing
   #       id: list-packages-with-tags-before-deletion
   #       with:
   #         image_name: ${{ inputs.image_name }}
   #         GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
   #         package_type: container
   #         organization: Calance-US 
-  #     - name: Delete old containers of Non-Semver pattern
-  #       id: delete-packages-non-semver
+  #     - name: Delete old containers in Testing
+  #       id: delete-packages-testing
   #       uses: snok/container-retention-policy@v2
   #       with:
-  #         cut-off: ${{ inputs.non_semver_cut_off }}
+  #         cut-off: ${{ inputs.testing_cut_off }}
   #         account-type: org
   #         org-name: Calance-US
-  #         skip-tags: v*.*.*, v*.*.*-rc*
-  #         filter-include-untagged: false
+  #         filter-tags: "v*.*.*-rc*"
   #         image-names: ${{ inputs.image_name }}
-  #         keep-at-least: ${{ inputs.non_semver_keep_at_least }}
+  #         keep-at-least: ${{ inputs.testing_keep_at_least }}
   #         token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
-  #     - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
-  #       name: List packages with tags after deletion for non-semver
+  #     - uses: Calance-US/calance-list-packages-with-tags-action@main
+  #       name: List packages with tags after deletion for testing
   #       id: list-packages-with-tags-after-deletion
   #       with:
   #         image_name: ${{ inputs.image_name }}
   #         GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
   #         package_type: container
-  #         organization: Calance-US 
-  #     - name: Packages deleted for non-semver
+  #         organization: Calance-US
+  #     - name: Packages deleted for testing
   #       uses: actions/github-script@v6
-  #       id: packages-deleted-non-semver
+  #       id: packages-deleted-testing
   #       with:
   #         script: |
   #           packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
@@ -245,27 +171,105 @@ jobs:
   #           packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
   #           console.log(packages_deleted)
   #           return packages_deleted
-  #     - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
-  #       uses: Calance-US/calance-get-packages-url-action@v1.0.0
-  #       id: get-packages-url-non-semver
+  #     - name: Get URLs for packages that failed deletion and packages that needs github assistance for testing
+  #       if: |
+  #         steps.delete-packages-testing.outputs.failed != '' &&
+  #         steps.delete-packages-testing.outputs.needs-github-assistance != ''
+  #       uses: Calance-US/calance-get-packages-url-action@Remove-quotes-from-input-parameters
+  #       id: get-packages-url-testing
   #       with:
-  #         packages_failed_to_delete: ${{ steps.delete-packages-non-semver.outputs.failed }}
-  #         packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
+  #         packages_failed_to_delete: ${{ steps.delete-packages-testing.outputs.failed }}
+  #         packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }} 
   #     - uses: toko-bifrost/ms-teams-deploy-card@master
   #       if: |
-  #         steps.delete-packages-non-semver.outputs.deleted != '' ||
-  #         steps.delete-packages-non-semver.outputs.failed != '' ||
-  #         steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
+  #         steps.delete-packages-testing.outputs.deleted != '' ||
+  #         steps.delete-packages-testing.outputs.failed != '' ||
+  #         steps.delete-packages-testing.outputs.needs-github-assistance != ''
   #       with:
   #         github-token: ${{ github.token }}
   #         webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
   #         custom-facts: |
   #           - name: Packages successfully deleted
-  #             value: ${{ steps.packages-deleted-non-semver.outputs.result }}
+  #             value: ${{ steps.packages-deleted-testing.outputs.result }}
   #           - name: Packages failed to delete
-  #             value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls }}
+  #             value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls }}
   #           - name: Packages that needs Github Assistance for deletion
-  #             value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls }}
+  #             value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls }}
+
+  clean-ghcr-non-semver:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    #needs: clean-ghcr-testing
+    steps:
+      - name: Validating inputs for Non-SemVer
+        run: |
+            if [[ $(("${{ inputs.non_semver_keep_at_least }}")) -lt 2 ]]; then
+                echo "Provided value of non_semver_keep_at_least cannot be less than 2"
+                exit 1
+            fi
+      - uses: Calance-US/calance-list-packages-with-tags-action@main
+        name: List packages with tags before deletion for non-semver
+        id: list-packages-with-tags-before-deletion
+        with:
+          image_name: ${{ inputs.image_name }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          package_type: container
+          organization: Calance-US 
+      - name: Delete old containers of Non-Semver pattern
+        id: delete-packages-non-semver
+        uses: snok/container-retention-policy@v2
+        with:
+          cut-off: ${{ inputs.non_semver_cut_off }}
+          account-type: org
+          org-name: Calance-US
+          skip-tags: v*.*.*, v*.*.*-rc*
+          filter-include-untagged: false
+          image-names: ${{ inputs.image_name }}
+          keep-at-least: ${{ inputs.non_semver_keep_at_least }}
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+      - uses: Calance-US/calance-list-packages-with-tags-action@main
+        name: List packages with tags after deletion for non-semver
+        id: list-packages-with-tags-after-deletion
+        with:
+          image_name: ${{ inputs.image_name }}
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          package_type: container
+          organization: Calance-US 
+      - name: Packages deleted for non-semver
+        uses: actions/github-script@v6
+        id: packages-deleted-non-semver
+        with:
+          script: |
+            packages_versions_before_deletion = ${{ steps.list-packages-with-tags-before-deletion.outputs.packages-with-tags }}
+            packages_versions_after_deletion = ${{ steps.list-packages-with-tags-after-deletion.outputs.packages-with-tags }}
+            packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
+            console.log(packages_deleted)
+            return packages_deleted
+      - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
+        uses: Calance-US/calance-get-packages-url-action@Remove-quotes-from-input-parameters
+        if: |
+          steps.delete-packages-non-semver.outputs.failed != '' &&
+          steps.delete-packages-non-semver.outputs.needs-github-assistance != '' 
+
+        id: get-packages-url-non-semver
+        with:
+          packages_failed_to_delete: ${{ steps.delete-packages-non-semver.outputs.failed }}
+          packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
+      - uses: toko-bifrost/ms-teams-deploy-card@master
+        if: |
+          steps.delete-packages-non-semver.outputs.deleted != '' ||
+          steps.delete-packages-non-semver.outputs.failed != '' ||
+          steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
+        with:
+          github-token: ${{ github.token }}
+          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+          custom-facts: |
+            - name: Packages successfully deleted
+              value: ${{ steps.packages-deleted-non-semver.outputs.result }}
+            - name: Packages failed to delete
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls }}
+            - name: Packages that needs Github Assistance for deletion
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls }}
   
   # clean-ghcr-untagged:
   #   name: Delete old unused container images
