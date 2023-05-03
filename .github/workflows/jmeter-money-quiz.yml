@@ -25,7 +25,6 @@ jobs:
       with:
         testFilePath: ${{ inputs.jmxFilePath }}
         outputReportsFolder: reports-money-quiz-jmeter/
-        args: "--loglevel INFO"
 
     - uses: actions/upload-artifact@v1
       with:
