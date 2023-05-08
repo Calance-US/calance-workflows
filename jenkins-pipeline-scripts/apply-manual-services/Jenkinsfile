@@ -28,8 +28,8 @@ pipeline{
                 //         atcost.add(${changedfilePaths[i]})
                 //     }
                 // }
-                echo "ChangedFile${}s: ${changedFilePaths}"
-                echo ${changedFilePaths}.size()
+                echo "ChangedFilePaths${}: ${changedFilePaths}"
+                //echo ${changedFilePaths}.size()
                 //echo "Nutanix: ${nutanix}"
                 //echo "Atcost: ${atcost}"
             }
