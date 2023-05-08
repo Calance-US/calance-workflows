@@ -2,7 +2,8 @@ pipeline{
     agent any
     stages{
         stage('Git Checkout'){
-           checkout([
+           steps{
+            checkout([
                 $class: 'GitSCM',
                 branches: [[name: '*/407-test-changed-files-from-CWF']],
                 extensions: [],
@@ -11,6 +12,7 @@ pipeline{
                     url: 'https://github.com/Calance-US/calance-services-helm-values.git'
                 ]]
             ])
+           }
         }
         stage('Printing files'){
             steps{
