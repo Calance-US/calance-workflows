@@ -30,7 +30,8 @@ pipeline{
                 //         atcost.add(${changedfilePaths[i]})
                 //     }
                 // }
-                sh 'env | sort'
+                changedFilePaths=${env.CHANGED_FILES}
+                print $changedFilePaths
                 
             }
             
