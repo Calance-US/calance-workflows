@@ -1,5 +1,5 @@
-def changedFilePaths=$CHANGED_FILES
-changedFilePaths = changedFilePaths.split(',')
+String changedFilePaths = ''
+
 def atcost = new ArrayList<String>()
 def nutanix = new ArrayList<String>()
 
@@ -21,6 +21,8 @@ pipeline{
         }
         stage('Find the cluster to which Changed Files will be applied'){
             steps{
+                changedFilePaths = CHANGED_FILES
+                changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
                 //     if (${changedfilePaths[i]}.contains('jenkins')){
                 //         nutanix.add(${changedfilePaths[i]})
