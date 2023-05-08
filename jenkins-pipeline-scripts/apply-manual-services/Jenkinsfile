@@ -30,7 +30,7 @@ pipeline{
                 //         atcost.add(${changedfilePaths[i]})
                 //     }
                 // }
-                changedFilePaths=${env.CHANGED_FILES}
+                String changedFilePaths=${env.CHANGED_FILES}
                 print $changedFilePaths
                 
             }
