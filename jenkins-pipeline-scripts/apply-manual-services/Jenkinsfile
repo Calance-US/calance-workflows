@@ -20,7 +20,7 @@ pipeline{
            }
         }
         stage('Find the cluster to which Changed Files will be applied'){
-            steps{
+            
                 // changedFilePaths = ${CHANGED_FILES}
                 // changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
@@ -33,7 +33,7 @@ pipeline{
                 String changedFilePaths=${env.CHANGED_FILES}
                 print $changedFilePaths
                 
-            }
+            
             
         }
         
