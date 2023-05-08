@@ -1,3 +1,8 @@
+def changedFilePaths=$CHANGED_FILES
+changedFilePaths = changedFilePaths.split(',')
+def atcost = new ArrayList<String>()
+def nutanix = new ArrayList<String>()
+
 pipeline{
     agent any
     stages{
@@ -14,11 +19,21 @@ pipeline{
             ])
            }
         }
-        stage('Printing files'){
+        stage('Find the cluster to which Changed Files will be applied'){
             steps{
-                sh 'ls -al'
-                sh 'echo $CHANGED_FILES'
+                for (String path: changedFilePaths){
+                    if (path.contains('jenkins')){
+                        nutanix.add(path)
+                    } else{
+                        atcost.add(path)
+                    }
+                }
+                echo "ChangedFilePaths: ${changedFilePaths}"
+                echo "Nutanix: ${nutanix}"
+                echo "Atcost: ${atcost}"
             }
+            
         }
+        
     }
 }
