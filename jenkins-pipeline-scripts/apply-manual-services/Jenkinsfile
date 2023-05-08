@@ -1,0 +1,22 @@
+pipeline{
+    agent any
+    stages{
+        stage('Git Checkout'){
+           checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/407-test-changed-files-from-CWF']],
+                extensions: [],
+                userRemoteConfigs: [[
+                    credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
+                    url: 'https://github.com/Calance-US/calance-services-helm-values.git'
+                ]]
+            ])
+        }
+        stage('Printing files'){
+            steps{
+                sh 'ls -al'
+                sh 'echo $CHANGED_FILES'
+            }
+        }
+    }
+}
