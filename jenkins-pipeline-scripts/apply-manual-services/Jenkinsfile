@@ -30,7 +30,10 @@ pipeline{
                 //         atcost.add(${changedfilePaths[i]})
                 //     }
                 // }
+            steps{
                 echo $CHANGED_FILES
+            }
+                
                 
             
             
