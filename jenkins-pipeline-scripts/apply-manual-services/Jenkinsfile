@@ -1,7 +1,7 @@
 // String changedFilePaths = ''
 def atcost = []
 def nutanix = []
-String changedFilePathsArray[]
+String changedFilePathsArray=[]
 
 pipeline{
     agent any
