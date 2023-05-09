@@ -22,7 +22,7 @@ pipeline{
         stage('Find the cluster to which Changed Files will be applied'){
             
                 
-                String changedFilePaths=sh(echo $CHANGED_FILES)
+                String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
                 print changedFilePaths
                 // changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
