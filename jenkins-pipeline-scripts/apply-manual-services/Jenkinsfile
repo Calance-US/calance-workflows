@@ -24,7 +24,7 @@ pipeline{
                 
                 steps{
                     script{
-                        String changedFilePaths = echo  "${"$CHANGED_FILES"}"
+                        String changedFilePaths = env.CHANGED_FILES
                         print changedFilePaths
                         // changedFilePathsArray = changedFilePaths.split(',')
                         // print changedFilePathsArray
