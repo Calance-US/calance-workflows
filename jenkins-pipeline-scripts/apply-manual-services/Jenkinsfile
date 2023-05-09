@@ -1,7 +1,7 @@
 // String changedFilePaths = ''
 
-// def atcost = new ArrayList<String>()
-// def nutanix = new ArrayList<String>()
+def atcost = new ArrayList<String>()
+def nutanix = new ArrayList<String>()
 
 pipeline{
     agent any
@@ -25,17 +25,17 @@ pipeline{
                 steps{
                     script{
                         String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
-                        print changedFilePaths
+                        //print changedFilePaths
+                        for (int i = 0; i < changedfilePaths.size(); i++){
+                            if (changedfilePaths[i].contains('jenkins')){
+                                nutanix.add(changedfilePaths[i])
+                            } else{
+                                atcost.add(changedfilePaths[i])
+                            }
+                        }
                     }
                 }
-                // changedFilePaths = changedFilePaths.split(',')
-                // for (int i = 0; i < changedfilePaths.size(); i++){
-                //     if (${changedfilePaths[i]}.contains('jenkins')){
-                //         nutanix.add(${changedfilePaths[i]})
-                //     } else{
-                //         atcost.add(${changedfilePaths[i]})
-                //     }
-                // }
+                
             
                 
                 
