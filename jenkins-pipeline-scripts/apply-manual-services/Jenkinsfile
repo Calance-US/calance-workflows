@@ -27,14 +27,16 @@ pipeline{
                         String changedFilePaths = env.CHANGED_FILES
                         
                         changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
-                        println changedFilePathsArray
-                        // for (int i = 0; i < changedfilePaths.size(); i++){
-                        //     if (changedfilePaths[i].contains('jenkins')){
-                        //         nutanix.add(changedfilePaths[i])
-                        //     } else{
-                        //         atcost.add(changedfilePaths[i])
-                        //     }
-                        // }
+                        //println changedFilePathsArray
+                        for (int i = 0; i < changedfilePaths.size(); i++){
+                            if (changedfilePaths[i].contains('jenkins')){
+                                nutanix.add(changedfilePaths[i])
+                            } else{
+                                atcost.add(changedfilePaths[i])
+                            }
+                        }
+                        println nutanix
+                        println atcost
                     }
                 }
                 
