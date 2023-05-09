@@ -28,11 +28,11 @@ pipeline{
                         
                         changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
                         //println changedFilePathsArray
-                        for (int i = 0; i < changedfilePathsArray.size(); i++){
-                            if (changedfilePathsArray[i].contains('jenkins')){
-                                nutanix.add(changedfilePathsArray[i])
+                        for (int i = 0; i < changedFilePathsArray.size(); i++){
+                            if (changedFilePathsArray[i].contains('jenkins')){
+                                nutanix.add(changedFilePathsArray[i])
                             } else{
-                                atcost.add(changedfilePathsArray[i])
+                                atcost.add(changedFilePathsArray[i])
                             }
                         }
                         println nutanix
