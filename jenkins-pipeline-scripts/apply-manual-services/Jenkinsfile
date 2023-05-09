@@ -23,8 +23,10 @@ pipeline{
             
                 
                 steps{
-                    String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
-                    print changedFilePaths
+                    script{
+                        String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
+                        print changedFilePaths
+                    }
                 }
                 // changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
