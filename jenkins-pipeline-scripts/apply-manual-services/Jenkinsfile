@@ -22,8 +22,10 @@ pipeline{
         stage('Find the cluster to which Changed Files will be applied'){
             
                 
-                String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
-                print changedFilePaths
+                steps{
+                    String changedFilePaths=sh(script:""" echo $CHANGED_FILES""", returnStdout: true).trim()
+                    print changedFilePaths
+                }
                 // changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
                 //     if (${changedfilePaths[i]}.contains('jenkins')){
