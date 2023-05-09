@@ -21,7 +21,8 @@ pipeline{
         }
         stage('Find the cluster to which Changed Files will be applied'){
             
-                // changedFilePaths = ${CHANGED_FILES}
+                changedFilePaths = ${CHANGED_FILES}
+                println changedFilePaths
                 // changedFilePaths = changedFilePaths.split(',')
                 // for (int i = 0; i < changedfilePaths.size(); i++){
                 //     if (${changedfilePaths[i]}.contains('jenkins')){
@@ -30,9 +31,7 @@ pipeline{
                 //         atcost.add(${changedfilePaths[i]})
                 //     }
                 // }
-            steps{
-                echo ${CHANGED_FILES}
-            }
+            
                 
                 
             
