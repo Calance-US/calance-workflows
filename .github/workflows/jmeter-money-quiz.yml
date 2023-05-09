@@ -7,7 +7,7 @@ on:
         description: "jmx file path"
         required: true
         type: string
-        default: "${{ github.event.repository.name }}/testing-suites/script.jmx"
+        default: "testingSuite/script.jmx"
 
 jobs:
   action_build:
@@ -29,4 +29,8 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: jmeter-test-results
-        path: .
+        path: |
+          reports-money-quiz-jmeter/
+          *.log
+
+
