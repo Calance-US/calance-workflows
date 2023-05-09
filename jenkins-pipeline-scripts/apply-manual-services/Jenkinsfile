@@ -25,7 +25,7 @@ pipeline{
                 steps{
                     script{
                         String changedFilePaths = env.CHANGED_FILES
-                        println changedFilePaths.getClass()
+                        println changedFilePaths
                         String changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
                         print changedFilePathsArray
                         // for (int i = 0; i < changedfilePaths.size(); i++){
