@@ -1,7 +1,7 @@
 // String changedFilePaths = ''
 def atcost = []
 def nutanix = []
-String[] changedFilePathsArray
+
 
 pipeline{
     agent any
@@ -25,8 +25,8 @@ pipeline{
                 steps{
                     script{
                         String changedFilePaths = env.CHANGED_FILES
-                        println changedFilePathsArray
-                        changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+                        println changedFilePaths.getClass()
+                        String changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
                         print changedFilePathsArray
                         // for (int i = 0; i < changedfilePaths.size(); i++){
                         //     if (changedfilePaths[i].contains('jenkins')){
