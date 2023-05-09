@@ -25,9 +25,8 @@ pipeline{
                 steps{
                     script{
                         String changedFilePaths = env.CHANGED_FILES
-                        print changedFilePaths
-                        // changedFilePathsArray = changedFilePaths.split(',')
-                        // print changedFilePathsArray
+                        changedFilePathsArray = changedFilePaths.split(',')
+                        print changedFilePathsArray
                         // for (int i = 0; i < changedfilePaths.size(); i++){
                         //     if (changedfilePaths[i].contains('jenkins')){
                         //         nutanix.add(changedfilePaths[i])
