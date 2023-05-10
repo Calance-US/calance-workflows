@@ -1,10 +1,9 @@
+/* groovylint-disable CompileStatic */
 def changedFilePathsArray = []
-def atcost = []
-def nutanix = []
+def applyOnAtcost = []
+def applyOnNutanix = []
 
-
-pipeline{
-    agent any
+node('master'){
     stages{
         stage('Git Checkout'){
            steps{
@@ -20,32 +19,52 @@ pipeline{
            }
         }
         stage('Find the cluster to which Changed Files will be applied'){
-            
-                
-                steps{
-                    script{
-                        String changedFilePaths = env.CHANGED_FILES
-                        
-                        changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
-                        //println changedFilePathsArray
-                        for (int i = 0; i < changedFilePathsArray.size(); i++){
-                            if (changedFilePathsArray[i].contains('jenkins')){
-                                nutanix.add(changedFilePathsArray[i])
-                            } else{
-                                atcost.add(changedFilePathsArray[i])
-                            }
+            steps{
+                script{
+
+                    // CHANGED_FILES is the parameter passed to the Job
+                    String changedFilePaths = env.CHANGED_FILES
+                    changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+                    
+                    for (int i = 0; i < changedFilePathsArray.size(); i++){
+                        if (changedFilePathsArray[i].contains('jenkins')){
+
+                            // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
+                            applyOnNutanix.add(changedFilePathsArray[i])
+                        } else{
+
+                            // Apply on Atcost Cluster ie. atcost-production cloud
+                            applyOnAtcost.add(changedFilePathsArray[i])
                         }
-                        println nutanix
-                        println atcost
                     }
+                        println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
+                        println "Files needed to be applied on Atcost Cluster: " + applyonAtcost
                 }
-                
-            
-                
-                
-            
-            
+            }
         }
-        
+    }
+}
+
+node('jenkins-jenkins-agent'){
+    stages{
+        stage('Deploy the Kubernetes Manifests files'){
+            steps{
+                script{
+                    
+                }
+            }
+        }
+    }
+}
+
+node('atcost-production'){
+    stages{
+        stage('Deploy the Kubernetes Manifests files'){
+            steps{
+                script{
+                    
+                }
+            }
+        }
     }
 }
