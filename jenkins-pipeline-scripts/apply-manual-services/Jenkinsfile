@@ -50,6 +50,9 @@ node('jenkins-jenkins-agent'){
         stage('Deploy the Kubernetes Manifests files'){
             steps{
                 script{
+                    for(int i=0;i<applyonNutanix.size();i++){
+                        sh("kubectl apply -f ${applyonNutanix[i]}")
+                    }
                     
                 }
             }
@@ -62,6 +65,9 @@ node('atcost-production'){
         stage('Deploy the Kubernetes Manifests files'){
             steps{
                 script{
+                    for(int i=0;i<applyonNutanix.size();i++){
+                        sh("kubectl apply -f ${applyonAtcost[i]}")
+                    }
                     
                 }
             }
