@@ -1,7 +1,6 @@
 /* groovylint-disable CompileStatic */
-String changedFilePathsArray = []
-String applyOnAtcost = []
-String applyOnNutanix = []
+List<String> applyOnAtcost = new ArrayList<>()
+List<String> applyOnNutanix = new ArrayList<>()
 
 node('master'){
     stage('Git Checkout'){
@@ -21,7 +20,7 @@ node('master'){
 
                     // CHANGED_FILES is the parameter passed to the Job
                     String changedFilePaths = env.CHANGED_FILES
-                    changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+                    String changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
                     
                     for (int i = 0; i < changedFilePathsArray.size(); i++){
                         if (changedFilePathsArray[i].contains('jenkins')){
