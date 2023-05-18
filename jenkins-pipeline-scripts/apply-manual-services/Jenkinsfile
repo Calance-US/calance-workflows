@@ -55,7 +55,7 @@ node('atcost-production'){
     stage('Deploy the Kubernetes Manifests files'){
         for(int i=0;i<applyOnAtcost.size();i++){
                         
-        //Log the error and keep applying other files to the Kubernetes Cluster
+            //Log the error and keep applying other files to the Kubernetes Cluster
             try{
                 sh("kubectl apply -f ${applyOnAtcost[i]}")
             } catch(err){
