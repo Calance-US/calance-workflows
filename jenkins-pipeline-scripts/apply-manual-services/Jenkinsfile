@@ -1,6 +1,5 @@
 /* groovylint-disable CompileStatic */
-def applyOnAtcost = [] as String[]
-def applyOnNutanix = [] as String[]
+
 
 node('master'){
     stage('Git Checkout'){
@@ -21,16 +20,23 @@ node('master'){
                     // CHANGED_FILES is the parameter passed to the Job
                     String changedFilePaths = env.CHANGED_FILES
                     String changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+                    def applyOnNutanix = [] as String[changedFilePathsArray.length]
+                    
+
+                    int counterNutanix = 0
+                    int counterAtcost = 0
                     
                     for (int i = 0; i < changedFilePathsArray.size(); i++){
                         if (changedFilePathsArray[i].contains('jenkins')){
 
                             // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
-                            applyOnNutanix.add(changedFilePathsArray[i])
+                            applyOnNutanix[counterNutanix] = changedFilePathsArray[i]
+                            counterNutanix = counterNutanix + 1
                         } else{
 
                             // Apply on Atcost Cluster ie. atcost-production cloud
-                            applyOnAtcost.add(changedFilePathsArray[i])
+                            applyOnAtcost[counterAtcost] = changedFilePathsArray[i]
+                            counterAtcost = counterAtcost + 1
                         }
                     }
                         println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
