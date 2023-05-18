@@ -4,7 +4,7 @@ def applyOnAtcost = []
 def applyOnNutanix = []
 
 node('master'){
-    stages{
+    
         stage('Git Checkout'){
            steps{
             checkout([
@@ -42,11 +42,11 @@ node('master'){
                 }
             }
         }
-    }
+    
 }
 
 node('jenkins-jenkins-agent'){
-    stages{
+    
         stage('Deploy the Kubernetes Manifests files'){
             steps{
                 script{
@@ -61,11 +61,11 @@ node('jenkins-jenkins-agent'){
                 }
             }
         }
-    }
+    
 }
 
 node('atcost-production'){
-    stages{
+    
         stage('Deploy the Kubernetes Manifests files'){
             steps{
                 script{
@@ -80,5 +80,5 @@ node('atcost-production'){
                 }
             }
         }
-    }
+    
 }
