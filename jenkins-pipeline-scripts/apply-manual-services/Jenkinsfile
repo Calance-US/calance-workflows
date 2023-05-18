@@ -17,7 +17,7 @@ node('master'){
     }
         stage('Find the cluster to which Changed Files will be applied'){
             
-                script{
+                
 
                     // CHANGED_FILES is the parameter passed to the Job
                     String changedFilePaths = env.CHANGED_FILES
@@ -36,7 +36,7 @@ node('master'){
                     }
                         println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
                         println "Files needed to be applied on Atcost Cluster: " + applyonAtcost
-                }
+                
             
         }
     
