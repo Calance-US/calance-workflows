@@ -4,44 +4,41 @@ def applyOnAtcost = []
 def applyOnNutanix = []
 
 node('master'){
-    
-        stage('Git Checkout'){
-           
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/407-test-changed-files-from-CWF']],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
-                        url: 'https://github.com/Calance-US/calance-services-helm-values.git'
-                    ]]
-                ])
-            
-        }
-        // stage('Find the cluster to which Changed Files will be applied'){
-        //     steps{
-        //         script{
+    stage('Git Checkout'){
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: '*/407-test-changed-files-from-CWF']],
+            extensions: [],
+            userRemoteConfigs: [[
+                credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
+                url: 'https://github.com/Calance-US/calance-services-helm-values.git'
+            ]]
+        ])
+    }
+        stage('Find the cluster to which Changed Files will be applied'){
+            steps{
+                script{
 
-        //             // CHANGED_FILES is the parameter passed to the Job
-        //             String changedFilePaths = env.CHANGED_FILES
-        //             changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+                    // CHANGED_FILES is the parameter passed to the Job
+                    String changedFilePaths = env.CHANGED_FILES
+                    changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
                     
-        //             for (int i = 0; i < changedFilePathsArray.size(); i++){
-        //                 if (changedFilePathsArray[i].contains('jenkins')){
+                    for (int i = 0; i < changedFilePathsArray.size(); i++){
+                        if (changedFilePathsArray[i].contains('jenkins')){
 
-        //                     // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
-        //                     applyOnNutanix.add(changedFilePathsArray[i])
-        //                 } else{
+                            // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
+                            applyOnNutanix.add(changedFilePathsArray[i])
+                        } else{
 
-        //                     // Apply on Atcost Cluster ie. atcost-production cloud
-        //                     applyOnAtcost.add(changedFilePathsArray[i])
-        //                 }
-        //             }
-        //                 println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
-        //                 println "Files needed to be applied on Atcost Cluster: " + applyonAtcost
-        //         }
-        //     }
-        // }
+                            // Apply on Atcost Cluster ie. atcost-production cloud
+                            applyOnAtcost.add(changedFilePathsArray[i])
+                        }
+                    }
+                        println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
+                        println "Files needed to be applied on Atcost Cluster: " + applyonAtcost
+                }
+            }
+        }
     
 }
 
