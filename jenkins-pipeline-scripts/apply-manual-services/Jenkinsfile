@@ -1,6 +1,6 @@
 /* groovylint-disable CompileStatic */
-List<String> applyOnAtcost = new ArrayList<>()
-List<String> applyOnNutanix = new ArrayList<>()
+def applyOnAtcost = [] as String[]
+def applyOnNutanix = [] as String[]
 
 node('master'){
     stage('Git Checkout'){
