@@ -41,9 +41,9 @@ node('jenkins-jenkins-agent'){
     
         stage('Deploy the Kubernetes Manifests files'){
             
-                    for(int i=0;i<applyonNutanix.size();i++){
+                    for(int i=0;i<applyOnNutanix.size();i++){
                         try{
-                            sh("kubectl apply -f ${applyonNutanix[i]}")
+                            sh("kubectl apply -f ${applyOnNutanix[i]}")
                         } catch(err){
                             echo err.getMessage()
                         }
