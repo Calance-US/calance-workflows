@@ -38,7 +38,7 @@ node('master'){
 }
 
 node('jenkins-jenkins-agent'){
-    stage('Deploy the Kubernetes Manifests files'){
+    stage('Deploy the Kubernetes Manifests files in Nutanix Cluster'){
         for(int i=0;i<applyOnNutanix.size();i++){
 
             //Log the error and keep applying other files to the Kubernetes Cluster
@@ -52,7 +52,7 @@ node('jenkins-jenkins-agent'){
 }
 
 node('atcost-production'){
-    stage('Deploy the Kubernetes Manifests files'){
+    stage('Deploy the Kubernetes Manifests files in Atcost Cluster'){
         for(int i=0;i<applyOnAtcost.size();i++){
                         
             //Log the error and keep applying other files to the Kubernetes Cluster
