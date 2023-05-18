@@ -20,8 +20,8 @@ node('master'){
                     // CHANGED_FILES is the parameter passed to the Job
                     String changedFilePaths = env.CHANGED_FILES
                     String changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
-                    String[] applyOnNutanix = new String[changedFilePathsArray.length]
-                    String[] applyOnAtcost = new String[changedFilePathsArray.length]
+                    String[] applyOnNutanix = new String[changedFilePathsArray.size()]
+                    String[] applyOnAtcost = new String[changedFilePathsArray.size()]
 
 
                     int counterNutanix = 0
