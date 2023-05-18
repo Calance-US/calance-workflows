@@ -1,7 +1,7 @@
 /* groovylint-disable CompileStatic */
-def changedFilePathsArray = []
-def applyOnAtcost = []
-def applyOnNutanix = []
+String changedFilePathsArray = []
+String applyOnAtcost = []
+String applyOnNutanix = []
 
 node('master'){
     stage('Git Checkout'){
