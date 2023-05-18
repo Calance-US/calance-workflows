@@ -40,8 +40,8 @@ node('master'){
                             counterAtcost = counterAtcost + 1
                         }
                     }
-                        println "Files needed to be applied on Nutanix Cluster: " + applyonNutanix
-                        println "Files needed to be applied on Atcost Cluster: " + applyonAtcost
+                        println "Files needed to be applied on Nutanix Cluster: " + applyOnNutanix
+                        println "Files needed to be applied on Atcost Cluster: " + applyOnAtcost
                 
             
         }
