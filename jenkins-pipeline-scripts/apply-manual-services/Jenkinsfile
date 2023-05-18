@@ -15,57 +15,45 @@ node('master'){
             ]]
         ])
     }
-        stage('Find the cluster to which Changed Files will be applied'){
+    stage('Find the cluster to which Changed Files will be applied'){
+        // CHANGED_FILES is the parameter passed to the Job
+        String changedFilePaths = env.CHANGED_FILES
+                    
+        changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
+        for (int i = 0; i < changedFilePathsArray.size(); i++){
+            if (changedFilePathsArray[i].contains('jenkins')){
+                
+                // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
+                applyOnNutanix.add(changedFilePathsArray[i])
+            }else{
+                
+                // Apply on Atcost Cluster ie. atcost-production cloud
+                applyOnAtcost.add(changedFilePathsArray[i])
+            }
+        }
+        println "Files needed to be applied on Nutanix Cluster: " + applyOnNutanix
+        println "Files needed to be applied on Atcost Cluster: " + applyOnAtcost
+    }
+    
+}
+
+node('jenkins-jenkins-agent'){
+    
+        stage('Deploy the Kubernetes Manifests files'){
             
-                
-
-                    // CHANGED_FILES is the parameter passed to the Job
-                    String changedFilePaths = env.CHANGED_FILES
-                    changedFilePathsArray = changedFilePaths.split(',').collect{it as String}
-                
-
-
-                    
-                    
-                    for (int i = 0; i < changedFilePathsArray.size(); i++){
-                        if (changedFilePathsArray[i].contains('jenkins')){
-
-                            // Apply on Nutanix Cluster ie. jenkins-jenkins-agent cloud
-                            applyOnNutanix.add(changedFilePathsArray[i])
-                            
-                        } else{
-
-                            // Apply on Atcost Cluster ie. atcost-production cloud
-                            applyOnAtcost.add(changedFilePathsArray[i])
-                            
+                    for(int i=0;i<applyonNutanix.size();i++){
+                        try{
+                            sh("kubectl apply -f ${applyonNutanix[i]}")
+                        } catch(err){
+                            echo err.getMessage()
                         }
                     }
-                        println "Files needed to be applied on Nutanix Cluster: " + applyOnNutanix
-                        println "Files needed to be applied on Atcost Cluster: " + applyOnAtcost
+                    
                 
             
         }
     
 }
-
-// node('jenkins-jenkins-agent'){
-    
-//         stage('Deploy the Kubernetes Manifests files'){
-//             steps{
-//                 script{
-//                     for(int i=0;i<applyonNutanix.size();i++){
-//                         try{
-//                             sh("kubectl apply -f ${applyonNutanix[i]}")
-//                         } catch(err){
-//                             echo err.getMessage()
-//                         }
-//                     }
-                    
-//                 }
-//             }
-//         }
-    
-// }
 
 // node('atcost-production'){
     
