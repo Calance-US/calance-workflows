@@ -44,6 +44,11 @@ on:
         required: false
         type: string
         default: ""
+      dot_env_file_dev:
+        description: "Build time environment variables as multiline string for dev environment"
+        required: false
+        type: string
+        default: ""
       branch_name:
         description: "the branch we are going to build. If kept empty, the git ref that triggered the workflow is used"
         type: string
@@ -96,12 +101,12 @@ jobs:
         docker_json_metadata: ${{ steps.meta.outputs.json }}
 
     - name: Generate .env file
-      if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != ''
+      if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev
       run: |
         if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
           echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
         elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-          echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+          echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
         else
           echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
         fi
