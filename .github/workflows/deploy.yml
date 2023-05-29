@@ -32,9 +32,9 @@ on:
         default: false
 
     secrets:
-      NAMESPACE:
-        required: true
-        description: "cluster namespace in which application is going to be deployed"
+            #      NAMESPACE:
+            #        required: true
+            #        description: "cluster namespace in which application is going to be deployed"
       JENKINS_URL:
         required: true
         description: "Jenkins URL"
@@ -50,21 +50,21 @@ jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
     steps:
-      - name: check the deployment namespace 
-        id: set_namespace
-        run: |
-            if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
-                echo 'setting the namespace'
+            #      - name: check the deployment namespace 
+            #        id: set_namespace
+            #        run: |
+            #            if [[ "${{inputs.env_specific_namespaces}}" == "false" ]]; then
+            #                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
+            #                echo 'setting the namespace'
 
-            elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
-                echo 'setting namespace for production'
+            #            elif [[ "${{ inputs.env_specific_namespaces}}" == "true" && "${{inputs.cluster_environment}}" == "production" ]]; then
+            #                echo '::set-output name=namespace::${{secrets.NAMESPACE}}'
+            #                echo 'setting namespace for production'
 
-            else 
-                echo '::set-output name=namespace::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
-                echo 'setting the namespace for testing by appending the cluster enviornment'
-            fi
+            #            else 
+            #                echo '::set-output name=namespace::${{secrets.NAMESPACE}}-${{inputs.cluster_environment}}'
+            #                echo 'setting the namespace for testing by appending the cluster enviornment'
+            #            fi
   
       - name: Trigger Jenkins Job
         uses: Calance-US/build-jenkins-job@main
@@ -79,6 +79,6 @@ jobs:
               "RELEASE_NAME" : "${{ inputs.release_name }}", 
               "IMAGE_NAME" : "${{ inputs.image_name }}", 
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
-              "VERSION": "${{ inputs.version }}", 
-              "NAMESPACE": "${{ steps.set_namespace.outputs.namespace }}" 
+              "VERSION": "${{ inputs.version }}"
+              #              "NAMESPACE": "${{ steps.set_namespace.outputs.namespace }}" 
             }
