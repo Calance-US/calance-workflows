@@ -8,7 +8,7 @@ jobs:
   build-and-push-dockerimages:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}
+      REPOSITORY_OWNER: ${{ github.repository_owner }}
     uses: ./.github/workflows/build.yml
 
   deploy-to-kubernetes:
@@ -30,17 +30,17 @@ jobs:
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
 
 
-  # assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
+# assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
 
-  # assertion:
-  #   needs: deploy-to-kubernetes
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: check namespace
-  #       env:
-  #         namespace: ${{secrets.NAMESPACE}}
-  #       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
-  #       run: |
-  #           echo 'unexpected namespace'
-  #           exit 1
+# assertion:
+#   needs: deploy-to-kubernetes
+#   runs-on: ubuntu-latest
+#   steps:
+#     - name: check namespace
+#       env:
+#         namespace: ${{secrets.NAMESPACE}}
+#       if: ${{needs.deploy-to-kubernetes.outputs.namespace}} !=  $namespace-testing
+#       run: |
+#           echo 'unexpected namespace'
+#           exit 1
 
