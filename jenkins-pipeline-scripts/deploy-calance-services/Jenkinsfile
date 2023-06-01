@@ -61,11 +61,9 @@ node('master') {
 node("$cloudName") {
     container('helm') {
         stage('Logging into registry') {
-            sh '''
-                set +x
-                helm registry login -u $GITHUB_USERNAME -p $GITHUB_PASSWORD ghcr.io
-                set -x
-            '''
+            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                sh "helm registry login -u \$USERNAME -p \$PASSWORD ghcr.io"
+            }
         }
 
         stage('Deploying application') {
