@@ -16,7 +16,6 @@ jobs:
       packages: write
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      REPOSITORY_OWNER: ${{ github.repository_owner }}
     uses: ./.github/workflows/build.yml
     with:
       image_name: ${{ matrix.project }}
