@@ -1,5 +1,11 @@
 const core = require('@actions/core')
 
+const github = require('@actions/github');
+
+const context = github.context.ref;
+
+const branchName = context.split("/")[context.split('/').length - 1]
+
 try {
   const dockerJsonMetadata = core.getInput('docker_json_metadata')
   const dockerMetadata = JSON.parse(dockerJsonMetadata)
@@ -11,8 +17,8 @@ try {
   if (!imageTag || typeof imageTag !== 'string') {
     throw new Error('Unable to get image version from metadata.')
   }
-
-  const isProduction = imageTag.match(/^\d+\.\d+\.\d+$/) || (imageTag === "main")
+  
+  const isProduction = imageTag.match(/^\d+\.\d+\.\d+$/)
 
   const isTesting = imageTag.match(/^\d+\.\d+\.\d+-rc\d+$/)
 
@@ -23,9 +29,10 @@ try {
     core.setOutput('cluster_environment', 'testing')
   }
   // for money-quiz dev environment
-  else if (repository.includes('money-quiz')) {
+  else if (repository.includes('money-quiz') && branchName==="dev") {
     core.setOutput('cluster_environment','dev')
-  } else {
+  }
+  else{
     throw new Error('Invalid image tag')
   }
 
