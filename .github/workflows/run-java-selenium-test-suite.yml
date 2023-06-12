@@ -24,22 +24,17 @@ on:
         required: true
         type: string
       java_distribution:
-        description: "JDK distribution to be used. \
-                      Accepted values - temurin, zulu, adopt, \
-                      adopt-openj9, liberica, microsoft, corretto, semeru, oracle. \
-                      Defaults to zulu."
+        description: "JDK distribution to be used. Accepted values - temurin, zulu, adopt, adopt-openj9, liberica, microsoft, corretto, semeru, oracle. Defaults to zulu."
         required: false
         type: string
         default: "zulu"
       results_path:
-        description: "Path of the test results directory, relative to the \
-                      test_suite_path. Defaults to test-results."
+        description: "Path of the test results directory, relative to the test_suite_path. Defaults to test-results."
         required: false
         type: string
         default: "test-results"
       test_suite_path:
-        description: "Path of the java application root of the test suites, \
-                      relative to the repository root. Defaults to repository root."
+        description: "Path of the java application root of the test suites, relative to the repository root. Defaults to repository root."
         required: false
         type: string
         default: "."
@@ -51,19 +46,53 @@ jobs:
       run:
         working-directory: ${{ inputs.test_suite_path }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.java_distribution }}
-      - name: Install Browser
-        uses: abhi1693/setup-browser@v0.3.4
-        with:
-          browser: ${{ inputs.browser_name }}
-          version: ${{ inputs.browser_version }}
-      - name: Run the Test Suite
-        run: mvn test
-      - name: Publish results
-        run: "echo 'WIP: publish results to reporting tool'"
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java_version }}
+        distribution: ${{ inputs.java_distribution }}
+    - name: Install Browser
+      uses: abhi1693/setup-browser@v0.3.4
+      with:
+        browser: ${{ inputs.browser_name }}
+        version: ${{ inputs.browser_version }}
+    - name: Run the Test Suite
+      run: mvn test
+    - name: Publish results
+      id: generate-report
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fetch = require('node-fetch');
+
+          const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service/login";
+
+          const loginCredentials = {
+            username: 'admin',
+            password: 'Calanceadmin@123'
+          };
+
+          async function checkApiStatus() {
+            try {
+              const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: JSON.stringify(loginCredentials),
+                headers: { 'Content-Type': 'application/json' }
+              });
+
+              const statusCode = response.status;
+
+              if (statusCode === 200) {
+                console.log('API status is 200. Success!');
+              } else {
+                console.log(`API status is ${statusCode}. Error occurred.`);
+              }
+            } catch (error) {
+              console.error('Error occurred while hitting the API:', error.message);
+            }
+          }
+
+          const test = await checkApiStatus();
+          console.log(test)
