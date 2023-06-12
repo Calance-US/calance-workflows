@@ -1,38 +1,37 @@
 name: TestCase 2 - Monorepo
 on:
-  push: 
+  push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
-      - v[0-9]+.[0-9]+.[0-9]+
-  
+    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+    - v[0-9]+.[0-9]+.[0-9]+
+
 jobs:
- build-and-push-dockerimages:
+  build-and-push-dockerimages:
     strategy:
-     fail-fast: false 
-     matrix:
-       project: [calance-workflows-release-1, calance-workflows-release-2]
+      fail-fast: false
+      matrix:
+        project: [calance-workflows-release-1, calance-workflows-release-2]
     permissions:
       contents: read
       packages: write
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}  
-    uses: ./.github/workflows/build.yml 
+    uses: ./.github/workflows/build.yml
     with:
-      image_name: ${{ matrix.project }} 
+      image_name: ${{ matrix.project }}
       docker_context_path: ${{ matrix.project }}
       dockerfile_path: ${{ matrix.project }}/Dockerfile
-     
- deploy-to-kubernetes:
+
+  deploy-to-kubernetes:
     needs: build-and-push-dockerimages
     strategy:
-     fail-fast: false
-     matrix:
-       project: [calance-workflows-release-1, calance-workflows-release-2]
+      fail-fast: false
+      matrix:
+        project: [calance-workflows-release-1, calance-workflows-release-2]
     permissions:
       contents: read
       packages: write
-    uses: ./.github/workflows/deploy.yml 
+    uses: ./.github/workflows/deploy.yml
     with:
       repository_name: ${{ github.event.repository.name }}
       image_name: ${{ matrix.project }}
@@ -40,7 +39,6 @@ jobs:
       release_name: ${{ matrix.project }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
     secrets:
-      NAMESPACE: ${{ secrets.NAMESPACE }}
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}   
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}

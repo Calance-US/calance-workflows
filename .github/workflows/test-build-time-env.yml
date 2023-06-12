@@ -1,15 +1,14 @@
 name: TestCase 5 - Build time env variables
 on:
-  push: 
+  push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
-      - v[0-9]+.[0-9]+.[0-9]+
-  
+    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+    - v[0-9]+.[0-9]+.[0-9]+
+
 jobs:
- build-and-push-dockerimages:
+  build-and-push-dockerimages:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-      REPOSITORY_OWNER: ${{ secrets.REPOSITORY_OWNER }}  
     uses: ./.github/workflows/build.yml
     with:
       image_name: calance-workflows-build-env
