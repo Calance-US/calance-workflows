@@ -17,3 +17,9 @@ jobs:
       dot_env_file_testing: |
         ENV='testing'
         WORKING='true'
+      dot_env_file_dev: |
+        ENV='dev'
+        WORKING='true'
+      dot_env_file_production: |
+        ENV='production'
+        WORKING='true'
