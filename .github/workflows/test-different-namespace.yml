@@ -23,7 +23,6 @@ jobs:
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
       env_specific_namespaces: true
     secrets:
-      NAMESPACE: ${{ secrets.NAMESPACE }}
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
