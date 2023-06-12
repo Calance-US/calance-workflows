@@ -61,17 +61,16 @@ jobs:
     - name: Run the Test Suite
       run: mvn test
     - name: Publish results
+      if: always()
       id: generate-report
       uses: actions/github-script@v6
       with:
         script: |
-          const fetch = require('node-fetch');
-
           const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service/login";
 
           const loginCredentials = {
-            username: 'admin',
-            password: 'Calanceadmin@123'
+            username: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }},
+            password: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
           };
 
           async function checkApiStatus() {
