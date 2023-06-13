@@ -1,0 +1,99 @@
+/*
+Prerequisites:-
+
+1. Docker should be installed
+2. AWS CLI should be installed
+3. JDK should be installed
+
+4. Store the access key and secret key in Jenkins Credentials IAM User to access the secrets
+*/
+
+def dockerCommand = "docker run -d --name $IMAGE_NAME "
+def maskedDockerCommand = dockerCommand
+
+if (PORT){
+    
+    // There are some applications which are not required to be exposed
+    dockerCommand += "-p $PORT"
+    maskedDockerCommand += "-p $PORT"
+}
+
+node("master"){
+    stage('Identify the Cloud Name'){
+        configFileProvider([
+            configFile(fileId: 'service-cluster-configuration.json', variable: 'CONFIG_FILE')
+        ]) {
+                Map<String, String> data = readJSON file: "$CONFIG_FILE"
+                cloudName = data["$SERVICE_NAME-$CLUSTER_ENVIRONMENT"]
+
+                if (cloudName == null || cloudName == '') {
+                    error "Cluster config does not exist for $SERVICE_NAME-$CLUSTER_ENVIRONMENT"
+                }
+
+                println "For application - $SERVICE_NAME, environment - $CLUSTER_ENVIRONMENT, Chosen cloud - $cloudName"
+            }
+    }
+}
+
+node("$cloudName"){
+    stage('Login to GHCR and Pull Image'){
+        imageName = "ghcr.io/calance-us/" + env.IMAGE_NAME + ":" + env.VERSION
+
+        docker.withRegistry('https://ghcr.io','6e8e3064-2329-46fe-bfa3-b1c54f17e885'){
+            docker.image(imageName).pull()
+             
+        }
+                
+    }
+    
+    stage('Remove container with older version'){
+        try{
+            sh("docker rm -f $IMAGE_NAME")
+        } catch(err){
+            echo err.getMessage()
+        }
+    }
+        
+    stage('Fetch Secrets from AWS Secrets Manager'){
+        def secretPath = env.SERVICE_NAME + "-" + env.CLUSTER_ENVIRONMENT
+
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '2f13d406-6796-4419-8707-c066970e5276', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                
+            // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
+            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=ap-south-1 --query SecretString""",returnStdout: true).trim()
+            def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
+            def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
+            def keyValuePairs = cleanedJson.split(",")
+
+            keyValuePairs.each { pair ->
+                def keyValue = pair.split(":")
+                def key = keyValue[0].replaceAll("\"", "").trim()
+                def value = keyValue[1].replaceAll("\"", "").trim()
+                dockerCommand += " -e ${key}=${value}"
+
+                // maskedDockerCommand will print the running command for debugging but masks the environment secrets
+                maskedDockerCommand += " -e ${key}=***"
+            }
+        }
+    }
+        
+    stage('Run the required command'){
+        try{
+            sh "$COMMAND"
+        } catch(err){
+            echo err.getMessage()
+        }
+    }
+        
+    stage('Start container with new version'){
+        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+        sh """
+            set +x
+            echo Running command...
+            echo ${maskedDockerCommand}
+            ${dockerCommand} 
+            set -x
+        """
+    }
+}       

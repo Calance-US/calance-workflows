@@ -1,0 +1,61 @@
+name: Deploy to EC2 instances using Jenkins Agent
+
+on: 
+    workflow_call:
+        inputs:
+            image_name:
+                description: "Image name of our Application's Dockerfile"
+                required: true
+                type: string
+            service_name:
+                description: "Service/Repository name"
+                required: false
+                type: string
+                default: "${{ github.event.repository.name }}"
+            version:
+                description: "Application version"
+                required: true
+                type: string
+            command:
+                description: "Command that is required to run"
+                required: false
+                type: string
+            port:
+                description: "Port at which service will be running"
+                required: false
+                type: number
+            cluster_environment:
+                description: "Cluster Environment"
+                required: true
+                type: string
+        secrets:
+            JENKINS_URL:
+                required: true
+                description: "Jenkins URL"
+            JENKINS_USER:
+                required: true
+                description: "Jenkins USER"
+            JENKINS_TOKEN:
+                required: true
+                description: "Jenkins TOKEN"
+                
+jobs:
+    trigger-jenkins-job:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Trigger Jenkins Job
+          uses: Calance-US/build-jenkins-job@main
+          with:
+            jenkins-url: "${{ secrets.JENKINS_URL }}"
+            jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
+            user: "${{ secrets.JENKINS_USER }}"
+            job-path: "job/EC2-Deployment-Dashboard"
+            job-params: |
+                {
+                    "IMAGE_NAME" : "${{ inputs.image_name }}", 
+                    "VERSION": "${{ inputs.version }}",
+                    "COMMAND": "${{ inputs.command }}",
+                    "SERVICE_NAME": "${{ inputs.repository_name }}",
+                    "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}",
+                    "PORT": "${{ inputs.port }}"
+                }
