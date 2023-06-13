@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: "zulu"
+      project_name:
+        description: "This refers to the name of the project that goes in allure testing tool."
+        required: false
+        type: string
+        default: "${{ github.event.repository.name }}"
       results_path:
         description: "Path of the test results directory, relative to the test_suite_path. Defaults to test-results."
         required: false
@@ -66,32 +71,145 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service/login";
+          const fs = require('fs');
+          const path = require('path');
+
+          const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service";
 
           const loginCredentials = {
-            username: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }},
-            password: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
+              username: {{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }},
+              password: {{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
           };
 
+          const project = {{inputs.project_name}}
+
           async function checkApiStatus() {
-            try {
-              const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: JSON.stringify(loginCredentials),
-                headers: { 'Content-Type': 'application/json' }
-              });
+              try {
+                  // login feature
+                  const response = await fetch(`${apiUrl}/login`, {
+                      method: 'POST',
+                      body: JSON.stringify(loginCredentials),
+                      headers: { 'Content-Type': 'application/json' }
+                  });
 
-              const statusCode = response.status;
+                  const statusCode = response.status;
 
-              if (statusCode === 200) {
-                console.log('API status is 200. Success!');
-              } else {
-                console.log(`API status is ${statusCode}. Error occurred.`);
+                  if (statusCode === 200) {
+                      console.log('API status is 200. Success!');
+                      const cookies = response.headers.get('set-cookie')
+
+                      // console.log(cookies.split('Secure;'))
+                      const lines = cookies.split(";");
+                      const filteredLines = lines.filter(line => !line.includes("Secure") && !line.includes("HttpOnly"));
+
+                      const cookieArray = filteredLines.map(value => {
+                          let newVal = value.replace(' Path=/,', '')
+                          newVal = value.replace(' Path=/', '')
+
+                          return newVal;
+                      });
+                      let finalCookie = cookieArray.join("")
+                      finalCookie = finalCookie.replaceAll(",", ";")
+
+                      //get projects
+                      const resp = await fetch(`${apiUrl}/projects`, {
+                          method: 'GET',
+                          headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
+                      });
+                      const data = await resp.json()
+                      // console.log(data.data.projects)
+                      const projects = data.data.projects
+
+                      keys = Object.keys(projects)
+
+                      const exists = keys.some(key => projects[key] === project);
+                      console.log(exists)
+                      const match = finalCookie.match(/csrf_access_token=([^;]+)/);
+                      const csrfAccessToken = match[1];
+
+                      if (!exists) {
+                          //create project
+                          const res = await fetch(`${apiUrl}/projects`, {
+                              method: 'POST',
+                              body: JSON.stringify({
+                                  id: project
+                              }),
+                              headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
+                          });
+
+                          // const result = await response.json()
+                      } else {
+                          console.log("Project exists")
+                      }
+
+                      const folderPath = {{ inputs.results_path }};
+
+                      fs.readdir(folderPath, (err, files) => {
+                          if (err) {
+                              console.error('Error reading folder:', err);
+                              return;
+                          }
+                          const results = []
+                          files.forEach((file) => {
+                              const filePath = path.join(folderPath, file);
+                              const extension = filePath.split('.').pop().toLowerCase();
+                              if (extension !== 'json' && extension !== 'xml'){
+                                  return
+                              }
+
+                              let encodedData = {}
+                              fs.readFile(filePath, 'utf8', async (err, data) => {
+                                  if (err) {
+                                      console.error('Error reading file:', err);
+                                      return;
+                                  }
+
+                                  const buffer = Buffer.from(data, 'utf8');
+
+                                  const base64Data = buffer.toString('base64');
+
+                                  // console.log(base64Data);
+
+                                  results.push({
+                                      content_base64: base64Data,
+                                      file_name: file,
+                                  });
+
+                                  if (results.length === files.length) {
+                                      const output = {
+                                          results: results,
+                                      };
+
+                                      // console.log(JSON.stringify(output));
+                                  const filesData = JSON.stringify(output)
+                                  // console.log(filesData)
+                                  console.log(csrfAccessToken)
+                                  
+                                  const res = await fetch(`${apiUrl}/send-results?project_id=${project}&force_project_creation=false`, {
+                                      method: 'POST',
+                                      body: filesData,
+                                      headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
+                                  });
+                                  
+                                  // console.log(res)
+                                  }
+                              });   
+                          });
+                      });
+                      const report = await fetch(`${apiUrl}/generate-report?project_id=${project}`, {
+                          method: 'GET',
+                          headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
+                      });
+                      const generatedReprot = await report.json()
+                      console.log(generatedReprot)
+
+                  } else {
+                      console.log(`API status is ${statusCode}. Error occurred.`);
+                  }
+              } catch (error) {
+                  console.error('Error occurred while hitting the API:', error);
               }
-            } catch (error) {
-              console.error('Error occurred while hitting the API:', error.message);
-            }
           }
 
-          const test = await checkApiStatus();
-          console.log(test)
+          checkApiStatus().then(data => console.log(data));
+
