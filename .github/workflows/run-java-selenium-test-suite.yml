@@ -146,7 +146,7 @@ jobs:
                           console.log("Project exists")
                       }
 
-                      const folderPath = {{ inputs.results_path }};
+                      const folderPath = "${{ inputs.results_path }}";
 
                       fs.readdir(folderPath, (err, files) => {
                           if (err) {
