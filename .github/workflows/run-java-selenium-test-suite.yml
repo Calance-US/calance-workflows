@@ -97,7 +97,6 @@ jobs:
               username: process.env.username,
               password: process.env.password
           };
-          core.info(loginCredentials)
 
           const project = "${{inputs.project_name}}";
 
@@ -116,7 +115,6 @@ jobs:
                       console.log('API status is 200. Success!');
                       const cookies = response.headers.get('set-cookie')
 
-                      // console.log(cookies.split('Secure;'))
                       const lines = cookies.split(";");
                       const filteredLines = lines.filter(line => !line.includes("Secure") && !line.includes("HttpOnly"));
 
@@ -135,13 +133,11 @@ jobs:
                           method: 'GET',
                           headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
                       });
-
-                      
                       const data = await resp.json()
 
                       if (resp.status !== 200) {
-                        core.setFailed(`Cannot get projects. Something went wrong! Error code ${resp.status}`)
-                      } 
+                        core.setFailed(`Something went wrong. Status Code: ${resp.status}`)
+                      }
 
                       // console.log(data.data.projects)
                       const projects = data.data.projects
@@ -149,7 +145,7 @@ jobs:
                       keys = Object.keys(projects)
 
                       const exists = keys.some(key => projects[key] === project);
-                      core.info(exists)
+                      console.log(exists)
                       const match = finalCookie.match(/csrf_access_token=([^;]+)/);
                       const csrfAccessToken = match[1];
 
@@ -162,27 +158,33 @@ jobs:
                               }),
                               headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
                           });
+
                           if (res.status !== 201) {
-                            core.setFailed(`Cannot create project! Something went wrong! Error code ${res.status}`)
-                          } else {
-                            core.info("Project Created successfully!")
+                            core.setFailed(`Something went wrong. Status Code: ${res.status}`)
                           }
 
                           // const result = await response.json()
                       } else {
-                          core.info("Project exists")
+                          console.log("Project exists")
                       }
 
                       const folderPath = "./${{ inputs.results_path }}";
+                      console.log(process.cwd())
+
+                      fs.readdir(".", (err, files) => {
+                        files.forEach(file => {
+                          console.log(file);
+                        });
+                      });
 
                       fs.readdir(folderPath, (err, files) => {
                           if (err) {
-                              core.info('Error reading folder:', err);
+                              console.error('Error reading folder:', err);
                               return;
                           }
                           const results = []
                           files.forEach((file) => {
-                              core.info(file)
+                              console.log(file)
                               const filePath = path.join(folderPath, file);
                               const extension = filePath.split('.').pop().toLowerCase();
                               if (extension !== 'json' && extension !== 'xml'){
@@ -214,18 +216,18 @@ jobs:
 
                                   const filesData = JSON.stringify(output)
                                   // console.log(filesData)
-                                  // core.info(csrfAccessToken)
+                                  console.log(csrfAccessToken)
                                   
                                   const res = await fetch(`${apiUrl}/send-results?project_id=${project}&force_project_creation=false`, {
                                       method: 'POST',
                                       body: filesData,
                                       headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
                                   });
-
-                                  if (res.status !== 200) {
-                                    core.setFailed(`Cannot send results. Something went wrong. Error code ${res.status} `)
-                                  }
                                   
+                                  if (res.status !== 200) {
+                                    core.setFailed(`Something went wrong. Status Code: ${res.status}`)
+                                  }
+
                                   // console.log(res)
                                   }
                               });   
@@ -235,14 +237,15 @@ jobs:
                           method: 'GET',
                           headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
                       });
-                      const generatedReprot = await report.json()
-                      core.info(generatedReprot)
+
                       if (report.status !== 200) {
-                        core.setFailed(`Cannot generate report. Something went wrong! Error code ${report.status}`)
-                      }                       
+                        core.setFailed(`Something went wrong. Status Code: ${report.status}`)
+                      }
+                      const generatedReprot = await report.json()
+                      console.log(generatedReprot)
 
                   } else {
-                      core.setFailed(`API status is ${statusCode}. Login Failed.`);
+                      console.log(`API status is ${statusCode}. data is  Error occurred.`);
                   }
               } catch (error) {
                   console.error('Error occurred while hitting the API:', error);
