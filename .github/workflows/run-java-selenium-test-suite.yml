@@ -97,6 +97,7 @@ jobs:
               username: process.env.username,
               password: process.env.password
           };
+          core.info(loginCredentials)
 
           const project = "${{inputs.project_name}}";
 
@@ -139,7 +140,7 @@ jobs:
                       const data = await resp.json()
 
                       if (resp.status !== 200) {
-                        console.log(`Cannot get projects. Something went wrong! Error code ${resp.status}`)
+                        core.setFailed(`Cannot get projects. Something went wrong! Error code ${resp.status}`)
                       } 
 
                       // console.log(data.data.projects)
@@ -148,7 +149,7 @@ jobs:
                       keys = Object.keys(projects)
 
                       const exists = keys.some(key => projects[key] === project);
-                      console.log(exists)
+                      core.info(exists)
                       const match = finalCookie.match(/csrf_access_token=([^;]+)/);
                       const csrfAccessToken = match[1];
 
@@ -162,32 +163,26 @@ jobs:
                               headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
                           });
                           if (res.status !== 201) {
-                            console.log(`Cannot create project! Something went wrong! Error code ${res.status}`)
+                            core.setFailed(`Cannot create project! Something went wrong! Error code ${res.status}`)
                           } else {
-                            console.log("Project Created successfully!")
+                            core.info("Project Created successfully!")
                           }
 
                           // const result = await response.json()
                       } else {
-                          console.log("Project exists")
+                          core.info("Project exists")
                       }
 
                       const folderPath = "./${{ inputs.results_path }}";
 
-                      fs.readdir(".", (err, files) => {
-                        files.forEach(file => {
-                          console.log(file);
-                        });
-                      });
-
                       fs.readdir(folderPath, (err, files) => {
                           if (err) {
-                              console.error('Error reading folder:', err);
+                              core.info('Error reading folder:', err);
                               return;
                           }
                           const results = []
                           files.forEach((file) => {
-                              console.log(file)
+                              core.info(file)
                               const filePath = path.join(folderPath, file);
                               const extension = filePath.split('.').pop().toLowerCase();
                               if (extension !== 'json' && extension !== 'xml'){
@@ -219,7 +214,7 @@ jobs:
 
                                   const filesData = JSON.stringify(output)
                                   // console.log(filesData)
-                                  console.log(csrfAccessToken)
+                                  // core.info(csrfAccessToken)
                                   
                                   const res = await fetch(`${apiUrl}/send-results?project_id=${project}&force_project_creation=false`, {
                                       method: 'POST',
@@ -228,7 +223,7 @@ jobs:
                                   });
 
                                   if (res.status !== 200) {
-                                    console.log(`Cannot send results. Something went wrong. Error code ${res.status} `)
+                                    core.setFailed(`Cannot send results. Something went wrong. Error code ${res.status} `)
                                   }
                                   
                                   // console.log(res)
@@ -241,13 +236,13 @@ jobs:
                           headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
                       });
                       const generatedReprot = await report.json()
-                      console.log(generatedReprot)
+                      core.info(generatedReprot)
                       if (report.status !== 200) {
-                        console.log(`Cannot generate report. Something went wrong! Error code ${report.status}`)
+                        core.setFailed(`Cannot generate report. Something went wrong! Error code ${report.status}`)
                       }                       
 
                   } else {
-                      console.log(`API status is ${statusCode}. Login Failed.`);
+                      core.setFailed(`API status is ${statusCode}. Login Failed.`);
                   }
               } catch (error) {
                   console.error('Error occurred while hitting the API:', error);
