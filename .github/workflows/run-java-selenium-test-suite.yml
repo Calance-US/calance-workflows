@@ -85,7 +85,7 @@ jobs:
               password: process.env.QA_REPORT_TOOL_ADMIN_PASSWORD
           };
 
-          const project = ${{inputs.project_name}}
+          const project = "${{inputs.project_name}}";
 
           async function checkApiStatus() {
               try {
