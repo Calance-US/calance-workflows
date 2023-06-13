@@ -65,14 +65,15 @@ jobs:
         version: ${{ inputs.browser_version }}
     - name: Run the Test Suite
       run: mvn test
+    - name: creating secrets
+      run: | 
+        echo "password=${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}" >> $GITHUB_ENV
+        echo "username=${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}" >> $GITHUB_ENV
+
     - name: Publish results
       if: always()
       id: generate-report
       uses: actions/github-script@v6
-      env:
-        QA_REPORT_TOOL_ADMIN_USERNAME: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}
-        QA_REPORT_TOOL_ADMIN_PASSWORD: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
-
       with:
         script: |
           const fs = require('fs');
@@ -81,8 +82,8 @@ jobs:
           const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service";
 
           const loginCredentials = {
-              username: process.env.QA_REPORT_TOOL_ADMIN_USERNAME,
-              password: process.env.QA_REPORT_TOOL_ADMIN_PASSWORD
+              username: process.env.username,
+              password: process.env.password
           };
 
           core.info(JSON.stringify(loginCredentials, null, 2))
