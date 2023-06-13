@@ -69,6 +69,10 @@ jobs:
       if: always()
       id: generate-report
       uses: actions/github-script@v6
+      env:
+        QA_REPORT_TOOL_ADMIN_USERNAME: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}
+        QA_REPORT_TOOL_ADMIN_PASSWORD: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
+
       with:
         script: |
           const fs = require('fs');
