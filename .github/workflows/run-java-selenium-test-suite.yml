@@ -56,6 +56,9 @@ on:
 jobs:
   maven-build-project:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     defaults:
       run:
         working-directory: ${{ inputs.test_suite_path }}
