@@ -1,9 +1,9 @@
 /*
 Prerequisites:-
 
-1. Docker should be installed
-2. AWS CLI should be installed
-3. JDK should be installed
+1. Docker should be installed in EC2 instance
+2. AWS CLI should be installed in EC2 instance
+3. JDK should be installed in EC2 instance
 
 4. Store the access key and secret key in Jenkins Credentials IAM User to access the secrets
 */
