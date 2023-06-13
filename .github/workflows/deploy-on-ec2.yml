@@ -55,7 +55,7 @@ jobs:
                     "IMAGE_NAME" : "${{ inputs.image_name }}", 
                     "VERSION": "${{ inputs.version }}",
                     "COMMAND": "${{ inputs.command }}",
-                    "SERVICE_NAME": "${{ inputs.repository_name }}",
+                    "SERVICE_NAME": "${{ inputs.service_name }}",
                     "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}",
                     "PORT": "${{ inputs.port }}"
                 }
