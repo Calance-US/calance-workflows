@@ -79,7 +79,7 @@ jobs:
       run: mvn test
     - name: creating secrets
       if: always()
-      run: |
+      run: | 
         echo "password=${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}" >> $GITHUB_ENV
         echo "username=${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}" >> $GITHUB_ENV
     - name: Publish results
@@ -87,4 +87,170 @@ jobs:
       id: generate-report
       uses: actions/github-script@v6
       with:
-        script: "const fs = require('fs');\nconst path = require('path');\n#magic___^_^___line\nconst apiUrl = \"https://qa-reports.calance.work/allure-api/allure-docker-service\";\n#magic___^_^___line\nconst loginCredentials = {\n    username: process.env.username,\n    password: process.env.password\n};\n    #magic___^_^___line\nconst project = \"${{inputs.project_name}}\";\n    #magic___^_^___line\nasync function checkApiStatus() {\n    try {\n        // login feature\n        const response = await fetch(`${apiUrl}/login`, {\n            method: 'POST',\n            body: JSON.stringify(loginCredentials),\n            headers: { 'Content-Type': 'application/json' }\n        });\n            #magic___^_^___line\n        const statusCode = response.status;\n            #magic___^_^___line\n        if (statusCode === 200) {\n            console.log('API status is 200. Success!');\n            const cookies = response.headers.get('set-cookie')\n            #magic___^_^___line\n            // console.log(cookies.split('Secure;'))\n            const lines = cookies.split(\";\");\n            const filteredLines = lines.filter(line => !line.includes(\"Secure\") && !line.includes(\"HttpOnly\"));\n            #magic___^_^___line\n            const cookieArray = filteredLines.map(value => {\n                let newVal = value.replace(' Path=/,', '')\n                newVal = value.replace(' Path=/', '')\n                #magic___^_^___line\n                return newVal;\n            });\n            let finalCookie = cookieArray.join(\"\")\n            finalCookie = finalCookie.replaceAll(\",\", \";\")\n                #magic___^_^___line\n            //get projects\n                #magic___^_^___line\n            const resp = await fetch(`${apiUrl}/projects`, {\n                method: 'GET',\n                headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },\n            });\n                #magic___^_^___line\n            if (resp.status !== 200) {\n              console.log(data.meta_data)\n            } else {\n              console.log(data.meta_data)\n            }\n            const data = await resp.json()\n            // console.log(data.data.projects)\n            const projects = data.data.projects\n                #magic___^_^___line\n            keys = Object.keys(projects)\n                #magic___^_^___line\n            const exists = keys.some(key => projects[key] === project);\n            console.log(exists)\n            const match = finalCookie.match(/csrf_access_token=([^;]+)/);\n            const csrfAccessToken = match[1];\n                #magic___^_^___line\n            if (!exists) {\n                //create project\n                const res = await fetch(`${apiUrl}/projects`, {\n                    method: 'POST',\n                    body: JSON.stringify({\n                        id: project\n                    }),\n                    headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }\n                });\n                        #magic___^_^___line\n                // const result = await response.json()\n            } else {\n                console.log(\"Project exists\")\n            }\n                        #magic___^_^___line\n            const folderPath = \"./${{ inputs.results_path }}\";\n            console.log(process.cwd())\n                        #magic___^_^___line\n            fs.readdir(\".\", (err, files) => {\n              files.forEach(file => {\n                console.log(file);\n              });\n            });\n                        #magic___^_^___line\n            fs.readdir(folderPath, (err, files) => {\n                if (err) {\n                    console.error('Error reading folder:', err);\n                    return;\n                }\n                const results = []\n                files.forEach((file) => {\n                    console.log(file)\n                    const filePath = path.join(folderPath, file);\n                    const extension = filePath.split('.').pop().toLowerCase();\n                    if (extension !== 'json' && extension !== 'xml'){\n                        return\n                    }\n                        #magic___^_^___line\n                    let encodedData = {}\n                    fs.readFile(filePath, 'utf8', async (err, data) => {\n                        if (err) {\n                            console.error('Error reading file:', err);\n                            return;\n                        }\n                            #magic___^_^___line\n                        const buffer = Buffer.from(data, 'utf8');\n                            #magic___^_^___line\n                        const base64Data = buffer.toString('base64');\n                            #magic___^_^___line\n                        // console.log(base64Data);\n                            #magic___^_^___line\n                        results.push({\n                            content_base64: base64Data,\n                            file_name: file,\n                        });\n                            #magic___^_^___line\n                        if (results.length === files.length) {\n                            const output = {\n                                results: results,\n                            };\n                                #magic___^_^___line\n                        const filesData = JSON.stringify(output)\n                        // console.log(filesData)\n                        console.log(csrfAccessToken)\n                                #magic___^_^___line\n                        const res = await fetch(`${apiUrl}/send-results?project_id=${project}&force_project_creation=false`, {\n                            method: 'POST',\n                            body: filesData,\n                            headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }\n                        });\n                                #magic___^_^___line\n                        // console.log(res)\n                        }\n                    });   \n                });\n            });\n            const report = await fetch(`${apiUrl}/generate-report?project_id=${project}`, {\n                method: 'GET',\n                headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },\n            });\n            const generatedReprot = await report.json()\n            console.log(generatedReprot)\n                                #magic___^_^___line\n        } else {\n            console.log(`API status is ${statusCode}. data is  Error occurred.`);\n        }\n    } catch (error) {\n        console.error('Error occurred while hitting the API:', error);\n    }\n}\n                                #magic___^_^___line\n"
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const apiUrl = "https://qa-reports.calance.work/allure-api/allure-docker-service";
+
+          const loginCredentials = {
+              username: process.env.username,
+              password: process.env.password
+          };
+
+          const project = "${{inputs.project_name}}";
+
+          async function checkApiStatus() {
+              try {
+                  // login feature
+                  const response = await fetch(`${apiUrl}/login`, {
+                      method: 'POST',
+                      body: JSON.stringify(loginCredentials),
+                      headers: { 'Content-Type': 'application/json' }
+                  });
+
+                  const statusCode = response.status;
+
+                  if (statusCode === 200) {
+                      console.log('API status is 200. Success!');
+                      const cookies = response.headers.get('set-cookie')
+
+                      // console.log(cookies.split('Secure;'))
+                      const lines = cookies.split(";");
+                      const filteredLines = lines.filter(line => !line.includes("Secure") && !line.includes("HttpOnly"));
+
+                      const cookieArray = filteredLines.map(value => {
+                          let newVal = value.replace(' Path=/,', '')
+                          newVal = value.replace(' Path=/', '')
+
+                          return newVal;
+                      });
+                      let finalCookie = cookieArray.join("")
+                      finalCookie = finalCookie.replaceAll(",", ";")
+
+                      //get projects
+
+                      const resp = await fetch(`${apiUrl}/projects`, {
+                          method: 'GET',
+                          headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
+                      });
+
+                      
+                      const data = await resp.json()
+
+                      if (resp.status !== 200) {
+                        console.log(`Cannot get projects. Something went wrong! Error code ${resp.status}`)
+                      } 
+
+                      // console.log(data.data.projects)
+                      const projects = data.data.projects
+
+                      keys = Object.keys(projects)
+
+                      const exists = keys.some(key => projects[key] === project);
+                      console.log(exists)
+                      const match = finalCookie.match(/csrf_access_token=([^;]+)/);
+                      const csrfAccessToken = match[1];
+
+                      if (!exists) {
+                          //create project
+                          const res = await fetch(`${apiUrl}/projects`, {
+                              method: 'POST',
+                              body: JSON.stringify({
+                                  id: project
+                              }),
+                              headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
+                          });
+                          if (res.status !== 201) {
+                            console.log(`Cannot create project! Something went wrong! Error code ${res.status}`)
+                          } else {
+                            console.log("Project Created successfully!")
+                          }
+
+                          // const result = await response.json()
+                      } else {
+                          console.log("Project exists")
+                      }
+
+                      const folderPath = "./${{ inputs.results_path }}";
+
+                      fs.readdir(".", (err, files) => {
+                        files.forEach(file => {
+                          console.log(file);
+                        });
+                      });
+
+                      fs.readdir(folderPath, (err, files) => {
+                          if (err) {
+                              console.error('Error reading folder:', err);
+                              return;
+                          }
+                          const results = []
+                          files.forEach((file) => {
+                              console.log(file)
+                              const filePath = path.join(folderPath, file);
+                              const extension = filePath.split('.').pop().toLowerCase();
+                              if (extension !== 'json' && extension !== 'xml'){
+                                  return
+                              }
+
+                              let encodedData = {}
+                              fs.readFile(filePath, 'utf8', async (err, data) => {
+                                  if (err) {
+                                      console.error('Error reading file:', err);
+                                      return;
+                                  }
+
+                                  const buffer = Buffer.from(data, 'utf8');
+
+                                  const base64Data = buffer.toString('base64');
+
+                                  // console.log(base64Data);
+
+                                  results.push({
+                                      content_base64: base64Data,
+                                      file_name: file,
+                                  });
+
+                                  if (results.length === files.length) {
+                                      const output = {
+                                          results: results,
+                                      };
+
+                                  const filesData = JSON.stringify(output)
+                                  // console.log(filesData)
+                                  console.log(csrfAccessToken)
+                                  
+                                  const res = await fetch(`${apiUrl}/send-results?project_id=${project}&force_project_creation=false`, {
+                                      method: 'POST',
+                                      body: filesData,
+                                      headers: { 'Content-Type': 'application/json', 'cookie': finalCookie, 'X-CSRF-TOKEN': csrfAccessToken }
+                                  });
+
+                                  if (res.status !== 200) {
+                                    console.log(`Cannot send results. Something went wrong. Error code ${res.status} `)
+                                  }
+                                  
+                                  // console.log(res)
+                                  }
+                              });   
+                          });
+                      });
+                      const report = await fetch(`${apiUrl}/generate-report?project_id=${project}`, {
+                          method: 'GET',
+                          headers: { 'Content-Type': 'application/json', 'cookie': finalCookie },
+                      });
+                      const generatedReprot = await report.json()
+                      console.log(generatedReprot)
+                      if (report.status !== 200) {
+                        console.log(`Cannot generate report. Something went wrong! Error code ${report.status}`)
+                      }                       
+
+                  } else {
+                      console.log(`API status is ${statusCode}. Login Failed.`);
+                  }
+              } catch (error) {
+                  console.error('Error occurred while hitting the API:', error);
+              }
+          }
+
