@@ -75,6 +75,7 @@ jobs:
     - name: Run the Test Suite
       run: mvn test
     - name: creating secrets
+      if: always()
       run: | 
         echo "password=${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}" >> $GITHUB_ENV
         echo "username=${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}" >> $GITHUB_ENV
