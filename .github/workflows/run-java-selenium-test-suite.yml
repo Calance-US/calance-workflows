@@ -165,6 +165,12 @@ jobs:
                       const folderPath = "./${{ inputs.results_path }}";
                       console.log(process.cwd())
 
+                      fs.readdir(".", (err, files) => {
+                        files.forEach(file => {
+                          console.log(file);
+                        });
+                      });
+
                       fs.readdir(folderPath, (err, files) => {
                           if (err) {
                               console.error('Error reading folder:', err);
