@@ -85,4 +85,4 @@ jobs:
     - name: Publish results
       if: always()
       id: generate-report
-      uses: Calance-US/publish-allure-report-action/actions.yml@main834-create-custom-action-workflow-to-publish-report
+      uses: Calance-US/publish-allure-report-action/actions.yml@834-create-custom-action-workflow-to-publish-report
