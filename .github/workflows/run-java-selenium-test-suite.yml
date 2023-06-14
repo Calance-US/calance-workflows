@@ -97,8 +97,10 @@ jobs:
               username: process.env.username,
               password: process.env.password
           };
-
+          console.log(loginCredentials)
           const project = "${{inputs.project_name}}";
+
+          console.log("Logging in using credentails")
 
           async function checkApiStatus() {
               try {
@@ -110,9 +112,9 @@ jobs:
                   });
 
                   const statusCode = response.status;
-
+                  console.log(statusCode)
                   if (statusCode === 200) {
-                      console.log('API status is 200. Success!');
+                      console.log('Login API status is 200. Success!');
                       const cookies = response.headers.get('set-cookie')
 
                       const lines = cookies.split(";");
@@ -170,12 +172,6 @@ jobs:
 
                       const folderPath = "./${{ inputs.results_path }}";
                       console.log(process.cwd())
-
-                      fs.readdir(".", (err, files) => {
-                        files.forEach(file => {
-                          console.log(file);
-                        });
-                      });
 
                       fs.readdir(folderPath, (err, files) => {
                           if (err) {
