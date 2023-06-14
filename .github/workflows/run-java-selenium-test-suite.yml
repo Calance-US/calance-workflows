@@ -86,3 +86,6 @@ jobs:
       if: always()
       id: generate-report
       uses: Calance-US/publish-allure-report-action@834-create-custom-action-workflow-to-publish-report
+      with:
+        project_name: ${{ inputs.project_name }}
+        results_path: ${{ inputs.results_path }}
