@@ -97,10 +97,7 @@ jobs:
               username: process.env.username,
               password: process.env.password
           };
-          console.log(loginCredentials)
           const project = "${{inputs.project_name}}";
-
-          console.log("Logging in using credentails")
 
           async function checkApiStatus() {
               try {
@@ -247,4 +244,6 @@ jobs:
                   console.error('Error occurred while hitting the API:', error);
               }
           }
+          
+          checkApiStatus().then(data => console.log(data));
 
