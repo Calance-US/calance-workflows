@@ -1,12 +1,5 @@
 name: Run Java Selenium Test Suite
 
-# TODO:
-# - define outputs if any required
-# - send results to reporting tool
-#     - create project if does not exist
-#     - convert result files to single json with base4 encoding as required by send-results API
-#     - push
-
 on:
   workflow_call:
     inputs:
@@ -29,7 +22,7 @@ on:
         type: string
         default: "zulu"
       project_name:
-        description: "This refers to the name of the project that goes in allure testing tool."
+        description: "This refers to the name of the project that goes in allure testing tool. Defaults to the repository name."
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
@@ -43,14 +36,12 @@ on:
         required: false
         type: string
         default: "."
-
-    secrets:
-      QA_REPORT_TOOL_ADMIN_PASSWORD:
-        required: true
-        description: "password"
-      QA_REPORT_TOOL_ADMIN_USERNAME:
+      username:
         required: true
         description: "username"
+      password:
+        required: true
+        description: "password"
 
 
 jobs:
@@ -77,11 +68,6 @@ jobs:
         version: ${{ inputs.browser_version }}
     - name: Run the Test Suite
       run: mvn test
-    - name: creating secrets
-      if: always()
-      run: |
-        echo "password=${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}" >> $GITHUB_ENV
-        echo "username=${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}" >> $GITHUB_ENV
     - name: Publish results
       if: always()
       id: generate-report
@@ -89,3 +75,5 @@ jobs:
       with:
         project_name: ${{ inputs.project_name }}
         results_path: ${{ inputs.results_path }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
