@@ -1,5 +1,12 @@
 name: Run Java Selenium Test Suite
 
+# TODO:
+# - define outputs if any required
+# - send results to reporting tool
+#     - create project if does not exist
+#     - convert result files to single json with base4 encoding as required by send-results API
+#     - push
+
 on:
   workflow_call:
     inputs:
@@ -22,7 +29,7 @@ on:
         type: string
         default: "zulu"
       project_name:
-        description: "This refers to the name of the project that goes in allure testing tool. Defaults to the repository name."
+        description: "This refers to the name of the project that goes in allure testing tool."
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
@@ -36,12 +43,14 @@ on:
         required: false
         type: string
         default: "."
-      username:
-        required: true
-        description: "username"
-      password:
+
+    secrets:
+      QA_REPORT_TOOL_ADMIN_PASSWORD:
         required: true
         description: "password"
+      QA_REPORT_TOOL_ADMIN_USERNAME:
+        required: true
+        description: "username"
 
 
 jobs:
@@ -75,5 +84,5 @@ jobs:
       with:
         project_name: ${{ inputs.project_name }}
         results_path: ${{ inputs.results_path }}
-        username: ${{ inputs.username }}
-        password: ${{ inputs.password }}
+        username: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}
+        password: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
