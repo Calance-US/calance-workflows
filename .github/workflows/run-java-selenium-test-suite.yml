@@ -47,10 +47,10 @@ on:
     secrets:
       QA_REPORT_TOOL_ADMIN_PASSWORD:
         required: true
-        description: "password"
+        description: "Password for QA tool of admin"
       QA_REPORT_TOOL_ADMIN_USERNAME:
         required: true
-        description: "username"
+        description: "Username for QA tool of admin"
 
 
 jobs:
