@@ -1,0 +1,86 @@
+name: Run Java Selenium Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        description: "The URL of the hosted allure-docker-service instance."
+        required: true
+        type: string
+      browser_name:
+        description: "Name of the browser used for running tests. Accepted values - chrome, edge, firefox."
+        required: true
+        type: string
+      browser_version:
+        description: "Version of the browser to be installed. Defaults to latest."
+        required: false
+        type: string
+        default: "latest"
+      java_version:
+        description: "JDK version to be installed."
+        required: true
+        type: string
+      java_distribution:
+        description: "JDK distribution to be used. Accepted values - temurin, zulu, adopt, adopt-openj9, liberica, microsoft, corretto, semeru, oracle. Defaults to zulu."
+        required: false
+        type: string
+        default: "zulu"
+      project_name:
+        description: "This refers to the name of the project that goes in allure testing tool. Defaults to the repository name."
+        required: false
+        type: string
+        default: "${{ github.event.repository.name }}"
+      results_path:
+        description: "Path of the test results directory, relative to the test_suite_path. Defaults to test-results."
+        required: false
+        type: string
+        default: "test-results"
+      test_suite_path:
+        description: "Path of the java application root of the test suites, relative to the repository root. Defaults to repository root."
+        required: false
+        type: string
+        default: "."
+
+    secrets:
+      QA_REPORT_TOOL_ADMIN_PASSWORD:
+        required: true
+        description: "Password for QA tool of admin"
+      QA_REPORT_TOOL_ADMIN_USERNAME:
+        required: true
+        description: "Username for QA tool of admin"
+
+
+jobs:
+  maven-build-project:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        working-directory: ${{ inputs.test_suite_path }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java_version }}
+        distribution: ${{ inputs.java_distribution }}
+    - name: Install Browser
+      uses: abhi1693/setup-browser@v0.3.4
+      with:
+        browser: ${{ inputs.browser_name }}
+        version: ${{ inputs.browser_version }}
+    - name: Run the Test Suite
+      run: mvn test
+    - name: Publish results
+      if: always()
+      id: generate-report
+      uses: Calance-US/publish-allure-report-action@v1.0.0
+      with:
+        project_name: ${{ inputs.project_name }}
+        results_path: ${{ inputs.results_path }}
+        api_url: ${{ inputs.api_url }}
+        username: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}
+        password: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
