@@ -37,7 +37,7 @@ on:
         type: string
         default: "."
       api_url:
-        description: ""
+        description: "This refers to the URL for the QA tool."
         required: true
         type: string
 
