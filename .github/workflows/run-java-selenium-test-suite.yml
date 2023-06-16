@@ -51,7 +51,7 @@ on:
 
 
 jobs:
-  maven-build-project:
+  run-java-selenium-test-suite:
     runs-on: ubuntu-latest
     permissions:
       contents: read
