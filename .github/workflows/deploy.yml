@@ -25,8 +25,12 @@ on:
         description: "application version"
         required: true
         type: string
+      commit_id:
+        description: "Latest commit SHA of the build"
+        required: true
+        type: string
       env_specific_namespaces:
-        description:  "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
+        description: "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
         required: false
         type: boolean
         default: false
@@ -41,7 +45,6 @@ on:
       JENKINS_TOKEN:
         required: true
         description: "Jenkins TOKEN"
-        
 
 jobs:
   trigger-jenkins-job:
@@ -60,5 +63,6 @@ jobs:
               "RELEASE_NAME" : "${{ inputs.release_name }}", 
               "IMAGE_NAME" : "${{ inputs.image_name }}", 
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
-              "VERSION": "${{ inputs.version }}" 
+              "VERSION": "${{ inputs.version }}", 
+              "COMMIT_ID": "${{ inputs.commit_id }}"
             }

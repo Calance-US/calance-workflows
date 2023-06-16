@@ -11,10 +11,15 @@ on:
       image_name:
         description: "Providing the name of the image to be built"
         value: ${{jobs.build-docker.outputs.image_name}}
+      commit_id:
+        description: "The commit SHA that triggered the workflow"
+        value: ${{ jobs.build-docker.outputs.commit_id }}
+
     secrets:
       GHCR_TOKEN:
         required: true
         description: "secret for Github Container Registry"
+
     inputs:
       docker_context_path:
         description: "docker context path"
@@ -61,58 +66,60 @@ jobs:
       version: ${{ steps.version.outputs.build_version }}
       cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
       image_name: ${{ inputs.image_name }}
+      commit_id: ${{ steps.version.outputs.commit_id }}
 
     steps:
-    - name: Checkout repository (clone the repo for use)
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ inputs.branch_name || github.ref_name }}
+      - name: Checkout repository (clone the repo for use)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch_name || github.ref_name }}
 
-    - name: Log in to github Container registry where image is pushed and pulled from
-      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GHCR_TOKEN }}
+      - name: Log in to github Container registry where image is pushed and pulled from
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-      with:
-        #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-        #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
-        images: |
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
-        tags: |
-          ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
+          #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
+          tags: |
+            ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
 
-    - name: Setting application version (comes from image tag/version)
-      id: version
-      run: |
-        echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+      - name: Setting application version (comes from image tag/version) and commit_id
+        id: version
+        run: |
+          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
-    - name: Identifying cluster in which application should be deployed
-      id: cluster_environment
-      uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
-      with:
-        docker_json_metadata: ${{ steps.meta.outputs.json }}
+      - name: Identifying cluster in which application should be deployed
+        id: cluster_environment
+        uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
+        with:
+          docker_json_metadata: ${{ steps.meta.outputs.json }}
 
-    - name: Generate .env file
-      if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
-      run: |
-        if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-          echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
-        elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-          echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
-        else
-          echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
-        fi
+      - name: Generate .env file
+        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
+        run: |
+          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
+          else
+            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
+          fi
 
-    - name: Build and push Docker image to github container registry
-      uses: docker/build-push-action@v3
-      with:
-        context: ${{ inputs.docker_context_path }}
-        file: ${{ inputs.dockerfile_path }}
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push Docker image to github container registry
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ inputs.docker_context_path }}
+          file: ${{ inputs.dockerfile_path }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
