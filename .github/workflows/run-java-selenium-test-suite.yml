@@ -1,12 +1,5 @@
 name: Run Java Selenium Test Suite
 
-# TODO:
-# - define outputs if any required
-# - send results to reporting tool
-#     - create project if does not exist
-#     - convert result files to single json with base4 encoding as required by send-results API
-#     - push
-
 on:
   workflow_call:
     inputs:
@@ -43,6 +36,10 @@ on:
         required: false
         type: string
         default: "."
+      api_url:
+        description: ""
+        required: true
+        type: string
 
     secrets:
       QA_REPORT_TOOL_ADMIN_PASSWORD:
@@ -80,9 +77,10 @@ jobs:
     - name: Publish results
       if: always()
       id: generate-report
-      uses: Calance-US/publish-allure-report-action@834-create-custom-action-workflow-to-publish-report
+      uses: Calance-US/publish-allure-report-action@v1.0.0
       with:
         project_name: ${{ inputs.project_name }}
         results_path: ${{ inputs.results_path }}
+        api_url: ${{ inputs.api_url }}
         username: ${{ secrets.QA_REPORT_TOOL_ADMIN_USERNAME }}
         password: ${{ secrets.QA_REPORT_TOOL_ADMIN_PASSWORD }}
