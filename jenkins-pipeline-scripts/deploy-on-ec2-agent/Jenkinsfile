@@ -63,7 +63,8 @@ node("$cloudName"){
     stage('Fetch Secrets from AWS Secrets Manager'){
         def secretPath = env.SERVICE_NAME + "-" + env.CLUSTER_ENVIRONMENT
         def aws_region = env.AWS_REGION
-
+        
+        // Fetching AWS Credentials corresponding to the application and environment
         configFileProvider([
             configFile(fileId: 'service-credentials-configuration.json', variable: 'CONFIG_FILE')
         ]) {
@@ -97,9 +98,15 @@ node("$cloudName"){
     }
         
     stage('Start container with new version'){
-        def command = env.COMMAND
-        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" + " ${command}"
-        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" + " ${command}"
+        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" 
+        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+
+        if(COMMAND){
+            
+            // There are some applications which does not require any command to be executed
+            dockerCommand +=  " $COMMAND"
+            maskedDockerCommand +=  " ${command}"
+        }
         sh """
             set +x
             echo Running command...
