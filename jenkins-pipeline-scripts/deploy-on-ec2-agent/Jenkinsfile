@@ -8,7 +8,7 @@ Prerequisites:-
 4. Store the access key and secret key in Jenkins Credentials IAM User to access the secrets
 */
 
-def dockerCommand = "docker run -d --name $IMAGE_NAME "
+def dockerCommand = "docker run -d --name $RELEASE_NAME "
 def maskedDockerCommand = dockerCommand
 
 if (PORT){
@@ -48,7 +48,7 @@ node("$cloudName"){
     
     stage('Remove container with older version'){
         try{
-            sh("docker rm -f $IMAGE_NAME")
+            sh("docker rm -f $RELEASE_NAME")
         } catch(err){
             echo err.getMessage()
         }
@@ -79,9 +79,10 @@ node("$cloudName"){
         
     stage('Run the required command'){
         try{
-            sh "$COMMAND"
+            // Run the required command in the container
+            sh "docker exec $RELEASE_NAME $COMMAND"
         } catch(err){
-            echo err.getMessage()
+            echo err.getMessage() 
         }
     }
         
