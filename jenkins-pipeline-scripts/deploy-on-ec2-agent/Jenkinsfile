@@ -5,7 +5,7 @@ Prerequisites:-
 2. AWS CLI should be installed in EC2 instance
 3. JDK should be installed in EC2 instance
 
-4. Store the access key and secret key in Jenkins Credentials IAM User to access the secrets
+4. Store the access key and secret key in Jenkins Credentials to access the secrets
 */
 
 def dockerCommand = "docker run -d --name $RELEASE_NAME "
@@ -50,17 +50,36 @@ node("$cloudName"){
         try{
             sh("docker rm -f $RELEASE_NAME")
         } catch(err){
-            echo err.getMessage()
+            if(err.getMessage.contains("Error response from daemon: No such container")){
+                println "Skipping this as container of this name doesn't exist"
+            } else{
+                println err.getMessage()
+                currentBuild.result = 'FAILURE'
+                return
+            }
         }
     }
         
     stage('Fetch Secrets from AWS Secrets Manager'){
         def secretPath = env.SERVICE_NAME + "-" + env.CLUSTER_ENVIRONMENT
+        def aws_region = env.AWS_REGION
 
-        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '2f13d406-6796-4419-8707-c066970e5276', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        configFileProvider([
+            configFile(fileId: 'service-credentials-configuration.json', variable: 'CONFIG_FILE')
+        ]) {
+                Map<String, String> data = readJSON file: "$CONFIG_FILE"
+                credentialName = data["$SERVICE_NAME-$CLUSTER_ENVIRONMENT"]
+
+                if (credentialName == null || credentialName == '') {
+                    error "Credential config does not exist for $SERVICE_NAME-$CLUSTER_ENVIRONMENT"
+                }
+
+            }
+
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialName, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                 
             // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
-            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=ap-south-1 --query SecretString""",returnStdout: true).trim()
+            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${aws_region} --query SecretString""",returnStdout: true).trim()
             def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
             def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
             def keyValuePairs = cleanedJson.split(",")
@@ -77,18 +96,10 @@ node("$cloudName"){
         }
     }
         
-    stage('Run the required command'){
-        try{
-            // Run the required command in the container
-            sh "docker exec $RELEASE_NAME $COMMAND"
-        } catch(err){
-            echo err.getMessage() 
-        }
-    }
-        
     stage('Start container with new version'){
-        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
-        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+        def command = env.COMMAND
+        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" + " ${command}"
+        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" + " ${command}"
         sh """
             set +x
             echo Running command...

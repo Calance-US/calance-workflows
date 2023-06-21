@@ -20,6 +20,10 @@ on:
                 description: "Application version"
                 required: true
                 type: string
+            cluster_environment:
+                description: "Cluster Environment"
+                required: true
+                type: string
             command:
                 description: "Command that is required to run"
                 required: false
@@ -28,8 +32,8 @@ on:
                 description: "Port at which service will be running"
                 required: false
                 type: number
-            cluster_environment:
-                description: "Cluster Environment"
+            aws_region:
+                description: "AWS Region Name"
                 required: true
                 type: string
         secrets:
@@ -62,5 +66,6 @@ jobs:
                     "SERVICE_NAME": "${{ inputs.service_name }}",
                     "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}",
                     "PORT": "${{ inputs.port }}",
-                    "RELEASE_NAME": "${{ inputs.release_name }}"
+                    "RELEASE_NAME": "${{ inputs.release_name }}",
+                    "AWS_REGION": "${{ inputs.aws_region }}"
                 }
