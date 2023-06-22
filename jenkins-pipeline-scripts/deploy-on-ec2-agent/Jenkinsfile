@@ -37,7 +37,7 @@ node("master"){
 
 node("$cloudName"){
     stage('Login to GHCR and Pull Image'){
-        imageName = "ghcr.io/calance-us/" + env.IMAGE_NAME + ":" + env.VERSION
+        imageName = "ghcr.io/calance-us/" + IMAGE_NAME + ":" + VERSION
 
         docker.withRegistry('https://ghcr.io','6e8e3064-2329-46fe-bfa3-b1c54f17e885'){
             docker.image(imageName).pull()
@@ -50,7 +50,7 @@ node("$cloudName"){
         try{
             sh("docker rm -f $RELEASE_NAME")
         } catch(err){
-            if(err.getMessage.contains("Error response from daemon: No such container")){
+            if(err.getMessage.contains("No such container")){
                 println "Skipping this as container of this name doesn't exist"
             } else{
                 println err.getMessage()
@@ -61,8 +61,8 @@ node("$cloudName"){
     }
         
     stage('Fetch Secrets from AWS Secrets Manager'){
-        def secretPath = env.SERVICE_NAME + "-" + env.CLUSTER_ENVIRONMENT
-        def aws_region = env.AWS_REGION
+        def secretPath = SERVICE_NAME + "-" + CLUSTER_ENVIRONMENT
+        def aws_region = AWS_REGION
         
         // Fetching AWS Credentials corresponding to the application and environment
         configFileProvider([
