@@ -59,7 +59,7 @@ node('master') {
     }
 }
 node("$cloudName") {
-    container('helm') {
+    container('kube-helm') {
         stage('Logging into registry') {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                 sh "helm registry login -u \$USERNAME -p \$PASSWORD ghcr.io"
@@ -72,7 +72,7 @@ node("$cloudName") {
 
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: '*/main']],
+                branches: [[name: '*/941-update-helm-container-name']],
                 extensions: [],
                 userRemoteConfigs: [[
                     credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
