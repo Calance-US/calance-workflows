@@ -5,7 +5,7 @@ Prerequisites:-
 2. AWS CLI should be installed in EC2 instance
 3. JDK should be installed in EC2 instance
 
-4. Store the access key and secret key in Jenkins Credentials to access the secrets
+4. Access Key and Secret Key are passed through the Github Actions
 */
 
 def dockerCommand = "docker run -d --name $RELEASE_NAME "
@@ -62,25 +62,12 @@ node("$cloudName"){
         
     stage('Fetch Secrets from AWS Secrets Manager'){
         def secretPath = SERVICE_NAME + "-" + CLUSTER_ENVIRONMENT
-        def aws_region = AWS_REGION
-        
-        // Fetching AWS Credentials corresponding to the application and environment
-        configFileProvider([
-            configFile(fileId: 'service-credentials-configuration.json', variable: 'CONFIG_FILE')
-        ]) {
-                Map<String, String> data = readJSON file: "$CONFIG_FILE"
-                credentialName = data["$SERVICE_NAME-$CLUSTER_ENVIRONMENT"]
-
-                if (credentialName == null || credentialName == '') {
-                    error "Credential config does not exist for $SERVICE_NAME-$CLUSTER_ENVIRONMENT"
-                }
-
-            }
+        def awsRegion = AWS_REGION
 
         withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialName, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                 
             // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
-            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${aws_region} --query SecretString""",returnStdout: true).trim()
+            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${awsRegion} --query SecretString""",returnStdout: true).trim()
             def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
             def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
             def keyValuePairs = cleanedJson.split(",")
