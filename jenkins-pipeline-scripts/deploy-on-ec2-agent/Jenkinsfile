@@ -64,7 +64,10 @@ node("$cloudName"){
         def secretPath = SERVICE_NAME + "-" + CLUSTER_ENVIRONMENT
         def awsRegion = AWS_REGION
 
-        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialName, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        sh "aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID"
+        sh "aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY"
+
+        
                 
             // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
             def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${awsRegion} --query SecretString""",returnStdout: true).trim()
@@ -81,7 +84,7 @@ node("$cloudName"){
                 // maskedDockerCommand will print the running command for debugging but masks the environment secrets
                 maskedDockerCommand += " -e ${key}=***"
             }
-        }
+        
     }
         
     stage('Start container with new version'){
