@@ -31,7 +31,7 @@ on:
             port:
                 description: "Port at which service will be running"
                 required: false
-                type: number
+                type: string
             aws_region:
                 description: "AWS Region Name"
                 required: true
