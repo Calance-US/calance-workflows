@@ -8,7 +8,7 @@ Prerequisites:-
 4. Access Key and Secret Key are passed through the Github Actions
 */
 
-def dockerCommand = "docker run -d --name $RELEASE_NAME "
+def dockerCommand = "docker run -d --restart unless-stopped --name $RELEASE_NAME "
 def maskedDockerCommand = dockerCommand
 
 if (PORT){
