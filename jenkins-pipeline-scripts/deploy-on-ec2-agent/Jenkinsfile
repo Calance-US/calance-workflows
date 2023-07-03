@@ -50,7 +50,7 @@ node("$cloudName"){
         try{
             sh("docker rm -f $RELEASE_NAME")
         } catch(err){
-            if(err.getMessage.contains("No such container")){
+            if(err.getMessage().contains("No such container")){
                 println "Skipping this as container of this name doesn't exist"
             } else{
                 println err.getMessage()
@@ -96,7 +96,7 @@ node("$cloudName"){
         try{
             sh("docker network create $DOCKER_NETWORK")
         } catch(err){
-            if(err.getMessage.contains("already exists")){
+            if(err.getMessage().contains("already exists")){
                 println "Skipping this as network already exists"
             } else{
                 println err.getMessage()
