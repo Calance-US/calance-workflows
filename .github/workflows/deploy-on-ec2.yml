@@ -36,6 +36,10 @@ on:
                 description: "AWS Region Name"
                 required: true
                 type: string
+            docker_network:
+                description: "Docker Network"
+                required: true
+                type: string
         secrets:
             JENKINS_URL:
                 required: true
@@ -74,6 +78,7 @@ jobs:
                     "PORT": "${{ inputs.port }}",
                     "RELEASE_NAME": "${{ inputs.release_name }}",
                     "AWS_REGION": "${{ inputs.aws_region }}",
+                    "DOCKER_NETWORK": "${{ inputs.docker_network }}",
                     "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
                     "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_KEY_ID }}"
                 }
