@@ -93,7 +93,13 @@ node("$cloudName"){
         try{
             sh("docker network create $DOCKER_NETWORK")
         } catch(err){
-            println err.getMessage()
+                if(err.getMessage() == "network with name $DOCKER_NETWORK already exists"){
+                    println "Skipping as network already exists"
+                } else{
+                    println err.getMessage()
+                    currentBuild.result = 'FAILURE'
+                    return
+                }             
         }
     }
         
