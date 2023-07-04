@@ -72,37 +72,28 @@ node("$cloudName"){
 
         """
 
-        
-                
-            // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
-            def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${awsRegion} --query SecretString""",returnStdout: true).trim()
-            def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
-            def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
-            def keyValuePairs = cleanedJson.split(",")
+        // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
+        def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${awsRegion} --query SecretString""",returnStdout: true).trim()
+        def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
+        def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
+        def keyValuePairs = cleanedJson.split(",")
 
-            keyValuePairs.each { pair ->
-                def keyValue = pair.split(":")
-                def key = keyValue[0].replaceAll("\"", "").trim()
-                def value = keyValue[1].replaceAll("\"", "").trim()
-                dockerCommand += " -e ${key}=${value}"
+        keyValuePairs.each { pair ->
+            def keyValue = pair.split(":")
+            def key = keyValue[0].replaceAll("\"", "").trim()
+            def value = keyValue[1].replaceAll("\"", "").trim()
+            dockerCommand += " -e ${key}=${value}"
 
-                // maskedDockerCommand will print the running command for debugging but masks the environment secrets
-                maskedDockerCommand += " -e ${key}=***"
-            }
-        
+            // maskedDockerCommand will print the running command for debugging but masks the environment secrets
+            maskedDockerCommand += " -e ${key}=***"
+        }
     }
 
     stage('Create new network for container'){
         try{
             sh("docker network create $DOCKER_NETWORK")
         } catch(err){
-            if(err.getMessage().contains("already exists")){
-                println "Skipping this as network already exists"
-            } else{
-                println err.getMessage()
-                currentBuild.result = 'FAILURE'
-                return
-            }
+            println err.getMessage()
         }
     }
         
