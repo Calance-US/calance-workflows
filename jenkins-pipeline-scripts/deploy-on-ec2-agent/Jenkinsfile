@@ -105,7 +105,7 @@ node("$cloudName"){
             
             // There are some applications which does not require any command to be executed
             dockerCommand +=  " $COMMAND"
-            maskedDockerCommand +=  " ${command}"
+            maskedDockerCommand +=  " $COMMAND"
         }
         sh """
             set +x
