@@ -72,7 +72,7 @@ node("$cloudName") {
 
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: '*/941-update-helm-container-name']],
+                branches: [[name: '*/main']],
                 extensions: [],
                 userRemoteConfigs: [[
                     credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
