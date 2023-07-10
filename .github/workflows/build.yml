@@ -82,7 +82,7 @@ jobs:
         id: image_registry
         run: |
           if [ ${{inputs.image_registry}} == "ghcr.io" ]; then
-            echo "IMAGE_REGISTRY_TOKEN="secrets.GHCR_TOKEN" >> "$GITHUB_OUTPUT"
+            echo "IMAGE_REGISTRY_TOKEN=secrets.GHCR_TOKEN" >> "$GITHUB_OUTPUT"
           elif [ ${{inputs.image_registry}} == "dockerhub.io" ]; then
             echo "IMAGE_REGISTRY_TOKEN=DOCKERHUB_TOKEN" >> "$GITHUB_OUTPUT"
           fi
