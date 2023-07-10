@@ -15,10 +15,10 @@ on:
         description: "The commit SHA that triggered the workflow"
         value: ${{ jobs.build-docker.outputs.commit_id }}
 
-    # secrets:
-    #   GHCR_TOKEN:
-    #     required: false
-    #     description: "secret for Github Container Registry"
+    secrets:
+      GHCR_TOKEN:
+        required: false
+        description: "secret for Github Container Registry"
 
     inputs:
       docker_context_path:
