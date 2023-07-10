@@ -1,29 +1,28 @@
 name: TestCase 1 - Basic Repository
 on:
   push:
-    tags:
-    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
-    - v[0-9]+.[0-9]+.[0-9]+
+    branches: ["919-support-for-multiple-image-registries"]
 
 jobs:
   build-and-push-dockerimages:
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
     uses: ./.github/workflows/build.yml
-
-  deploy-to-kubernetes:
-    needs: build-and-push-dockerimages
-    strategy:
-      fail-fast: false
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/deploy.yml
     with:
-      repository_name: ${{ github.event.repository.name }}
-      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
-      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
-    secrets:
-      JENKINS_URL: ${{ secrets.JENKINS_URL }}
-      JENKINS_USER: ${{ secrets.JENKINS_USER }}
-      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+      image_name: calance-workflows
+      image_registry: ghcr.io
+
+  # deploy-to-kubernetes:
+  #   needs: build-and-push-dockerimages
+  #   strategy:
+  #     fail-fast: false
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     repository_name: ${{ github.event.repository.name }}
+  #     version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+  #     cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+  #   secrets:
+  #     JENKINS_URL: ${{ secrets.JENKINS_URL }}
+  #     JENKINS_USER: ${{ secrets.JENKINS_USER }}
+  #     JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
