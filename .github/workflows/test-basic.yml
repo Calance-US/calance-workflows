@@ -9,8 +9,6 @@ jobs:
     with:
       image_name: calance-workflows
       image_registry: ghcr.io
-    secrets:
-      GHCR_TOKEN: ${{secrets.GHCR_TOKEN}}
       
 
   # deploy-to-kubernetes:
