@@ -83,6 +83,7 @@ jobs:
         run: |
           if [ ${{inputs.image_registry}} == "ghcr.io" ]; then
             echo "IMAGE_REGISTRY_TOKEN=${{ secrets.GHCR_TOKEN }}" >> "$GITHUB_ENV"
+            echo "::set-output name=IMAGE_REGISTRY_TOKEN::${IMAGE_REGISTRY_TOKEN}"
           elif [ ${{inputs.image_registry}} == "dockerhub.io" ]; then
             echo "IMAGE_REGISTRY_TOKEN=DOCKERHUB_TOKEN" >> "$GITHUB_OUTPUT"
           fi
@@ -92,7 +93,7 @@ jobs:
         with:
           registry: ${{inputs.image_registry}}
           username: ${{ github.repository_owner }}
-          password: ${{ env.IMAGE_REGISTRY_TOKEN }}
+          password: ${{ steps.image_registry.outputs.IMAGE_REGISTRY_TOKEN }}
 
       # - name: Extract metadata (tags, labels) for Docker
       #   id: meta
