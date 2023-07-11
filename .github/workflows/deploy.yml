@@ -34,6 +34,15 @@ on:
         required: false
         type: boolean
         default: false
+      image_registry:
+        description: "Name of Image Registry"
+        required: true
+        type: string
+        default: ghcr.io
+      image_registry_username:
+        description: "Username of Image Registry"
+        required: true
+        type: string
 
     secrets:
       JENKINS_URL:
@@ -64,5 +73,7 @@ jobs:
               "IMAGE_NAME" : "${{ inputs.image_name }}", 
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}" , 
               "VERSION": "${{ inputs.version }}", 
-              "COMMIT_ID": "${{ inputs.commit_id }}"
+              "COMMIT_ID": "${{ inputs.commit_id }}",
+              "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+              "IMAGE_REGISTRY_USERNAME": "${{ inputs.image_registry_username }}"
             }

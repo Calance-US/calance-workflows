@@ -10,29 +10,29 @@ on:
         value: ${{ jobs.build-docker.outputs.cluster_environment }}
       image_name:
         description: "Providing the name of the image to be built"
-        value: ${{jobs.build-docker.outputs.image_name}}
+        value: ${{ jobs.build-docker.outputs.image_name }}
       commit_id:
         description: "The commit SHA that triggered the workflow"
         value: ${{ jobs.build-docker.outputs.commit_id }}
 
     secrets:
-      GHCR_TOKEN:
-        required: false
-        description: "secret for Github Container Registry"
+      IMAGE_REGISTRY_PASSWORD:
+        required: true
+        description: "Secret for Image Registry"
 
     inputs:
       docker_context_path:
-        description: "docker context path"
+        description: "Docker context path"
         required: false
         type: string
         default: "."
       dockerfile_path:
-        description: "path to the Dockerfile"
+        description: "Path to the Dockerfile"
         required: false
         type: string
         default: "./Dockerfile"
       image_name:
-        description: "name for the image that will be built (defaults to repository name)"
+        description: "Name for the image that will be built (defaults to repository name)"
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
@@ -52,13 +52,19 @@ on:
         type: string
         default: ""
       branch_name:
-        description: "the branch we are going to build. If kept empty, the git ref that triggered the workflow is used"
+        description: "The branch we are going to build. If kept empty, the git ref that triggered the workflow is used"
         type: string
         default: ""
       image_registry:
-        description: Image Registry
+        description: "Image Registry Name"
         type: string
         required: true
+        default: ${{ vars.IMAGE_REGISTRY }}
+      image_registry_username:
+        description: "Username of Image Registry"
+        type: string
+        required: true
+        default: ${{ vars.IMAGE_REGISTRY_USERNAME }}
 
 jobs:
   build-docker:
@@ -66,11 +72,11 @@ jobs:
     permissions:
       contents: read
       packages: write
-    #outputs:
-      # version: ${{ steps.version.outputs.build_version }}
-      # cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
-      # image_name: ${{ inputs.image_name }}
-      # commit_id: ${{ steps.version.outputs.commit_id }}
+    outputs:
+      version: ${{ steps.version.outputs.build_version }}
+      cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
+      image_name: ${{ inputs.image_name }}
+      commit_id: ${{ steps.version.outputs.commit_id }}
 
     steps:
       - name: Checkout repository (clone the repo for use)
@@ -78,72 +84,52 @@ jobs:
         with:
           ref: ${{ inputs.branch_name || github.ref_name }}
 
-      # - name: Check for the Image Registry
-      #   id: image_registry
-      #   run: |
-      #     if [ ${{inputs.image_registry}} == "ghcr.io" ]; then
-      #       echo "IMAGE_REGISTRY_TOKEN=${{ secrets.GHCR_TOKEN }}" >> "$GITHUB_ENV"
-      #       echo "::set-output name=IMAGE_REGISTRY_TOKEN::${IMAGE_REGISTRY_TOKEN}"
-      #     elif [ ${{inputs.image_registry}} == "dockerhub.io" ]; then
-      #       echo "IMAGE_REGISTRY_TOKEN=DOCKERHUB_TOKEN" >> "$GITHUB_OUTPUT"
-      #     fi
-      - name: Set Secret Output
-        id: image_registry
-        uses: actions/github-script@v5
-        with:
-          script: |
-            imageRegistry = ${{inputs.image_registry}}
-            if(imageRegistry == "ghcr.io"){
-              const secretValue = process.env.GHCR_TOKEN;
-              console.log(`::set-output name=IMAGE_REGISTRY_TOKEN::${secretValue}`);
-            }
-
       - name: Log in to github Container registry where image is pushed and pulled from
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
-          registry: ${{inputs.image_registry}}
-          username: ${{ github.repository_owner }}
-          password: ${{ steps.image_registry.outputs.IMAGE_REGISTRY_TOKEN }}
+          registry: ${{ inputs.image_registry }}
+          username: ${{ inputs.image_registry_username }}
+          password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
 
-      # - name: Extract metadata (tags, labels) for Docker
-      #   id: meta
-      #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-      #   with:
-      #     #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-      #     #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
-      #     images: |
-      #       ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
-      #     tags: |
-      #       ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          #image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
+          #but it throws error while pulling image with this. it is building the image but not able to push in github container registry
+          images: |
+            ${{ inputs.IMAGE_REGISTRY }}/${{ inputs.image_registry_username }}/${{ inputs.image_name }}
+          tags: |
+            ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
 
-      # - name: Setting application version (comes from image tag/version) and commit_id
-      #   id: version
-      #   run: |
-      #     echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
-      #     echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - name: Setting application version (comes from image tag/version) and commit_id
+        id: version
+        run: |
+          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
-      # - name: Identifying cluster in which application should be deployed
-      #   id: cluster_environment
-      #   uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
-      #   with:
-      #     docker_json_metadata: ${{ steps.meta.outputs.json }}
+      - name: Identifying cluster in which application should be deployed
+        id: cluster_environment
+        uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
+        with:
+          docker_json_metadata: ${{ steps.meta.outputs.json }}
 
-      # - name: Generate .env file
-      #   if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
-      #   run: |
-      #     if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-      #       echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
-      #     elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-      #       echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
-      #     else
-      #       echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
-      #     fi
+      - name: Generate .env file
+        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
+        run: |
+          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
+          else
+            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
+          fi
 
-      # - name: Build and push Docker image to github container registry
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: ${{ inputs.docker_context_path }}
-      #     file: ${{ inputs.dockerfile_path }}
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push Docker image to github container registry
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ inputs.docker_context_path }}
+          file: ${{ inputs.dockerfile_path }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
