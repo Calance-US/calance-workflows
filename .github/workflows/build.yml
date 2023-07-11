@@ -102,34 +102,34 @@ jobs:
           tags: |
             ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
 
-      - name: Setting application version (comes from image tag/version) and commit_id
-        id: version
-        run: |
-          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
-          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      # - name: Setting application version (comes from image tag/version) and commit_id
+      #   id: version
+      #   run: |
+      #     echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+      #     echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
-      - name: Identifying cluster in which application should be deployed
-        id: cluster_environment
-        uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
-        with:
-          docker_json_metadata: ${{ steps.meta.outputs.json }}
+      # - name: Identifying cluster in which application should be deployed
+      #   id: cluster_environment
+      #   uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
+      #   with:
+      #     docker_json_metadata: ${{ steps.meta.outputs.json }}
 
-      - name: Generate .env file
-        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
-        run: |
-          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
-          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
-          else
-            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
-          fi
+      # - name: Generate .env file
+      #   if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev !=''
+      #   run: |
+      #     if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+      #       echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+      #     elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+      #       echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
+      #     else
+      #       echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
+      #     fi
 
-      - name: Build and push Docker image to github container registry
-        uses: docker/build-push-action@v3
-        with:
-          context: ${{ inputs.docker_context_path }}
-          file: ${{ inputs.dockerfile_path }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      # - name: Build and push Docker image to github container registry
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: ${{ inputs.docker_context_path }}
+      #     file: ${{ inputs.dockerfile_path }}
+      #     push: true
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
