@@ -1,0 +1,15 @@
+name: "Close stale issues and PRs"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          stale-pr-message: "This PR is very old. Marking it as stale!"
+          stale-issue-message: "This issue is very old. Marking it as stale!"
+          days-before-stale: 3
+          days-before-close: -1
