@@ -94,7 +94,7 @@ jobs:
           script: |
             imageRegistry = ${{inputs.image_registry}}
             if(imageRegistry == "ghcr.io"){
-              const secretValue = process.env.MY_SECRET;
+              const secretValue = process.env.GHCR_TOKEN;
               console.log(`::set-output name=IMAGE_REGISTRY_TOKEN::${secretValue}`);
             }
 
