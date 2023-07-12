@@ -38,7 +38,6 @@ on:
         description: "Name of Image Registry"
         required: true
         type: string
-        default: ghcr.io
       image_registry_username:
         description: "Username of Image Registry"
         required: true

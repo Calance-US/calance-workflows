@@ -59,12 +59,10 @@ on:
         description: "Image Registry Name"
         type: string
         required: true
-        default: ${{ vars.IMAGE_REGISTRY }}
       image_registry_username:
         description: "Username of Image Registry"
         type: string
         required: true
-        default: ${{ vars.IMAGE_REGISTRY_USERNAME }}
 
 jobs:
   build-docker:

@@ -9,8 +9,8 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       image_name: calance-workflows
-      image_registry: ${{vars.IMAGE_REGISTRY}}
-      image_registry_username: ${{vars.IMAGE_REGISTRY_USERNAME}}
+      image_registry: ${{ vars.IMAGE_REGISTRY }}
+      image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
     secrets:
       IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
       
