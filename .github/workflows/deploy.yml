@@ -1,59 +1,55 @@
+---
 name: Deploy to Kubernetes
-
 on:
   workflow_call:
     inputs:
       repository_name:
-        description: "name of the service to be deployed (usually it is the same as the repository name)"
+        description: Name of the service to be deployed (usually it is the same as
+          the repository name)
         required: true
         type: string
       image_name:
-        description: "image name of our application's dockerfile"
+        description: Image name of our application's dockerfile
+        required: true
+        type: string
+      release_name:
+        description: Application release name
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
-      release_name:
-        description: "application release name"
-        required: false
-        type: string
-        default: ""
       cluster_environment:
-        description: "Cluster environment to deploy your image"
+        description: Cluster environment to deploy your image
         required: true
         type: string
       version:
-        description: "application version"
+        description: Application version
         required: true
         type: string
       commit_id:
-        description: "Latest commit SHA of the build"
+        description: Latest commit SHA of the build
         required: true
         type: string
       env_specific_namespaces:
-        description: "enable generating namespace value according to the cluster-environment (ex: assuming hrms namespace is configured, testing version will use hrms-testing as the namespace while production version will use hrms as the namespace"
+        description: 'Enable generating namespace value according to the cluster-environment
+          (ex: assuming hrms namespace is configured, testing version will use hrms-testing
+          as the namespace while production version will use hrms as the namespace'
         required: false
         type: boolean
         default: false
       image_registry:
-        description: "Name of Image Registry"
+        description: Name of Image Registry
         required: true
         type: string
-      image_registry_username:
-        description: "Username of Image Registry"
-        required: true
-        type: string
-
     secrets:
       JENKINS_URL:
         required: true
-        description: "Jenkins URL"
+        description: Jenkins URL
       JENKINS_USER:
         required: true
-        description: "Jenkins USER"
+        description: Jenkins USER
       JENKINS_TOKEN:
         required: true
-        description: "Jenkins TOKEN"
-
+        description: Jenkins TOKEN
 jobs:
   trigger-jenkins-job:
     runs-on: ubuntu-latest
@@ -61,11 +57,11 @@ jobs:
       - name: Trigger Jenkins Job
         uses: Calance-US/build-jenkins-job@main
         with:
-          jenkins-url: "${{ secrets.JENKINS_URL }}"
-          jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
-          user: "${{ secrets.JENKINS_USER }}"
-          job-path: "job/kubernetes-deploy-on-nutanix"
-          job-params: |
+          jenkins-url: ${{ secrets.JENKINS_URL }}
+          jenkins-token: ${{ secrets.JENKINS_TOKEN }}
+          user: ${{ secrets.JENKINS_USER }}
+          job-path: job/kubernetes-deploy-on-nutanix
+          job-params: |-
             {
               "SERVICE_NAME" : "${{ inputs.repository_name }}", 
               "RELEASE_NAME" : "${{ inputs.release_name }}", 
@@ -73,6 +69,5 @@ jobs:
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}", 
               "VERSION": "${{ inputs.version }}", 
               "COMMIT_ID": "${{ inputs.commit_id }}",
-              "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
-              "IMAGE_REGISTRY_USERNAME": "${{ inputs.image_registry_username }}"
+              "IMAGE_REGISTRY": "${{ inputs.image_registry }}"
             }

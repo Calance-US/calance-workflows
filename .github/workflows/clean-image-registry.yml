@@ -1,76 +1,80 @@
+---
 name: Clean Image Registry
-
-on: 
+on:
   workflow_call:
     inputs:
-      image_name: 
-        description: "Image Name"
+      image_name:
+        description: Image Name
         required: true
         type: string
       prod_keep_at_least:
-        description: "Minimum number of production images to retain after cut-off"
+        description: Minimum number of production images to retain after cut-off
         required: false
         type: number
         default: 5
       prod_cut_off:
-        description: "Cut-off for production images (format as supported by python's dateparser)"
+        description: Cut-off for production images (format as supported by python's
+          dateparser)
         required: false
         type: string
-        default: "One month ago UTC" 
+        default: One month ago UTC
       testing_keep_at_least:
-        description: "Minimum number of testing/staging images to retain after cut-off"
+        description: Minimum number of testing/staging images to retain after cut-off
         required: false
         type: number
         default: 2
       testing_cut_off:
-        description: "Cut-off for testing/staging images (format as supported by python's dateparser)"
+        description: Cut-off for testing/staging images (format as supported by python's
+          dateparser)
         required: false
         type: string
-        default: "One week ago UTC"
+        default: One week ago UTC
       non_semver_keep_at_least:
-        description: "Cut-off for Non-Semver images (format as supported by python's dateparser)"
+        description: Cut-off for Non-Semver images (format as supported by python's
+          dateparser)
         required: false
         type: number
         default: 2
       non_semver_cut_off:
-        description: "Cut-off for Non-SemVer images (format as supported by python's dateparser)"
+        description: Cut-off for Non-SemVer images (format as supported by python's
+          dateparser)
         required: false
         type: string
-        default: "One week ago UTC"
+        default: One week ago UTC
       untagged_cut_off:
-        description: "Cut-off for Orphan images (format as supported by python's dateparser)"
+        description: Cut-off for Orphan images (format as supported by python's dateparser)
         required: false
         type: string
-        default: "One week ago UTC"
+        default: One week ago UTC
     secrets:
       IMAGE_CLEANUP_TOKEN:
-        description: Github token with permissions - read:packages, write:packages, delete-packages
+        description: Github token with permissions - read:packages, write:packages,
+          delete-packages
         required: true
       MS_TEAMS_WEBHOOK_URI:
         description: |
           MS Teams Webhook URI that sends information to the corresponding Teams channel 
           Follow this link for creating Webhook URI:- https://tinyurl.com/yjertc35
         required: true
-  
 jobs:
   clean-ghcr-prod:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     steps:
       - name: Validating inputs for production
-        run: | 
-            if [[ $(("${{ inputs.prod_keep_at_least }}")) -lt 5 ]]; then
-                echo "Provided value of prod_keep_at_least cannot be less than 5"
-                exit 1
-            fi
+        run: |
+          if [[ $(("${{ inputs.prod_keep_at_least }}")) -lt 5 ]]; then
+              echo "Provided value of prod_keep_at_least cannot be less than 5"
+              exit 1
+          fi
       - name: List packages with tags before deletion for prod
         uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Delete old containers in Production
         id: delete-packages-prod
         uses: snok/container-retention-policy@v2
@@ -78,16 +82,16 @@ jobs:
           cut-off: ${{ inputs.prod_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter-tags: "v*.*.*"
+          filter-tags: v*.*.*
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.prod_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - name: List packages with tags after deletion for prod
         uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
           organization: Calance-US
       - name: Packages deleted for prod
@@ -100,13 +104,13 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for prod
+      - name: Get URLs for packages that failed deletion and packages that needs github
+          assistance for prod
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-prod
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-prod.outputs.failed }}
           packages_needs_github_assistance: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
-        
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
           steps.delete-packages-prod.outputs.deleted != '' ||
@@ -122,7 +126,6 @@ jobs:
               value: ${{ steps.get-packages-url-prod.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
               value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls }}
-  
   clean-ghcr-testing:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -130,18 +133,18 @@ jobs:
     steps:
       - name: Validating inputs for testing
         run: |
-            if [[ $(("${{ inputs.testing_keep_at_least }}")) -lt 2 ]]; then
-                echo "Provided value of testing_keep_at_least cannot be less than 2"
-                exit 1
-            fi
+          if [[ $(("${{ inputs.testing_keep_at_least }}")) -lt 2 ]]; then
+              echo "Provided value of testing_keep_at_least cannot be less than 2"
+              exit 1
+          fi
       - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         name: List packages with tags before deletion for testing
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Delete old containers in Testing
         id: delete-packages-testing
         uses: snok/container-retention-policy@v2
@@ -149,16 +152,16 @@ jobs:
           cut-off: ${{ inputs.testing_cut_off }}
           account-type: org
           org-name: Calance-US
-          filter-tags: "v*.*.*-rc*"
+          filter-tags: v*.*.*-rc*
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
           organization: Calance-US
       - name: Packages deleted for testing
@@ -171,12 +174,13 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for testing
+      - name: Get URLs for packages that failed deletion and packages that needs github
+          assistance for testing
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-testing
         with:
           packages_failed_to_delete: ${{ steps.delete-packages-testing.outputs.failed }}
-          packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }} 
+          packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
           steps.delete-packages-testing.outputs.deleted != '' ||
@@ -192,7 +196,6 @@ jobs:
               value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
               value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls }}
-
   clean-ghcr-non-semver:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -200,18 +203,18 @@ jobs:
     steps:
       - name: Validating inputs for Non-SemVer
         run: |
-            if [[ $(("${{ inputs.non_semver_keep_at_least }}")) -lt 2 ]]; then
-                echo "Provided value of non_semver_keep_at_least cannot be less than 2"
-                exit 1
-            fi
+          if [[ $(("${{ inputs.non_semver_keep_at_least }}")) -lt 2 ]]; then
+              echo "Provided value of non_semver_keep_at_least cannot be less than 2"
+              exit 1
+          fi
       - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         name: List packages with tags before deletion for non-semver
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Delete old containers of Non-Semver pattern
         id: delete-packages-non-semver
         uses: snok/container-retention-policy@v2
@@ -223,15 +226,15 @@ jobs:
           filter-include-untagged: false
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Packages deleted for non-semver
         uses: actions/github-script@v6
         id: packages-deleted-non-semver
@@ -242,7 +245,8 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for non-semver
+      - name: Get URLs for packages that failed deletion and packages that needs github
+          assistance for non-semver
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-non-semver
         with:
@@ -263,7 +267,6 @@ jobs:
               value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
               value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls }}
-  
   clean-ghcr-untagged:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -274,9 +277,9 @@ jobs:
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Delete old containers of Untagged versions
         id: delete-packages-untagged
         uses: snok/container-retention-policy@v2
@@ -286,15 +289,15 @@ jobs:
           org-name: Calance-US
           untagged-only: true
           image-names: ${{ inputs.image_name }}
-          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
         name: List packages with tags after deletion for untagged
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
-          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }} 
+          GET_PACKAGES_TOKEN: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
           package_type: container
-          organization: Calance-US 
+          organization: Calance-US
       - name: Packages deleted for untagged
         uses: actions/github-script@v6
         id: packages-deleted-untagged
@@ -305,7 +308,8 @@ jobs:
             packages_deleted = packages_versions_before_deletion.filter(x => !(packages_versions_after_deletion).includes(x))
             console.log(packages_deleted)
             return packages_deleted
-      - name: Get URLs for packages that failed deletion and packages that needs github assistance for untagged
+      - name: Get URLs for packages that failed deletion and packages that needs github
+          assistance for untagged
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-untagged
         with:
@@ -319,7 +323,7 @@ jobs:
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
-          custom-facts: |
+          custom-facts: |-
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-untagged.outputs.result }}
             - name: Packages failed to delete

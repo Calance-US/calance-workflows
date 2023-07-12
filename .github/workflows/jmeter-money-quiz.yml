@@ -1,36 +1,32 @@
+---
 name: money-quiz-jmeter
-
 on:
   workflow_call:
     inputs:
       jmxFilePath:
-        description: "jmx file path"
+        description: jmx file path
         required: true
         type: string
-        default: "testingSuite/script.jmx"
-
+        default: testingSuite/script.jmx
 jobs:
   action_build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout action
-      uses: actions/checkout@v2
-
-    - name: create folder to store reults of jmeter action in artifacts
-      run: |
-        mkdir reports-money-quiz-jmeter/ 
-
-    - name: Run JMeter Action on a test
-      uses: rbhadti94/apache-jmeter-action@v0.5.0
-      with:
-        testFilePath: ${{ inputs.jmxFilePath }}
-        outputReportsFolder: reports-money-quiz-jmeter/
-    - name: move log files to  reports-money-quiz-jmeter folder
-      run: |
-        mv *.log  reports-money-quiz-jmeter/
-        
-    - uses: actions/upload-artifact@v3
-      with:
-        name: jmeter-test-results
-        path: |
-          reports-money-quiz-jmeter/
+      - name: Checkout action
+        uses: actions/checkout@v2
+      - name: create folder to store reults of jmeter action in artifacts
+        run: |
+          mkdir reports-money-quiz-jmeter/ 
+      - name: Run JMeter Action on a test
+        uses: rbhadti94/apache-jmeter-action@v0.5.0
+        with:
+          testFilePath: ${{ inputs.jmxFilePath }}
+          outputReportsFolder: reports-money-quiz-jmeter/
+      - name: move log files to  reports-money-quiz-jmeter folder
+        run: |
+          mv *.log  reports-money-quiz-jmeter/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-test-results
+          path: |-
+            reports-money-quiz-jmeter/

@@ -1,13 +1,14 @@
-name: 'Cluster env setter'
-description: 'Tells about the cluster environment'
+---
+name: Cluster env setter
+description: Tells about the cluster environment
 inputs:
   docker_json_metadata:
-    description: 'Metadata of docker in json'
+    description: Metadata of docker in json
     required: true
     default: '{}'
 outputs:
   cluster_environment:
-    description: 'Cluster Environment'
+    description: Cluster Environment
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: node16
+  main: dist/index.js
