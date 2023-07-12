@@ -26,6 +26,7 @@ jobs:
       repository_name: ${{ github.event.repository.name }}
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
       cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+      commit_id: ''
       image_registry: ${{ vars.IMAGE_REGISTRY }}
       image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
     secrets:
