@@ -65,7 +65,7 @@ jobs:
           jenkins-url: "${{ secrets.JENKINS_URL }}"
           jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
           user: "${{ secrets.JENKINS_USER }}"
-          job-path: "job/test-helm-values"
+          job-path: "job/kubernetes-deploy-on-nutanix"
           job-params: |
             {
               "SERVICE_NAME" : "${{ inputs.repository_name }}", 
