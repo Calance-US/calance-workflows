@@ -34,9 +34,8 @@ on:
       image_name:
         description: Name for the image that will be built (defaults to repository
           name)
-        required: false
+        required: true
         type: string
-        default: ${{ github.event.repository.name }}
       dot_env_file_testing:
         description: Build time environment variables as multiline string for testing
           environment
