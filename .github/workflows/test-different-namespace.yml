@@ -1,21 +1,18 @@
+---
 name: TestCase 4 - env specific namespaces
 on:
   push:
-    tags:
-    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
-
+    tags: ['v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+']
 jobs:
   build-and-push-dockerimages:
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
     uses: ./.github/workflows/build.yml
-
   deploy-to-kubernetes:
     needs: build-and-push-dockerimages
     permissions:
       contents: read
       packages: write
-
     uses: ./.github/workflows/deploy.yml
     with:
       repository_name: ${{ github.event.repository.name }}
@@ -26,8 +23,6 @@ jobs:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
-
-
 # assertion is not working because we are trying to use namespace from secrets from one runner to another so not wont allow it 
 
 # assertion:
@@ -41,4 +36,3 @@ jobs:
 #       run: |
 #           echo 'unexpected namespace'
 #           exit 1
-
