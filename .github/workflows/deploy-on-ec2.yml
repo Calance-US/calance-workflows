@@ -1,0 +1,89 @@
+name: Deploy to EC2 instances using Jenkins Agent
+
+on: 
+    workflow_call:
+        inputs:
+            image_name:
+                description: "Image name of our Application's Dockerfile"
+                required: true
+                type: string
+            service_name:
+                description: "Service/Repository name"
+                required: false
+                type: string
+                default: "${{ github.event.repository.name }}"
+            release_name:
+                description: "Release Name"
+                required: true
+                type: string
+            version:
+                description: "Application version"
+                required: true
+                type: string
+            cluster_environment:
+                description: "Cluster Environment"
+                required: true
+                type: string
+            command:
+                description: "Command that is required to run"
+                required: false
+                type: string
+            port:
+                description: "Port at which service will be running"
+                required: false
+                type: string
+            aws_region:
+                description: "AWS Region Name"
+                required: true
+                type: string
+            docker_network:
+                description: "Docker Network"
+                required: true
+                type: string
+            mount_path:
+                description: "Mount Path"
+                required: false
+                type: string
+        secrets:
+            JENKINS_URL:
+                required: true
+                description: "Jenkins URL"
+            JENKINS_USER:
+                required: true
+                description: "Jenkins USER"
+            JENKINS_TOKEN:
+                required: true
+                description: "Jenkins TOKEN"
+            AWS_ACCESS_KEY_ID:
+                required: true
+                description: "AWS Access Key for the User"
+            AWS_SECRET_ACCESS_KEY:
+                required: true
+                description: "AWS Secret Key for the User"
+                
+jobs:
+    trigger-jenkins-job:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Trigger Jenkins Job
+          uses: Calance-US/build-jenkins-job@main
+          with:
+            jenkins-url: "${{ secrets.JENKINS_URL }}"
+            jenkins-token: "${{ secrets.JENKINS_TOKEN }}"
+            user: "${{ secrets.JENKINS_USER }}"
+            job-path: "job/EC2-Deployment-Dashboard"
+            job-params: |
+                {
+                    "IMAGE_NAME" : "${{ inputs.image_name }}", 
+                    "VERSION": "${{ inputs.version }}",
+                    "COMMAND": "${{ inputs.command }}",
+                    "SERVICE_NAME": "${{ inputs.service_name }}",
+                    "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}",
+                    "PORT": "${{ inputs.port }}",
+                    "RELEASE_NAME": "${{ inputs.release_name }}",
+                    "AWS_REGION": "${{ inputs.aws_region }}",
+                    "DOCKER_NETWORK": "${{ inputs.docker_network }}",
+                    "MOUNT_PATH": "${{ inputs.mount_path }}",
+                    "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
+                    "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+                }

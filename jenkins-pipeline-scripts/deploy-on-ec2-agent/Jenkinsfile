@@ -1,0 +1,125 @@
+/*
+Prerequisites:-
+
+1. Docker should be installed in EC2 instance
+2. AWS CLI should be installed in EC2 instance
+3. JDK should be installed in EC2 instance
+
+4. Access Key and Secret Key are passed through the Github Actions
+*/
+
+def dockerCommand = "docker run -d --restart unless-stopped --name $RELEASE_NAME --network $DOCKER_NETWORK "
+def maskedDockerCommand = dockerCommand
+
+if (MOUNT_PATH){
+
+    // There are some applications which do not require mounting
+    dockerCommand += "-v $MOUNT_PATH "
+    maskedDockerCommand += "-v $MOUNT_PATH "
+}
+
+if (PORT){
+    
+    // There are some applications which are not required to be exposed
+    dockerCommand += "-p $PORT"
+    maskedDockerCommand += "-p $PORT"
+}
+
+node("master"){
+    stage('Identify the Cloud Name'){
+        configFileProvider([
+            configFile(fileId: 'service-cluster-configuration.json', variable: 'CONFIG_FILE')
+        ]) {
+                Map<String, String> data = readJSON file: "$CONFIG_FILE"
+                cloudName = data["$SERVICE_NAME-$CLUSTER_ENVIRONMENT"]
+
+                if (cloudName == null || cloudName == '') {
+                    error "Cluster config does not exist for $SERVICE_NAME-$CLUSTER_ENVIRONMENT"
+                }
+
+                println "For application - $SERVICE_NAME, environment - $CLUSTER_ENVIRONMENT, Chosen cloud - $cloudName"
+            }
+    }
+}
+
+node("$cloudName"){
+    stage('Login to GHCR and Pull Image'){
+        imageName = "ghcr.io/calance-us/" + IMAGE_NAME + ":" + VERSION
+
+        docker.withRegistry('https://ghcr.io','6e8e3064-2329-46fe-bfa3-b1c54f17e885'){
+            docker.image(imageName).pull()
+             
+        }
+                
+    }
+    
+    stage('Remove container with older version'){
+        try{
+            sh("docker rm -f $RELEASE_NAME")
+        } catch(err){
+            if(err.getMessage().contains("No such container")){
+                println "Skipping this as container of this name doesn't exist"
+            } else{
+                println err.getMessage()
+                currentBuild.result = 'FAILURE'
+                return
+            }
+        }
+    }
+        
+    stage('Fetch Secrets from AWS Secrets Manager'){
+        def secretPath = SERVICE_NAME + "-" + CLUSTER_ENVIRONMENT
+        def awsRegion = AWS_REGION
+
+        sh """
+            set +x
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            set -x
+
+        """
+
+        // Using AWS CLI for fetching Secrets from AWS Secrets Manager as they are unaccessible with Jenkins Plugins
+        def secretData = sh(script: """aws secretsmanager get-secret-value --secret-id ${secretPath} --region=${awsRegion} --query SecretString""",returnStdout: true).trim()
+        def secretJson = new groovy.json.JsonSlurper().parseText(secretData)
+        def cleanedJson = secretJson.replaceAll("[{}\\s]+", "")
+        def keyValuePairs = cleanedJson.split(",")
+
+        keyValuePairs.each { pair ->
+            def keyValue = pair.split(":")
+            def key = keyValue[0].replaceAll("\"", "").trim()
+            def value = keyValue[1].replaceAll("\"", "").trim()
+            dockerCommand += " -e ${key}=${value}"
+
+            // maskedDockerCommand will print the running command for debugging but masks the environment secrets
+            maskedDockerCommand += " -e ${key}=***"
+        }
+    }
+
+    stage('Create new network for container'){
+        try{
+            sh("docker network create $DOCKER_NETWORK")
+        } catch(err){
+                println err.getMessage()            
+        }
+    }
+        
+    stage('Start container with new version'){
+        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" 
+        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+
+        if(COMMAND){
+            
+            // There are some applications which does not require any command to be executed
+            dockerCommand +=  " $COMMAND"
+            maskedDockerCommand +=  " $COMMAND"
+        }
+        sh """
+            set +x
+            echo Running command...
+            echo ${maskedDockerCommand}
+            ${dockerCommand} 
+            set -x
+        """
+    }
+}       
