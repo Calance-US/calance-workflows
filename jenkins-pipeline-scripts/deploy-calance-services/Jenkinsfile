@@ -37,7 +37,7 @@ node('master') {
 
             // decides what is going to be the image repository if it is external or internal service
             String externalService = EXTERNAL_SERVICE
-            imageRepository = "ghcr.io/calance-us/${imageName}"
+            imageRepository = "$IMAGE_REGISTRY" + "/" + "$IMAGE_NAME".toLowerCase()
 
             if (externalService == 'true') {
                 imageRepository = IMAGE_NAME
