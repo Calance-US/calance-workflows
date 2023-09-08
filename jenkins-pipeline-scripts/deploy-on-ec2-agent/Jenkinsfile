@@ -88,8 +88,9 @@ node("$cloudName"){
         keyValuePairs.each { pair ->
             def keyValue = pair.split(":")
             def key = keyValue[0].replaceAll("\"", "").trim()
-            def value = keyValue[1].replaceAll("\"", "").trim()
-            dockerCommand += " -e ${key}=${value}"
+          //  def value = keyValue[1].replaceAll("\"", "").trim()
+            def value = keyValue[1..-1].join(":").replaceAll("\"", "").trim() // Join the value parts after splitting
+            dockerCommand += " -e ${key}='${value}'"
 
             // maskedDockerCommand will print the running command for debugging but masks the environment secrets
             maskedDockerCommand += " -e ${key}=***"
@@ -122,4 +123,4 @@ node("$cloudName"){
             set -x
         """
     }
-}       
+}
