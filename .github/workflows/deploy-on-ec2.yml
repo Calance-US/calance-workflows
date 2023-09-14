@@ -4,7 +4,11 @@ on:
     workflow_call:
         inputs:
             image_name:
-                description: "Image name of our Application's Dockerfile"
+                description: "Image name (Use it in this way:- Calance-US/repo-name)"
+                required: true
+                type: string
+            image_registry:
+                description: "Image Registry where image is pushed"
                 required: true
                 type: string
             service_name:
@@ -74,7 +78,8 @@ jobs:
             job-path: "job/EC2-Deployment-Dashboard"
             job-params: |
                 {
-                    "IMAGE_NAME" : "${{ inputs.image_name }}", 
+                    "IMAGE_NAME" : "${{ inputs.image_name }}",
+                    "IMAGE_REGISTRY": "${{ inputs.image_registry }}"
                     "VERSION": "${{ inputs.version }}",
                     "COMMAND": "${{ inputs.command }}",
                     "SERVICE_NAME": "${{ inputs.service_name }}",
