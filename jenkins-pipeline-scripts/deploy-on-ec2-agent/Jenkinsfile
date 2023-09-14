@@ -44,7 +44,7 @@ node("master"){
 
 node("$cloudName"){
     stage('Login to GHCR and Pull Image'){
-        imageName = "ghcr.io/calance-us/" + IMAGE_NAME + ":" + VERSION
+        imageName = IMAGE_REGISTRY + "/" + IMAGE_NAME.toLowerCase() + ":" + VERSION
 
         docker.withRegistry('https://ghcr.io','6e8e3064-2329-46fe-bfa3-b1c54f17e885'){
             docker.image(imageName).pull()
@@ -106,8 +106,8 @@ node("$cloudName"){
     }
         
     stage('Start container with new version'){
-        dockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION" 
-        maskedDockerCommand += " ghcr.io/calance-us/$IMAGE_NAME:$VERSION"
+        dockerCommand += " $IMAGE_REGISTRY/$IMAGE_NAME:$VERSION".toLowerCase() 
+        maskedDockerCommand += " $IMAGE_REGISTRY/$IMAGE_NAME:$VERSION".toLowerCase()
 
         if(COMMAND){
             
