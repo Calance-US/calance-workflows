@@ -45,7 +45,7 @@ on:
                 required: true
                 type: string
             mount_path:
-                description: "Mount Path"
+                description: "Mount Path (For multiple volume mounts, add a comma seperated string)"
                 required: false
                 type: string
         secrets:
