@@ -14,8 +14,13 @@ def maskedDockerCommand = dockerCommand
 if (MOUNT_PATH){
 
     // There are some applications which do not require mounting
-    dockerCommand += "-v $MOUNT_PATH "
-    maskedDockerCommand += "-v $MOUNT_PATH "
+    MOUNT_PATH = MOUNT_PATH.split(",")
+    
+    for(int i = 0; i < MOUNT_PATH.size(); i++)
+    {
+        dockerCommand += "-v " + MOUNT_PATH[i] + " "
+        maskedDockerCommand += "-v " + MOUNT_PATH[i] + " "
+    }
 }
 
 if (PORT){
