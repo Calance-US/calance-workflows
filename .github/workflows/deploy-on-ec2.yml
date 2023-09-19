@@ -79,7 +79,7 @@ jobs:
             job-params: |
                 {
                     "IMAGE_NAME" : "${{ inputs.image_name }}",
-                    "IMAGE_REGISTRY": "${{ inputs.image_registry }}"
+                    "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
                     "VERSION": "${{ inputs.version }}",
                     "COMMAND": "${{ inputs.command }}",
                     "SERVICE_NAME": "${{ inputs.service_name }}",
