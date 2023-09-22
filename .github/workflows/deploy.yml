@@ -17,6 +17,10 @@ on:
         required: false
         type: string
         default: "${{ github.event.repository.name }}"
+      service_name:
+        description: Application service name
+        required: false
+        type: string
       cluster_environment:
         description: Cluster environment to deploy your image
         required: true
