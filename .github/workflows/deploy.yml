@@ -21,6 +21,7 @@ on:
         description: Application service name
         required: false
         type: string
+        default: "${{ github.event.repository.name }}"
       cluster_environment:
         description: Cluster environment to deploy your image
         required: true
@@ -67,7 +68,7 @@ jobs:
           job-path: job/kubernetes-deploy-on-nutanix
           job-params: |-
             {
-              "SERVICE_NAME" : "${{ inputs.repository_name }}", 
+              "SERVICE_NAME" : "${{ inputs.service_name }}", 
               "RELEASE_NAME" : "${{ inputs.release_name }}", 
               "IMAGE_NAME" : "${{ inputs.image_name }}", 
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}", 
