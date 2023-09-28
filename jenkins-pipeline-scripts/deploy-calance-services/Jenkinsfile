@@ -72,7 +72,7 @@ node("$cloudName") {
 
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: '*/main']],
+                branches: [[name: '*/1474-setup-new-service-on-moneyquiz']],
                 extensions: [],
                 userRemoteConfigs: [[
                     credentialsId: '6e8e3064-2329-46fe-bfa3-b1c54f17e885',
