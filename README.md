@@ -1,6 +1,8 @@
 # :black_nib: reusable workflow
 
-*This repository is used to build a docker image, push it repository and deploy to kubernetes cluster using jenkins job.*
+*This repository is used to build a docker image, push it repository and deploy to kubernetes cluster using jenkins job. Go through the flowchart to gain a comprehensive understanding of the complete workflow.*
+
+![CI/CD_workflow](images/CI_CD_workflow_diagram.png)
 
 ## :loop: Workflow
 
