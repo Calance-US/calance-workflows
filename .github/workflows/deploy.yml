@@ -45,6 +45,16 @@ on:
         description: Name of Image Registry
         required: true
         type: string
+      jenkins_job_name:
+        description: Name of Jenkins Job Name
+          For deployment to Nutanix & Atcost Cluster => kubernetes-deploy-on-nutanix
+          For deployment to Finca Cluster => Finca Deployment
+        required: true
+        type: string
+      helm_values_repository:
+        description: Name of repo that has helm values files
+        required: true
+        type: string
     secrets:
       JENKINS_URL:
         required: true
@@ -65,7 +75,7 @@ jobs:
           jenkins-url: ${{ secrets.JENKINS_URL }}
           jenkins-token: ${{ secrets.JENKINS_TOKEN }}
           user: ${{ secrets.JENKINS_USER }}
-          job-path: job/kubernetes-deploy-on-nutanix
+          job-path: job/${{ inputs.jenkins_job_name }}
           job-params: |-
             {
               "SERVICE_NAME" : "${{ inputs.service_name }}", 
@@ -74,5 +84,6 @@ jobs:
               "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}", 
               "VERSION": "${{ inputs.version }}", 
               "COMMIT_ID": "${{ inputs.commit_id }}",
-              "IMAGE_REGISTRY": "${{ inputs.image_registry }}"
+              "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+              "HELM_VALUES_REPOSITORY": "${{ inputs.helm_values_repository }}"
             }
