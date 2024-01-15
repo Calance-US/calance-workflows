@@ -51,6 +51,11 @@ on:
           For deployment to Finca Cluster => Finca Deployment
         required: true
         type: string
+      release_tag:
+        description: Release Tag of current deployment
+          If you are using deploy.yml@v1.0.8, then release_tag => v1.0.8
+        required: true
+        type: string
       helm_values_repository:
         description: Name of repo that has helm values files
         required: true
@@ -85,5 +90,6 @@ jobs:
               "VERSION": "${{ inputs.version }}", 
               "COMMIT_ID": "${{ inputs.commit_id }}",
               "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+              "RELEASE_TAG": "${{ inputs.release_tag }}",
               "HELM_VALUES_REPOSITORY": "${{ inputs.helm_values_repository }}"
             }
