@@ -11,6 +11,10 @@ on:
                 description: "Image Registry where image is pushed"
                 required: true
                 type: string
+            credentials_id:
+                description: "Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store"
+                required: true
+                type: string
             service_name:
                 description: "Service/Repository name"
                 required: false
@@ -53,16 +57,24 @@ on:
                 required: false
                 type: boolean
             jenkins_job_name:
-                description: Name of Jenkins Job Name
+                description: "Name of Jenkins Job Name
                     For deployment of Protocol Scoring Applications => Protocol Scoring Deployment
-                    For deployment of Calance Applications => EC2-Deployment-Dashboard
+                    For deployment of Calance Applications => EC2-Deployment-Dashboard"
                 required: true
                 type: string
             release_tag:
-                description: Release Tag of current deployment
-                    If you are using deploy-on-ec2.yml@v1.0.8, then release_tag => v1.0.8
+                description: "Release Tag of current deployment
+                    If you are using deploy-on-ec2.yml@v1.0.8, then release_tag => v1.0.8"
                 required: true
-                type: string    
+                type: string
+            log_driver:
+                description: "Logging Driver of Container" 
+                required: false
+                type: string
+            log_driver_options:
+                description: "Log Driver Options (For multiple log driver options, add a comma seperated string)" 
+                required: false
+                type: string   
         secrets:
             JENKINS_URL:
                 required: true
@@ -95,6 +107,7 @@ jobs:
                 {
                     "IMAGE_NAME" : "${{ inputs.image_name }}",
                     "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+                    "CREDENTIALS_ID": "${{ inputs.credentials_id }}",
                     "VERSION": "${{ inputs.version }}",
                     "COMMAND": "${{ inputs.command }}",
                     "SERVICE_NAME": "${{ inputs.service_name }}",
@@ -106,6 +119,8 @@ jobs:
                     "MOUNT_PATH": "${{ inputs.mount_path }}",
                     "ENABLE_GPU": "${{ inputs.enable_gpu }}",
                     "RELEASE_TAG": "${{ inputs.release_tag }}",
+                    "LOG_DRIVER": "${{ inputs.log_driver }}",
+                    "LOG_DRIVER_OPTIONS": "${{ inputs.log_driver_options }}",
                     "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
                     "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
                 }
