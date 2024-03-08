@@ -62,9 +62,9 @@ on:
                     For deployment of Calance Applications => EC2-Deployment-Dashboard"
                 required: true
                 type: string
-            release_tag:
-                description: "Release Tag of current deployment
-                    If you are using deploy-on-ec2.yml@v1.0.8, then release_tag => v1.0.8"
+            workflows_release:
+                description: "Workflows Release Version of current deployment
+                    If you are using deploy-on-ec2.yml@v1.0.8, then workflows_release => v1.0.8"
                 required: true
                 type: string
             log_driver:
@@ -118,7 +118,7 @@ jobs:
                     "DOCKER_NETWORK": "${{ inputs.docker_network }}",
                     "MOUNT_PATH": "${{ inputs.mount_path }}",
                     "ENABLE_GPU": "${{ inputs.enable_gpu }}",
-                    "RELEASE_TAG": "${{ inputs.release_tag }}",
+                    "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
                     "LOG_DRIVER": "${{ inputs.log_driver }}",
                     "LOG_DRIVER_OPTIONS": "${{ inputs.log_driver_options }}",
                     "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
