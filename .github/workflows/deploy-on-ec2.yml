@@ -75,6 +75,10 @@ on:
                 description: "Log Driver Options (For multiple log driver options, add a comma seperated string)" 
                 required: false
                 type: string   
+            codeowners_email_ids:
+                description: Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma)
+                required: true
+                type: string
         secrets:
             JENKINS_URL:
                 required: true
@@ -91,11 +95,39 @@ on:
             AWS_SECRET_ACCESS_KEY:
                 required: true
                 description: "AWS Secret Key for the User"
+            SMTP_PASSWORD:
+                required: true
+                description: SMTP Server Password
                 
 jobs:
     trigger-jenkins-job:
         runs-on: ubuntu-latest
         steps:
+        - name: Notify about beginning of deployment
+          uses: dawidd6/action-send-mail@v3
+          with:
+            server_address: smtp.office365.com
+            server_port: 587
+            username: noreply@itrnetwork.com
+            password: ${{ secrets.SMTP_PASSWORD }}
+            subject: Deployment Notification of ${{ inputs.release_name }}:${{ inputs.version }}
+            to: ${{ inputs.codeowners_email_ids }}
+            from: DevOps Team
+            cc: nkashyap@calance.com, nmathur@calance.com
+            body: |
+                Dear CodeOwner/s,
+                
+                We are pleased to inform you that a deployment process for ${{ inputs.release_name }} is about to commence.
+
+                Deployment Details:
+
+                    Application: ${{ inputs.release_name }}
+                    Version: ${{ inputs.version }}
+                    Environment: ${{ inputs.cluster_environment }}
+                
+                Best Regards,
+                DevOps Team 
+
         - name: Trigger Jenkins Job
           uses: Calance-US/build-jenkins-job@main
           with:
