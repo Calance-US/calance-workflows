@@ -125,3 +125,31 @@ jobs:
               "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
               "HELM_VALUES_REPOSITORY": "${{ inputs.helm_values_repository }}"
             }
+
+      - name: Notify when deployment fails
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          username: noreply@itrnetwork.com
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Deployment Failure Alert-${{ inputs.release_name }}:${{ inputs.version }}-CodeOwners Attention Required
+          to: ${{ inputs.codeowners_email_ids }}
+          from: DevOps Team
+          cc: nkashyap@calance.com, nmathur@calance.com
+          body: |
+            Dear CodeOwner/s,
+            
+            We regret to inform you that the deployment process for ${{ inputs.release_name }}:${{ inputs.version }} has encountered an unexpected issue and has failed.
+
+            Deployment Details:
+
+              Application: ${{ inputs.release_name }}
+              Version: ${{ inputs.version }}
+              Environment: ${{ inputs.cluster_environment }}
+
+            We kindly request your prompt attention to address the deployment failure. To streamline communication and expedite the resolution process, please connect directly with us.
+            
+            Best Regards,
+              DevOps Team   
