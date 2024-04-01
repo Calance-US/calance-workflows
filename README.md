@@ -1,7 +1,13 @@
-# *Reusable Workflows Repository:* Streamlining CI/CD Processes
+# Reusable Workflows Repository: Streamlining CI/CD Processes
 # :black_nib: Introduction
 
-*This repository houses reusable workflows for CI/CD pipelines. Below, you'll find detailed information on how to use these workflows effectively.*
+**Welcome to the Reusable Workflows repository!** 
+
+This repository serves as a centralized hub for all reusable workflows essential for CI/CD processes. Whether you're building Docker images, deploying applications to Kubernetes Cluster, or orchestrating deployments on AWS EC2 instances, you'll find the necessary workflows and guidelines here to streamline your development pipeline.
+
+Explore the sections below to understand the workflows available, their requirements, and how to effectively utilize them in your projects.
+
+Let's dive in and empower your development journey with our reusable workflows!
 
 # :earth_asia: Content
 - [Workflows Mechanism](#workflows-mechanism)
@@ -17,11 +23,11 @@
 ## :baby: Requirements and Dependencies
 
 * Jenkins
-* Node/Cloud configured on Jenkins (For configuring the node/cloud on Jenkins, check [here](www.google.com))
+* Node/Cloud configured on Jenkins (For configuring the node/cloud on Jenkins, check [here](https://docs.calance.work/en/calance/devops/Jenkins-Agent-As-Service-On-Node))
 
 ## :cyclone: Required Environment Variables
 
-*For applications getting deployed on Kubernetes Clusters:*
+**For applications getting deployed on Kubernetes Clusters:**
 
 | Variable | Description |
 | --- | --- |
@@ -31,7 +37,7 @@
 | SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines | 
 
 
-*For applications getting deployed on AWS EC2 Instances:*
+**For applications getting deployed on AWS EC2 Instances:**
 
 | Variable | Description |
 | --- | --- |
@@ -44,7 +50,7 @@
 
 ## :eyes: Parameters
 
-*For applications getting deployed on Kubernetes Clusters:*
+**For applications getting deployed on Kubernetes Clusters:**
 
 | Parameter | Description | Required | Default Value |
 | --- | --- | --- | --- |
@@ -62,7 +68,7 @@ jenkins_job_name | Name of Jenkins job name | True | - |
 | helm_values_repository | Name of repository that has helm values files | True | - |
 | codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma) | True | - |
   
-*For applications getting deployed on AWS EC2 Instances:*
+**For applications getting deployed on AWS EC2 Instances:**
 
 | Parameter | Description | Required | Default Value |
 | --- | --- | --- | --- |
