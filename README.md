@@ -188,11 +188,9 @@ jobs:
   ci-cd:
     uses: Calance-US/calance-workflows/.github/workflows/build.yml@v2.0.0
     with:
-      image_name: Calance-US/protocol-scoring-nlp-ml
+      image_name: my-application
       image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
       image_registry: ${{ vars.IMAGE_REGISTRY }}
-      docker_context_path: .
-      dockerfile_path: ./Dockerfile
     secrets:
       IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
 
@@ -224,15 +222,13 @@ jobs:
 
 ## :information_desk_person: Contributors
 
-Want to reach out to the folks who have tirelessly worked on this project, please reach out to the following folks.
-
-*The entire purpose of the workflow is to build jenkins job from GitHub action, for this we have used GoldenspearLLC/build-jenkins-job which is created by [GoldenSpear](https://github.com/GoldenspearLLC/build-jenkins-job)*
+Want to reach out to the folks who have tirelessly worked on this project, please reach out to the following folks:
 
 **Project Manager/s:**
 
 - [Arpit Goyal](https://github.com/agoyalcalance)
+- [Nitin Kumar Kashyap](https://github.com/Nkashyap-calance)
 
 **Developer/s:**
 
-- [Prem Pratap Singh](https://github.com/ppsinghcalance)
 - [Nilesh Mathur](https://github.com/nmathur478)
