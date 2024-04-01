@@ -11,13 +11,13 @@ Explore the sections below to understand the workflows available, their requirem
 Let's dive in and empower your development journey with our reusable workflows!
 
 # :earth_asia: Content
-- [Workflows Mechanism](#workflows-mechanism)
-- [Requirements and Dependencies](#requirements-and-dependencies)
-- [Environment Variables](#environment-variables)
-- [Parameters](#parameters)
-- [Outputs](#outputs)
-- [Examples](#examples)
-- [Contributor/s](#contributors)
+- [Workflows Mechanism]()
+- [Requirements and Dependencies]()
+- [Environment Variables]()
+- [Parameters]()
+- [Outputs]()
+- [Examples]()
+- [Contributor/s]()
 
 ## :runner: Workflows Mechanism
 ![CI/CD_workflow](images/CI_CD_workflow_diagram.png)
