@@ -14,6 +14,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 - [Requirements and Dependencies](#requirements-and-dependencies)
 - [Environment Variables](#environment-variables)
 - [Parameters](#parameters)
+- [Outputs](#outputs)
 - [Examples](#examples)
 - [Contributor/s](#contributors)
 
@@ -22,8 +23,8 @@ Let's dive in and empower your development journey with our reusable workflows!
 
 ## :baby: Requirements and Dependencies
 
-* Jenkins
-* Node/Cloud configured on Jenkins (For configuring the node/cloud on Jenkins, check [here](https://docs.calance.work/en/calance/devops/Jenkins-Agent-As-Service-On-Node))
+* `Jenkins`
+* `Node/Cloud configured on Jenkins` (For configuring the node/cloud on Jenkins, check [here](https://docs.calance.work/en/calance/devops/Jenkins-Agent-As-Service-On-Node))
 
 ## :cyclone: Required Environment Variables
 
@@ -54,7 +55,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 | AWS_ACCESS_KEY_ID | AWS Access Key for the User for accessing the instance | 
 | AWS_SECRET_ACCESS_KEY  | AWS Secret Key for the User for accessing the instance |
 
-## :eyes: Parameters
+## :inbox_tray: Parameters
 
 **For building the docker image of the applications and pushing it to the Image Registry:**
 
@@ -111,7 +112,116 @@ jenkins_job_name | Name of Jenkins job name | True | - |
 | log_driver | Logging Driver of Container | False | - |
 | log_driver_options | Log Driver Options (For multiple log driver options, add a comma seperated string) | False | - |
 
+## :outbox_tray: Outputs
+
+Upon successful execution of the workflow to build the Docker image, the following environment variables are returned:
+
+* `version:` Version of the application
+* `cluster_environment`: Environment to deploy the image
+* `image_name`: Name of the docker image
+* `commit_id`: Latest commit sha of the build
+
+You can utilize these output variables in subsequent steps or workflows for further processing or deployment.
+
 ## :mag_right: Examples
+
+The workflow for building the application's docker image and deploying it to **Kubernetes Cluster** will look like this:
+
+```yaml
+name: CI/CD Pipeline for applications getting deployed on Kubernetes Cluster
+on:
+  push:
+    tags:
+    - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+    - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  build-and-push-dockerimages:
+    strategy:
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
+    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v2.0.0
+    with:
+      image_name: my-application
+      image_registry: ${{ vars.IMAGE_REGISTRY }}
+      image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
+    secrets:
+      IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+
+  deploy-to-kubernetes:
+    needs: build-and-push-dockerimages
+    strategy:
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
+    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@v2.0.0
+    with:
+      repository_name: ${{ github.event.repository.name }}
+      version: ${{ needs.build-and-push-dockerimages.outputs.version }}
+      release_name: my-application-release-name
+      image_name: my-application
+      cluster_environment: ${{ needs.build-and-push-dockerimages.outputs.cluster_environment }}
+      commit_id: ${{ needs.build-and-push-dockerimages.outputs.commit_id }}
+      image_registry: ${{ vars.IMAGE_REGISTRY }}
+      jenkins_job_name: job-name
+      release_tag: v2.0.0
+      helm_values_repository: helm-values-repo
+    secrets:
+      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+```
+The workflow for building the application's docker image and deploying it to **AWS EC2 instances** will look like this:
+
+```yaml
+name: CI/CD Pipeline for applications getting deployed on AWS EC2 Instances
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  ci-cd:
+    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v2.0.0
+    with:
+      image_name: Calance-US/protocol-scoring-nlp-ml
+      image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
+      image_registry: ${{ vars.IMAGE_REGISTRY }}
+      docker_context_path: .
+      dockerfile_path: ./Dockerfile
+    secrets:
+      IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+
+  deploy-to-kubernetes:
+    needs: ci-cd
+    strategy:
+    uses: Calance-US/calance-workflows/.github/workflows/deploy-on-ec2.yml@v2.0.0
+    with:
+      image_name: my-application
+      image_registry: ${{ vars.IMAGE_REGISTRY }}
+      credentials_id: ${{ vars.CREDENTIALS_ID }}
+      release_name: my-application-name
+      version: ${{ needs.ci-cd.outputs.version }}
+      cluster_environment: ${{ needs.ci-cd.outputs.cluster_environment }}
+      port: ${{ vars.PORT }}
+      command: ${{ vars.COMMAND }}
+      aws_region: ${{ vars.AWS_REGION }}
+      docker_network: otsuka
+      mount_path: /home/ubuntu/:/app/
+      jenkins_job_name: job-name
+      release_tag: v2.0.0
+    secrets:
+      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
 ## :information_desk_person: Contributors
 
 Want to reach out to the folks who have tirelessly worked on this project, please reach out to the following folks.
