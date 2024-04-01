@@ -1,5 +1,5 @@
 # Reusable Workflows Repository: Streamlining CI/CD Processes
-# :black_nib: Introduction
+## :black_nib: Introduction
 
 **Welcome to the Reusable Workflows repository!**
 
@@ -13,7 +13,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 ## :earth_asia: Content
 - [Workflows Mechanism](#runner-workflows-mechanism)
 - [Requirements and Dependencies](#baby-requirements-and-dependencies)
-- [Environment Variables](#cyclone-required-environment-variables)
+- [Required Environment Variables](#cyclone-required-environment-variables)
 - [Parameters](#inbox_tray-parameters)
 - [Outputs](#outbox_tray-outputs)
 - [Examples](#mag_right-examples)
