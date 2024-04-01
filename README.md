@@ -1,7 +1,8 @@
 # Reusable Workflows Repository: Streamlining CI/CD Processes
 # :black_nib: Introduction
 
-**Welcome to the Reusable Workflows repository!** 
+**Welcome to the Reusable Workflows repository!**
+
 
 This repository serves as a centralized hub for all reusable workflows essential for CI/CD processes. Whether you're building Docker images, deploying applications to Kubernetes Cluster, or orchestrating deployments on AWS EC2 instances, you'll find the necessary workflows and guidelines here to streamline your development pipeline.
 
@@ -40,7 +41,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 | --- | --- |
 | JENKINS_URL   |  URL of Jenkins Server |
 | JENKINS_USER   |  Authorized User for accessing Jenkins Server   |
-| JENKINS_TOKEN   | Token for accessing Jenkins Server   |
+| JENKINS_TOKEN   | Token for accessing Jenkins Server   |                 
 | SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines | 
 
 
@@ -87,7 +88,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 jenkins_job_name | Name of Jenkins job name | True | - |
 | workflows_release | Workflows Release Version of current deployment | True | - |
 | helm_values_repository | Name of repository that has helm values files | True | - |
-| codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma) | True | - |
+| codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email IDs with comma) | True | - |
   
 **For applications getting deployed on AWS EC2 Instances:**
 
@@ -101,7 +102,7 @@ jenkins_job_name | Name of Jenkins job name | True | - |
 | image_registry | Name of image registry | True | - |
 jenkins_job_name | Name of Jenkins job name | True | - |
 | workflows_release | Workflows Release Version of current deployment | True | - |
-| codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma) | True | - |
+| codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email IDs with comma) | True | - |
 | credentials_id | Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store | True | - |
 | command | Command for starting the application | False | - |
 | port | Port at which service will be running | False | - |
