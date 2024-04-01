@@ -10,7 +10,7 @@ Explore the sections below to understand the workflows available, their requirem
 
 Let's dive in and empower your development journey with our reusable workflows!
 
-# :earth_asia: Content
+## :earth_asia: Content
 - [Workflows Mechanism](#runner-workflows-mechanism)
 - [Requirements and Dependencies](#baby-requirements-and-dependencies)
 - [Environment Variables](#cyclone-required-environment-variables)
@@ -42,7 +42,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 | JENKINS_URL   |  URL of Jenkins Server |
 | JENKINS_USER   |  Authorized User for accessing Jenkins Server   |
 | JENKINS_TOKEN   | Token for accessing Jenkins Server   |
-| SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines | 
+| SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines |
 
 
 **For applications getting deployed on AWS EC2 Instances:**
@@ -53,7 +53,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 | JENKINS_USER   |  Authorized User for accessing Jenkins Server   |
 | JENKINS_TOKEN   | Token for accessing Jenkins Server   |
 | SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines |
-| AWS_ACCESS_KEY_ID | AWS Access Key for the User for accessing the instance | 
+| AWS_ACCESS_KEY_ID | AWS Access Key for the User for accessing the instance |
 | AWS_SECRET_ACCESS_KEY  | AWS Secret Key for the User for accessing the instance |
 
 ## :inbox_tray: Parameters
