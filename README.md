@@ -11,13 +11,13 @@ Explore the sections below to understand the workflows available, their requirem
 Let's dive in and empower your development journey with our reusable workflows!
 
 # :earth_asia: Content
-- [Workflows Mechanism]()
-- [Requirements and Dependencies]()
-- [Environment Variables]()
-- [Parameters]()
-- [Outputs]()
-- [Examples]()
-- [Contributor/s]()
+- [Workflows Mechanism](#runner-workflows-mechanism)
+- [Requirements and Dependencies](#baby-requirements-and-dependencies)
+- [Environment Variables](#cyclone-environment-variables)
+- [Parameters](#inbox_tay-parameters)
+- [Outputs](#outbox_outputs)
+- [Examples](#mag_right-examples)
+- [Contributor/s](#information_desk_person-contributors)
 
 ## :runner: Workflows Mechanism
 ![CI/CD_workflow](images/CI_CD_workflow_diagram.png)
@@ -41,7 +41,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 | --- | --- |
 | JENKINS_URL   |  URL of Jenkins Server |
 | JENKINS_USER   |  Authorized User for accessing Jenkins Server   |
-| JENKINS_TOKEN   | Token for accessing Jenkins Server   |                 
+| JENKINS_TOKEN   | Token for accessing Jenkins Server   |
 | SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines | 
 
 
