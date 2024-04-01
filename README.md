@@ -27,7 +27,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 
 ## :cyclone: Required Environment Variables
 
-**For building the docker image of the applications and pushing it to GHCR:**
+**For building the docker image of the applications and pushing it to the Image Registry:**
 
 | Variable | Description |
 | --- | --- |
