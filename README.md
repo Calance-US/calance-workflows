@@ -13,9 +13,9 @@ Let's dive in and empower your development journey with our reusable workflows!
 # :earth_asia: Content
 - [Workflows Mechanism](#runner-workflows-mechanism)
 - [Requirements and Dependencies](#baby-requirements-and-dependencies)
-- [Environment Variables](#cyclone-environment-variables)
-- [Parameters](#inbox_tay-parameters)
-- [Outputs](#outbox_outputs)
+- [Environment Variables](#cyclone-required-environment-variables)
+- [Parameters](#inbox_tray-parameters)
+- [Outputs](#outbox_tray-outputs)
 - [Examples](#mag_right-examples)
 - [Contributor/s](#information_desk_person-contributors)
 
