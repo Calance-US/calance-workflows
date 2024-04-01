@@ -27,6 +27,12 @@ Let's dive in and empower your development journey with our reusable workflows!
 
 ## :cyclone: Required Environment Variables
 
+**For building the docker image of the applications and pushing it to GHCR:**
+
+| Variable | Description |
+| --- | --- |
+| IMAGE_REGISTRY_PASSWORD   |  Password for accessing Image Registry |
+
 **For applications getting deployed on Kubernetes Clusters:**
 
 | Variable | Description |
@@ -49,6 +55,20 @@ Let's dive in and empower your development journey with our reusable workflows!
 | AWS_SECRET_ACCESS_KEY  | AWS Secret Key for the User for accessing the instance |
 
 ## :eyes: Parameters
+
+**For building the docker image of the applications and pushing it to the Image Registry:**
+
+| Parameter | Description | Required | Default Value |
+| --- | --- | --- | --- |
+| docker_context_path | Docker Context Path | False | . |
+| dockerfile_path | Path of Dockerfile | False | ./Dockerfile |
+| image_name | Name of docker image | True | . |
+| dot_env_file_testing | Build time environment variables as multiline string for testing environment | False | "" |
+| dot_env_file_production | Build time environment variables as multiline string for production environment | False | "" |
+| dot_env_file_dev | Build time environment variables as multiline string for dev environment | False | "" |
+| branch_name | The branch we are going to build. If kept empty,**git ref**, that triggered the workflow is used | False | "" |
+| image_registry | Name of image registry | True | - |
+| image_registry_username | Username of image registry | True | - |
 
 **For applications getting deployed on Kubernetes Clusters:**
 
