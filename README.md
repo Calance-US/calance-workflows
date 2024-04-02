@@ -18,6 +18,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 - [Outputs](#outbox_tray-outputs)
 - [Examples](#mag_right-examples)
 - [Contributor/s](#information_desk_person-contributors)
+- [Acknowledgements](#raised_hands-acknowledgements)
 
 ## :runner: Workflows Mechanism
 ![CI/CD_workflow](images/CI_CD_workflow_diagram.png)
@@ -233,3 +234,9 @@ Want to reach out to the folks who have tirelessly worked on this project, pleas
 **Developer/s:**
 
 - [Nilesh Mathur](https://github.com/nmathur478)
+
+## :raised_hands: Acknowledgements
+
+We extend our heartfelt gratitude to the creators of the custom action, [GoldenSpear](https://github.com/GoldenspearLLC/build-jenkins-job) that facilitates seamless integration for triggering Jenkins jobs from GitHub Actions. 
+
+Their innovative solution significantly enhances our CI/CD pipeline, streamlining the deployment process and boosting overall productivity.
