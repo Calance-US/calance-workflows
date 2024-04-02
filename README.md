@@ -237,6 +237,6 @@ Want to reach out to the folks who have tirelessly worked on this project, pleas
 
 ## :raised_hands: Acknowledgements
 
-We extend our heartfelt gratitude to the creators of the custom action, [GoldenSpear](https://github.com/GoldenspearLLC/build-jenkins-job)that facilitates seamless integration for triggering Jenkins jobs from GitHub Actions. 
+We extend our heartfelt gratitude to the creators of the custom action, [GoldenSpear](https://github.com/GoldenspearLLC/build-jenkins-job) that facilitates seamless integration for triggering Jenkins jobs from GitHub Actions.
 
 Their innovative solution significantly enhances our CI/CD pipeline, streamlining the deployment process and boosting overall productivity.
