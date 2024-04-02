@@ -17,7 +17,7 @@ Let's dive in and empower your development journey with our reusable workflows!
 - [Parameters](#inbox_tray-parameters)
 - [Outputs](#outbox_tray-outputs)
 - [Examples](#mag_right-examples)
-- [Contributor/s](#information_desk_person-contributors)
+- [Contributors](#information_desk_person-contributors)
 - [Acknowledgements](#raised_hands-acknowledgements)
 
 ## :runner: Workflows Mechanism
