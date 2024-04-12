@@ -144,7 +144,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v2.0.0
+    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v3.0.0
     with:
       image_name: my-application
       image_registry: ${{ vars.IMAGE_REGISTRY }}
@@ -159,7 +159,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@v2.0.0
+    uses: Calance-US/calance-workflows/.github/workflows/deploy.yml@v3.0.0
     with:
       repository_name: ${{ github.event.repository.name }}
       version: ${{ needs.build-and-push-dockerimages.outputs.version }}
@@ -169,7 +169,7 @@ jobs:
       commit_id: ${{ needs.build-and-push-dockerimages.outputs.commit_id }}
       image_registry: ${{ vars.IMAGE_REGISTRY }}
       jenkins_job_name: job-name
-      release_tag: v2.0.0
+      workflows_release: v3.0.0
       helm_values_repository: helm-values-repo
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
@@ -188,7 +188,7 @@ on:
 
 jobs:
   ci-cd:
-    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v2.0.0
+    uses: Calance-US/calance-workflows/.github/workflows/build.yml@v3.0.0
     with:
       image_name: my-application
       image_registry_username: ${{ vars.IMAGE_REGISTRY_USERNAME }}
@@ -199,7 +199,7 @@ jobs:
   deploy-to-kubernetes:
     needs: ci-cd
     strategy:
-    uses: Calance-US/calance-workflows/.github/workflows/deploy-on-ec2.yml@v2.0.0
+    uses: Calance-US/calance-workflows/.github/workflows/deploy-on-ec2.yml@v3.0.0
     with:
       image_name: my-application
       image_registry: ${{ vars.IMAGE_REGISTRY }}
@@ -213,7 +213,7 @@ jobs:
       docker_network: otsuka
       mount_path: /home/ubuntu/:/app/
       jenkins_job_name: job-name
-      release_tag: v2.0.0
+      workflows_release: v3.0.0
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
