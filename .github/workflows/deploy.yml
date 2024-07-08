@@ -64,6 +64,11 @@ on:
         description: Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma)
         required: true
         type: string
+      devops_stakeholders_email_ids:
+        description: Email-ID of DevOps Stakeholders (If multiple stakeholders, seperate email ids with comma)
+        required: true
+        type: string
+
     secrets:
       JENKINS_URL:
         required: true
@@ -91,7 +96,7 @@ jobs:
           subject: Deployment Notification of ${{ inputs.release_name }}:${{ inputs.version }}
           to: ${{ inputs.codeowners_email_ids }}
           from: DevOps Team
-          cc: nkashyap@calance.com, nmathur@calance.com
+          cc: ${{ inputs.devops_stakeholders_email_ids }}
           body: |
             Dear CodeOwner/s,
             
@@ -137,7 +142,7 @@ jobs:
           subject: Deployment Failure Alert-${{ inputs.release_name }}:${{ inputs.version }}-CodeOwners Attention Required
           to: ${{ inputs.codeowners_email_ids }}
           from: DevOps Team
-          cc: nkashyap@calance.com, nmathur@calance.com
+          cc: ${{ inputs.devops_stakeholders_email_ids }}
           body: |
             Dear CodeOwner/s,
             
