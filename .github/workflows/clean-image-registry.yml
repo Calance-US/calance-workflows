@@ -68,7 +68,7 @@ jobs:
               exit 1
           fi
       - name: List packages with tags before deletion for prod
-        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -137,7 +137,7 @@ jobs:
               echo "Provided value of testing_keep_at_least cannot be less than 2"
               exit 1
           fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for testing
         id: list-packages-with-tags-before-deletion
         with:
@@ -156,7 +156,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
@@ -207,7 +207,7 @@ jobs:
               echo "Provided value of non_semver_keep_at_least cannot be less than 2"
               exit 1
           fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for non-semver
         id: list-packages-with-tags-before-deletion
         with:
@@ -227,7 +227,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
@@ -272,7 +272,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: clean-ghcr-non-semver
     steps:
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for untagged
         id: list-packages-with-tags-before-deletion
         with:
@@ -290,7 +290,7 @@ jobs:
           untagged-only: true
           image-names: ${{ inputs.image_name }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.0
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for untagged
         id: list-packages-with-tags-after-deletion
         with:
