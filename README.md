@@ -172,11 +172,13 @@ jobs:
       jenkins_job_name: job-name
       workflows_release: v3.0.0
       helm_values_repository: helm-values-repo
+      devops_stakeholders_email_ids: nkashyap@calance.com
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
 ```
+
 The workflow for building the application's docker image and deploying it to **AWS EC2 instances** will look like this:
 
 ```yaml
@@ -215,6 +217,7 @@ jobs:
       mount_path: /home/ubuntu/:/app/
       jenkins_job_name: job-name
       workflows_release: v3.0.0
+      devops_stakeholders_email_ids: nkashyap@calance.com
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
