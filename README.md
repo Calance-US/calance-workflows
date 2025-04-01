@@ -45,7 +45,6 @@ Let's dive in and empower your development journey with our reusable workflows!
 | JENKINS_TOKEN   | Token for accessing Jenkins Server   |
 | SMTP_PASSWORD   |    SMTP Server Password for Notifying about pipelines |
 
-
 **For applications getting deployed on AWS EC2 Instances:**
 
 | Variable | Description |
@@ -90,6 +89,7 @@ jenkins_job_name | Name of Jenkins job name | True | - |
 | workflows_release | Workflows Release Version of current deployment | True | - |
 | helm_values_repository | Name of repository that has helm values files | True | - |
 | codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email IDs with comma) | True | - |
+| devops_stakeholders_email_ids | Email-ID of DevOps Stakeholders (If multiple stakeholders, seperate email IDs with comma) | True | - |
   
 **For applications getting deployed on AWS EC2 Instances:**
 
@@ -104,6 +104,7 @@ jenkins_job_name | Name of Jenkins job name | True | - |
 jenkins_job_name | Name of Jenkins job name | True | - |
 | workflows_release | Workflows Release Version of current deployment | True | - |
 | codeowners_email_ids | Email-ID of CodeOwner/s (If multiple codeowners, seperate email IDs with comma) | True | - |
+| devops_stakeholders_email_ids | Email-ID of DevOps Stakeholders (If multiple stakeholders, seperate email IDs with comma) | True | - |
 | credentials_id | Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store | True | - |
 | command | Command for starting the application | False | - |
 | port | Port at which service will be running | False | - |
@@ -171,11 +172,13 @@ jobs:
       jenkins_job_name: job-name
       workflows_release: v3.0.0
       helm_values_repository: helm-values-repo
+      devops_stakeholders_email_ids: nkashyap@calance.com
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
       JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
 ```
+
 The workflow for building the application's docker image and deploying it to **AWS EC2 instances** will look like this:
 
 ```yaml
@@ -214,6 +217,7 @@ jobs:
       mount_path: /home/ubuntu/:/app/
       jenkins_job_name: job-name
       workflows_release: v3.0.0
+      devops_stakeholders_email_ids: nkashyap@calance.com
     secrets:
       JENKINS_URL: ${{ secrets.JENKINS_URL }}
       JENKINS_USER: ${{ secrets.JENKINS_USER }}
