@@ -16,11 +16,22 @@ on:
       commit_id:
         description: The commit SHA that triggered the workflow
         value: ${{ jobs.build-docker.outputs.commit_id }}
-    secrets:
-      IMAGE_REGISTRY_PASSWORD:
-        required: true
-        description: Secret for Image Registry
+    
     inputs:
+      image_registry:
+        description: Image Registry Name (GHCR or ECR) # ghcr.io
+        type: string
+        required: true
+      image_registry_username:
+        description: Username of Image Registry for logging
+        type: string
+        required: true
+      aws_region:
+        description: AWS region for ECR (required if using ECR)
+        type: string
+        required: false
+        default: 'us-east-1'
+
       docker_context_path:
         description: Docker context path
         required: false
@@ -36,6 +47,12 @@ on:
           name)
         required: true
         type: string
+      branch_name:
+        description: The branch we are going to build. If kept empty, the git ref
+          that triggered the workflow is used
+        type: string
+        default: ''
+
       dot_env_file_testing:
         description: Build time environment variables as multiline string for testing
           environment
@@ -54,19 +71,18 @@ on:
         required: false
         type: string
         default: ''
-      branch_name:
-        description: The branch we are going to build. If kept empty, the git ref
-          that triggered the workflow is used
-        type: string
-        default: ''
-      image_registry:
-        description: Image Registry Name
-        type: string
+
+    secrets:
+      IMAGE_REGISTRY_PASSWORD:
         required: true
-      image_registry_username:
-        description: Username of Image Registry for logging
-        type: string
+        description: Secret for Image Registry
+      AWS_ACCESS_KEY_ID:
         required: true
+        description: AWS Access Key ID
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+        description: AWS Secret Access Key
+
 jobs:
   build-docker:
     runs-on: ubuntu-latest
@@ -79,53 +95,117 @@ jobs:
       image_name: ${{ inputs.image_name }}
       commit_id: ${{ steps.version.outputs.commit_id }}
     steps:
-      - name: Checkout repository (clone the repo for use)
-        uses: actions/checkout@v3
+      # checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch_name || github.ref_name }}
-      - name: Log in to github Container registry where image is pushed and pulled
-          from
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+          ref: ${{ inputs.branch_name != '' && inputs.branch_name || github.ref_name }}
+          fetch-depth: 0
+
+      # ECR Login
+      - name: Configure AWS credentials
+        if: contains(inputs.image_registry, 'amazonaws.com')
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ${{ inputs.image_registry }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+      
+      - name: Login to Amazon ECR
+        if: contains(inputs.image_registry, 'amazonaws.com')
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # GHCR Login
+      - name: Log in to GitHub Container Registry
+        if: contains(inputs.image_registry, 'ghcr.io')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
           username: ${{ inputs.image_registry_username }}
           password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+
+      # Extract metadata (tags, labels) and set version info
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@v4
         with:
-          # image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-          # but it throws error while pulling image with this. it is building the image but not able to push in github container registry
-          # so, don't use secrets for this step
           images: |
             ${{ inputs.image_registry }}/${{ inputs.image_name }}
           tags: |
             ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
-      - name: Setting application version (comes from image tag/version) and commit_id
+
+      - name: Set version and commit information
         id: version
         run: |
-          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
-          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          VERSION="${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
+          COMMIT_ID="${{ github.sha }}"
+          
+          echo "build_version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "commit_id=${COMMIT_ID}" >> "$GITHUB_OUTPUT"
+          
+          echo "Version: ${VERSION}"
+          echo "Commit: ${COMMIT_ID}"
+
+      # Identify cluster environment and generate .env file
       - name: Identifying cluster in which application should be deployed
         id: cluster_environment
         uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
         with:
           docker_json_metadata: ${{ steps.meta.outputs.json }}
-      - name: Generate .env file
+
+      - name: Generate environment-specific .env file
         if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev != ''
         run: |
-          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
-          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
-          else
-            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
-          fi
-      - name: Build and push Docker image to github container registry
-        uses: docker/build-push-action@v3
+          ENV_DIR="${{ inputs.docker_context_path }}"
+          CLUSTER_ENV="${{ steps.cluster_environment.outputs.cluster_environment }}"
+          
+          rm -f "${ENV_DIR}/.env"
+          
+          case "${CLUSTER_ENV}" in
+            "testing")
+              echo "Generating .env for TESTING environment"
+              echo "${{ inputs.dot_env_file_testing }}" > "${ENV_DIR}/.env"
+              ;;
+            "dev")
+              echo "Generating .env for DEV environment"
+              echo "${{ inputs.dot_env_file_dev }}" > "${ENV_DIR}/.env"
+              ;;
+            "production"|*)
+              echo "Generating .env for PRODUCTION environment"
+              echo "${{ inputs.dot_env_file_production }}" > "${ENV_DIR}/.env"
+              ;;
+          esac
+
+      # Prepare build information
+      - name: Prepare build information
+        id: build_info
+        run: |
+          IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "image_uri=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Primary image URI: ${IMAGE_TAG}"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
           context: ${{ inputs.docker_context_path }}
           file: ${{ inputs.dockerfile_path }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Name**: ${{ inputs.image_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry**: ${{ inputs.image_registry }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.build_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ steps.cluster_environment.outputs.cluster_environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ steps.version.outputs.commit_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Primary Image URI**: ${{ steps.build_info.outputs.image_uri }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### All Tags Built:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
