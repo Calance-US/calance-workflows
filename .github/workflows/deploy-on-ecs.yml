@@ -156,7 +156,6 @@ jobs:
             fi
 
         - name: Configure AWS credentials (Access Keys fallback)
-          if: secrets.AWS_ROLE_ARN == ''
           uses: aws-actions/configure-aws-credentials@v4
           with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
