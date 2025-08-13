@@ -106,6 +106,15 @@ jobs:
           ref: ${{ inputs.branch_name != '' && inputs.branch_name || github.ref_name }}
           fetch-depth: 0
 
+      # Debug before Configure AWS credentials
+      - name: Debug AWS login inputs
+        if: contains(inputs.image_registry, 'amazonaws.com')
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
+          echo "AWS_SECRET_ACCESS_KEY length: ${#AWS_SECRET_ACCESS_KEY}"
+          echo "AWS_REGION=${{ inputs.aws_region }}"
+          echo "IMAGE_REGISTRY=${{ inputs.image_registry }}"
+
       # ECR Login
       - name: Configure AWS credentials
         if: contains(inputs.image_registry, 'amazonaws.com')
