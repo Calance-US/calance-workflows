@@ -23,7 +23,7 @@ on:
       image_registry_username:
         description: Username of Image Registry for logging
         type: string
-        required: true
+        required: false
 
       #AWS SPECIFIC
       aws_region:
@@ -36,7 +36,7 @@ on:
       image_registry:
         description: Image Registry Name (GHCR or ECR) # ghcr.io
         type: string
-        required: false
+        required: true
       docker_context_path:
         description: Docker context path
         required: false
@@ -78,13 +78,13 @@ on:
 
     secrets:
       IMAGE_REGISTRY_PASSWORD:
-        required: true
+        required: false
         description: Secret for Image Registry
       AWS_ACCESS_KEY_ID:
-        required: true
+        required: false
         description: AWS Access Key ID
       AWS_SECRET_ACCESS_KEY:
-        required: true
+        required: false
         description: AWS Secret Access Key
 
 jobs:
