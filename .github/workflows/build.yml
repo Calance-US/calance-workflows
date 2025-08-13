@@ -127,6 +127,24 @@ jobs:
         if: contains(inputs.image_registry, 'amazonaws.com')
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Ensure ECR repository exists
+        if: contains(inputs.image_registry, 'amazonaws.com')
+        run: |
+          echo "Checking if ECR repository '${{ inputs.image_name }}' exists in region '${{ inputs.aws_region }}'..."
+          if aws ecr describe-repositories \
+            --repository-names "${{ inputs.image_name }}" \
+            --region ${{ inputs.aws_region }} \
+            >/dev/null 2>&1; then
+          else
+            echo "Repository not found. Creating..."
+            aws ecr create-repository \
+              --repository-name "${{ inputs.image_name }}" \
+              --region ${{ inputs.aws_region }} \
+              --image-scanning-configuration scanOnPush=true \
+              --image-tag-mutability MUTABLE
+            echo "Repository created successfully 🎉"
+          fi
+
       # GHCR Login
       - name: Log in to GitHub Container Registry
         if: contains(inputs.image_registry, 'ghcr.io')
