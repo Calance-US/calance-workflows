@@ -36,7 +36,7 @@ on:
       image_registry:
         description: Image Registry Name (GHCR or ECR) # ghcr.io
         type: string
-        required: true
+        required: false
       docker_context_path:
         description: Docker context path
         required: false
