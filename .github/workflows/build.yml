@@ -134,7 +134,9 @@ jobs:
           if aws ecr describe-repositories \
             --repository-names "${{ inputs.image_name }}" \
             --region ${{ inputs.aws_region }} \
-            >/dev/null 2>&1; then
+            >/dev/null 2>&1
+          then
+            echo "Repository already exists ✅"
           else
             echo "Repository not found. Creating..."
             aws ecr create-repository \
@@ -144,6 +146,7 @@ jobs:
               --image-tag-mutability MUTABLE
             echo "Repository created successfully 🎉"
           fi
+
 
       # GHCR Login
       - name: Log in to GitHub Container Registry
