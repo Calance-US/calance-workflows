@@ -4,6 +4,10 @@ on:
     workflow_call:
         inputs:
             # Common inputs
+            credentials_id:
+                description: "Credentials ID for pulling image and deploy on ecs"
+                required: true
+                type: string
             image_name:
                 description: "Image name (Use it in this way:- Calance-US/repo-name)"
                 required: true
@@ -12,7 +16,7 @@ on:
                 description: "Service/Repository name"
                 required: false
                 type: string
-                default: "${{ github.event.repository.name }}"
+                default: "${{ github.event.repository.name }}"              
             release_name:
                 description: "Release Name"
                 required: true
@@ -155,7 +159,7 @@ jobs:
               exit 1
             fi
 
-        - name: Configure AWS credentials (Access Keys fallback)
+        - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

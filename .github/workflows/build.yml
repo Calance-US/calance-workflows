@@ -18,20 +18,25 @@ on:
         value: ${{ jobs.build-docker.outputs.commit_id }}
     
     inputs:
-      image_registry:
-        description: Image Registry Name (GHCR or ECR) # ghcr.io
-        type: string
-        required: true
+
+      # GHCR SPECIFIC
       image_registry_username:
         description: Username of Image Registry for logging
         type: string
         required: true
+
+      #AWS SPECIFIC
       aws_region:
         description: AWS region for ECR (required if using ECR)
         type: string
         required: false
-        default: 'us-east-1'
+        default: 'ap-south-1'
 
+      #COMMON
+      image_registry:
+        description: Image Registry Name (GHCR or ECR) # ghcr.io
+        type: string
+        required: true
       docker_context_path:
         description: Docker context path
         required: false
@@ -52,7 +57,6 @@ on:
           that triggered the workflow is used
         type: string
         default: ''
-
       dot_env_file_testing:
         description: Build time environment variables as multiline string for testing
           environment
@@ -110,7 +114,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.aws_region }}
-      
       - name: Login to Amazon ECR
         if: contains(inputs.image_registry, 'amazonaws.com')
         uses: aws-actions/amazon-ecr-login@v2
