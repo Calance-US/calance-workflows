@@ -146,8 +146,11 @@ jobs:
           # so, don't use secrets for this step
           images: |
             ${{ inputs.image_registry }}/${{ inputs.image_name }}
+          # tags: |
+          #   ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
           tags: |
-            ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+            type=raw,value=1.0.0
+
       - name: Setting application version (comes from image tag/version) and commit_id
         id: version
         run: |
