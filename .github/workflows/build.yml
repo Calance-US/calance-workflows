@@ -139,24 +139,20 @@ jobs:
       # Extract metadata (tags, labels) and set version info
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
+          # image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
+          # but it throws error while pulling image with this. it is building the image but not able to push in github container registry
+          # so, don't use secrets for this step
           images: |
             ${{ inputs.image_registry }}/${{ inputs.image_name }}
           tags: |
             ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
-
-      - name: Set version and commit information
+      - name: Setting application version (comes from image tag/version) and commit_id
         id: version
         run: |
-          VERSION="${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
-          COMMIT_ID="${{ github.sha }}"
-          
-          echo "build_version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "commit_id=${COMMIT_ID}" >> "$GITHUB_OUTPUT"
-          
-          echo "Version: ${VERSION}"
-          echo "Commit: ${COMMIT_ID}"
+          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       # Identify cluster environment and generate .env file
       - name: Identifying cluster in which application should be deployed
@@ -165,28 +161,16 @@ jobs:
         with:
           docker_json_metadata: ${{ steps.meta.outputs.json }}
 
-      - name: Generate environment-specific .env file
+      - name: Generate .env file
         if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev != ''
         run: |
-          ENV_DIR="${{ inputs.docker_context_path }}"
-          CLUSTER_ENV="${{ steps.cluster_environment.outputs.cluster_environment }}"
-          
-          rm -f "${ENV_DIR}/.env"
-          
-          case "${CLUSTER_ENV}" in
-            "testing")
-              echo "Generating .env for TESTING environment"
-              echo "${{ inputs.dot_env_file_testing }}" > "${ENV_DIR}/.env"
-              ;;
-            "dev")
-              echo "Generating .env for DEV environment"
-              echo "${{ inputs.dot_env_file_dev }}" > "${ENV_DIR}/.env"
-              ;;
-            "production"|*)
-              echo "Generating .env for PRODUCTION environment"
-              echo "${{ inputs.dot_env_file_production }}" > "${ENV_DIR}/.env"
-              ;;
-          esac
+          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
+          else
+            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
+          fi
 
       # Prepare build information
       - name: Prepare build information
