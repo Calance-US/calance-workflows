@@ -11,12 +11,7 @@ on:
             image_name:
                 description: "Image name (Use it in this way:- Calance-US/repo-name)"
                 required: true
-                type: string
-            service_name:
-                description: "Service/Repository name"
-                required: false
-                type: string
-                default: "${{ github.event.repository.name }}"              
+                type: string            
             release_name:
                 description: "Release Name"
                 required: true
@@ -42,7 +37,7 @@ on:
                 required: true
                 type: string
             workflows_release:
-                description: "Workflows Release Version of current deployment"
+                description: "Workflows Release Version of desired workflow"
                 required: true
                 type: string
             
@@ -55,51 +50,38 @@ on:
                 description: "ECS service name (ECS only)"
                 required: false
                 type: string
-            ecs_task_definition_path:
-                description: "Path to ECS task definition file (ECS only)"
+            ecs_task_definition_name:
+                description: "name of the task defination"
                 required: false
                 type: string
                 default: ".aws/task-definition.json"
-            container_name:
-                description: "Container name in ECS task definition (ECS only)"
-                required: false
-                type: string
             ecs_desired_count:
                 description: "Desired number of tasks in ECS service (ECS only)"
                 required: false
                 type: string
                 default: "2"
-            health_check_grace_period:
-                description: "Health check grace period in seconds (ECS only)"
-                required: false
-                type: string
-                default: "60"
-            deployment_configuration_max_percent:
-                description: "Maximum percentage of tasks during deployment (ECS only)"
-                required: false
-                type: string
-                default: "200"
-            deployment_configuration_min_percent:
-                description: "Minimum percentage of tasks during deployment (ECS only)"
-                required: false
-                type: string
-                default: "50"
             enable_rollback:
                 description: "Enable automatic rollback on deployment failure (ECS only)"
                 required: false
                 type: boolean
                 default: false
 
+            cpu_per_container:
+                description: "CPU required per Container (eg. 512)"
+                required: false
+                type: string
+                default: "512"
+            memory_per_container:
+                description: "Memory required per Container (eg. 1024)"
+                required: false
+                type: string
+                default: "1024"
+            tcp_port:
+                description: "TCP port application will run on."
+                required: true
+                type: string
+
         secrets:
-            JENKINS_URL:
-                required: true
-                description: "Jenkins URL"
-            JENKINS_USER:
-                required: true
-                description: "Jenkins USER"
-            JENKINS_TOKEN:
-                required: true
-                description: "Jenkins TOKEN"
             AWS_ACCESS_KEY_ID:
                 required: true
                 description: "AWS Access Key for the User"
@@ -148,16 +130,14 @@ jobs:
         environment:
           name: ${{ inputs.cluster_environment }}
         steps:
+        - name: Set IMAGE_REGISTRY and AWS_ACCOUNT_ID
+          run: |
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+            echo "IMAGE_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
+        
         - name: Checkout repository
           uses: actions/checkout@v4
-
-        - name: Validate ECS required inputs
-          run: |
-            if [ -z "${{ inputs.ecs_cluster }}" ] || [ -z "${{ inputs.ecs_service }}" ]; then
-              echo "Error: Missing required inputs for ECS deployment"
-              echo "Required: ecs_cluster, ecs_service"
-              exit 1
-            fi
 
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
@@ -167,89 +147,56 @@ jobs:
             aws-region: ${{ inputs.aws_region }}
 
         - name: Login to Amazon ECR
-          if: contains(inputs.image_registry, 'amazonaws.com')
           id: login-ecr
           uses: aws-actions/amazon-ecr-login@v2
 
         - name: Prepare image URI
           id: image-uri
           run: |
-            if [[ "${{ inputs.image_registry }}" == *"amazonaws.com"* ]]; then
-              # ECR format
-              IMAGE_URI="${{ inputs.image_registry }}/${{ inputs.image_name }}:${{ inputs.version }}"
-            else
-              # Other registries
-              IMAGE_URI="${{ inputs.image_registry }}/${{ inputs.image_name }}:${{ inputs.version }}"
-            fi
+            IMAGE_URI="$IMAGE_REGISTRY/${{ inputs.release_name }}:${{ inputs.version }}"
             echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
-            echo "Using image URI: $IMAGE_URI"
 
-        - name: Check if task definition file exists
-          id: check-task-def
+        - name: Download existing ECS task definition
+          id: download-task-def
           run: |
-            if [ -f "${{ inputs.ecs_task_definition_path }}" ]; then
-              echo "task_def_exists=true" >> $GITHUB_OUTPUT
+            aws ecs describe-task-definition \
+              --task-definition "${{ inputs.ecs_task_definition_name }}" \
+              --query taskDefinition \
+              --output json > task-definition.json
+
+        - name: Retrieve secrets from AWS secrets manager
+          id: get-secrets
+          run: |
+            SECRET_PATH="${{inputs.service_name}}-${{inputs.cluster_environment}}"
+            SECRET_JSON=$(aws secretsmanager get-secret-value \
+              --secret-id "$SECRET_PATH" \
+              --region "${{ inputs.aws_region }}" \
+              --query SecretString \
+              --output text)
+
+            if [ -n "$SECRET_JSON" ] && [ "$SECRET_JSON" != "null" ]; then
+              ENV_JSON=$(echo "$SECRET_JSON" | jq -r 'to_entries | map({name: .key, value: .value})')
             else
-              echo "task_def_exists=false" >> $GITHUB_OUTPUT
+              ENV_JSON="[]"
             fi
+            echo "env_json=$ENV_JSON" >> $GITHUB_OUTPUT
 
-        - name: Create default task definition if not exists
-          if: steps.check-task-def.outputs.task_def_exists == 'false'
+        - name: Update ECS task definition with new image and env
           run: |
-            mkdir -p .aws
-            cat > ${{ inputs.ecs_task_definition_path }} << EOF
-            {
-              "family": "${{ inputs.ecs_service }}",
-              "networkMode": "awsvpc",
-              "requiresCompatibilities": ["FARGATE"],
-              "cpu": "512",
-              "memory": "1024",
-              "executionRoleArn": "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecsTaskExecutionRole",
-              "taskRoleArn": "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ecsTaskRole",
-              "containerDefinitions": [
-                {
-                  "name": "${{ inputs.container_name || inputs.service_name }}",
-                  "image": "placeholder-image",
-                  "essential": true,
-                  "portMappings": [
-                    {
-                      "containerPort": 80,
-                      "protocol": "tcp"
-                    }
-                  ],
-                  "logConfiguration": {
-                    "logDriver": "awslogs",
-                    "options": {
-                      "awslogs-group": "/ecs/${{ inputs.ecs_service }}",
-                      "awslogs-region": "${{ inputs.aws_region }}",
-                      "awslogs-stream-prefix": "ecs"
-                    }
-                  },
-                  "environment": [
-                    {
-                      "name": "ENVIRONMENT",
-                      "value": "${{ inputs.cluster_environment }}"
-                    }
-                  ]
-                }
-              ]
-            }
-            EOF
-          env:
-            AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-
-        - name: Get AWS Account ID
-          run: |
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
-
-        - name: Update ECS task definition
+            jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
+               --argjson ENV "${{ steps.get-secrets.outputs.env_json }}" \
+               '.containerDefinitions[0].image = $IMAGE |
+                .containerDefinitions[0].environment = $ENV' \
+               task-definition.json > updated-task-definition.json
+               
+        - name: Register updated ECS task definition
           id: task-def
-          uses: aws-actions/amazon-ecs-render-task-definition@v1
-          with:
-            task-definition: ${{ inputs.ecs_task_definition_path }}
-            container-name: ${{ inputs.container_name || inputs.service_name }}
-            image: ${{ steps.image-uri.outputs.image_uri }}
+          run: |
+            NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+              --cli-input-json file://updated-task-definition.json \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text)
+            echo "task_definition=$NEW_TASK_DEF_ARN" >> $GITHUB_OUTPUT
 
         - name: Store current task definition for rollback
           if: inputs.enable_rollback == true
@@ -259,24 +206,23 @@ jobs:
               --services ${{ inputs.ecs_service }} \
               --query 'services[0].taskDefinition' \
               --output text > current_task_def.txt
-            echo "Current task definition stored for potential rollback"
 
         - name: Deploy to Amazon ECS
           id: deploy
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
-            task-definition: ${{ steps.task-def.outputs.task-definition }}
+            task-definition: ${{ steps.task-def.outputs.task_definition }}
             service: ${{ inputs.ecs_service }}
             cluster: ${{ inputs.ecs_cluster }}
+            desired-count: ${{ inputs.ecs_desired_count }}
             wait-for-service-stability: true
-            wait-for-minutes: 10
+            wait-for-minutes: 15
 
         - name: Verify deployment success
           id: verify
           run: |
             echo "Verifying ECS deployment..."
             
-            # Get service status
             SERVICE_STATUS=$(aws ecs describe-services \
               --cluster ${{ inputs.ecs_cluster }} \
               --services ${{ inputs.ecs_service }} \
