@@ -131,7 +131,7 @@ jobs:
       - name: Ensure ECR repository exists
         if: ${{ inputs.image_registry == 'amazonaws.com' }}
         run: |
-          repo_name=$(echo "${{ inputs.image_name }}" | cut -d'/' -f2)
+          repo_name=$(echo "${{ inputs.image_name }}" | cut -d'/' -f1)
           echo "Checking if ECR repository '$repo_name' exists in region '${{ inputs.aws_region }}'..."
           if aws ecr describe-repositories \
             --repository-names "$repo_name" \
