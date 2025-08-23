@@ -156,6 +156,28 @@ jobs:
             IMAGE_URI="${{ env.IMAGE_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.version }}"
             echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
 
+        - name: Check ECS cluster, service, and task definition existence
+          run: |
+            CLUSTER_EXISTS=$(aws ecs describe-clusters --clusters "${{ inputs.ecs_cluster }}" --query 'clusters[0].status' --output text 2>/dev/null || echo "NONE")
+            if [ "$CLUSTER_EXISTS" = "NONE" ]; then
+              echo "Cluster ${{ inputs.ecs_cluster }} does not exist"
+              exit 1
+            fi
+          
+            SERVICE_EXISTS=$(aws ecs describe-services --cluster "${{ inputs.ecs_cluster }}" --services "${{ inputs.ecs_service }}" --query 'services[0].status' --output text 2>/dev/null || echo "NONE")
+            if [ "$SERVICE_EXISTS" = "NONE" ]; then
+              echo "Service ${{ inputs.ecs_service }} does not exist"
+              exit 1
+            fi
+          
+            TASKDEF_EXISTS=$(aws ecs describe-task-definition --task-definition "${{ inputs.ecs_task_definition_name }}" --query 'taskDefinition.taskDefinitionArn' --output text 2>/dev/null || echo "NONE")
+            if [ "$TASKDEF_EXISTS" = "NONE" ]; then
+              echo "Task definition ${{ inputs.ecs_task_definition_name }} does not exist"
+              exit 1
+            fi
+          
+            echo "Cluster, service, and task definition exist ✅"
+
         - name: Download existing ECS task definition
           id: download-task-def
           run: |
