@@ -107,48 +107,50 @@ jobs:
 
       # ECR Login
       - name: Configure AWS credentials
-        if: contains(inputs.image_registry, 'amazonaws.com')
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.aws_region }}
       - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
-        if: contains(inputs.image_registry, 'amazonaws.com')
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
           echo "AMAZON_IMAGE_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
 
       - name: Login to Amazon ECR
-        if: contains(inputs.image_registry, 'amazonaws.com')
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Ensure ECR repository exists
-        if: contains(inputs.image_registry, 'amazonaws.com')
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
         run: |
-          echo "Checking if ECR repository '${{ inputs.image_name }}' exists in region '${{ inputs.aws_region }}'..."
+          repo_name=$(echo "${{ inputs.image_name }}" | cut -d'/' -f2)
+          echo "Checking if ECR repository '$repo_name' exists in region '${{ inputs.aws_region }}'..."
           if aws ecr describe-repositories \
-            --repository-names "${{ inputs.image_name }}" \
-            --region ${{ inputs.aws_region }} \
+            --repository-names "$repo_name" \
+            --region "${{ inputs.aws_region }}" \
             >/dev/null 2>&1
           then
             echo "Repository already exists ✅"
           else
             echo "Repository not found. Creating..."
             aws ecr create-repository \
-              --repository-name "${{ inputs.image_name }}" \
-              --region ${{ inputs.aws_region }} \
+              --repository-name "$repo_name" \
+              --region "${{ inputs.aws_region }}" \
               --image-scanning-configuration scanOnPush=true \
               --image-tag-mutability MUTABLE
             echo "Repository created successfully 🎉"
           fi
+      
 
 
       # GHCR Login
       - name: Log in to github Container registry where image is pushed and pulled
               from
-        if: contains(inputs.image_registry, 'ghcr.io')
+        if: ${{ inputs.image_registry == 'ghcr.io' }}
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
           registry: ${{ inputs.image_registry }}
