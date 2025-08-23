@@ -116,6 +116,7 @@ jobs:
       - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
         if: ${{ inputs.image_registry == 'amazonaws.com' }}
         run: |
+          echo ${{ inputs.image_registry }}
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
           echo "AMAZON_IMAGE_REGISTRY=${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
