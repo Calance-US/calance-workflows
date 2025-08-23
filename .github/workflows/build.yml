@@ -100,20 +100,10 @@ jobs:
       commit_id: ${{ steps.version.outputs.commit_id }}
     steps:
       # checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repository (clone the repo for use)
+        uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.branch_name != '' && inputs.branch_name || github.ref_name }}
-          fetch-depth: 0
-
-      # Debug before Configure AWS credentials
-      - name: Debug AWS login inputs
-        if: contains(inputs.image_registry, 'amazonaws.com')
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
-          echo "AWS_SECRET_ACCESS_KEY length: ${#AWS_SECRET_ACCESS_KEY}"
-          echo "AWS_REGION=${{ inputs.aws_region }}"
-          echo "IMAGE_REGISTRY=${{ inputs.image_registry }}"
+          ref: ${{ inputs.branch_name || github.ref_name }}
 
       # ECR Login
       - name: Configure AWS credentials
@@ -123,6 +113,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.aws_region }}
+      - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
+        if: contains(inputs.image_registry, 'amazonaws.com')
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+          echo "AMAZON_IMAGE_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
+
       - name: Login to Amazon ECR
         if: contains(inputs.image_registry, 'amazonaws.com')
         uses: aws-actions/amazon-ecr-login@v2
@@ -149,11 +146,11 @@ jobs:
 
 
       # GHCR Login
-      - name: Log in to GitHub Container Registry
-        if: contains(inputs.image_registry, 'ghcr.io')
-        uses: docker/login-action@v3
+      - name: Log in to github Container registry where image is pushed and pulled
+              from
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
-          registry: ghcr.io
+          registry: ${{ inputs.image_registry }}
           username: ${{ inputs.image_registry_username }}
           password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
 
@@ -162,15 +159,11 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          # image name should ideally be ghcr.io/${{ secrets.REPOSITORY_OWNER }}/${{ inputs.image_name }}
-          # but it throws error while pulling image with this. it is building the image but not able to push in github container registry
-          # so, don't use secrets for this step
           images: |
-            ${{ inputs.image_registry }}/${{ inputs.image_name }}
-          # tags: |
-          #   ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+            ${{ inputs.image_registry == 'ghcr.io' && inputs.image_registry || env.AMAZON_IMAGE_REGISTRY }}/${{ inputs.image_name }}
           tags: |
-            type=raw,value=1.0.0
+            ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+
 
       - name: Setting application version (comes from image tag/version) and commit_id
         id: version
@@ -213,7 +206,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      
       - name: Build Summary
         run: |
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY

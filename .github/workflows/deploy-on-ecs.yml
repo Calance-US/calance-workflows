@@ -4,16 +4,16 @@ on:
     workflow_call:
         inputs:
             # Common inputs
-            credentials_id:
-                description: "Credentials ID for pulling image and deploy on ecs"
-                required: true
-                type: string
             image_name:
-                description: "Image name (Use it in this way:- Calance-US/repo-name)"
+                description: "Repositry + Repo name (Use it in this way:- Calance-US/repo_name)"
                 required: true
                 type: string            
             release_name:
                 description: "Release Name"
+                required: true
+                type: string
+            service_name:
+                description: "Service Name"
                 required: true
                 type: string
             version:
@@ -66,20 +66,20 @@ on:
                 type: boolean
                 default: false
 
-            cpu_per_container:
-                description: "CPU required per Container (eg. 512)"
-                required: false
-                type: string
-                default: "512"
-            memory_per_container:
-                description: "Memory required per Container (eg. 1024)"
-                required: false
-                type: string
-                default: "1024"
-            tcp_port:
-                description: "TCP port application will run on."
-                required: true
-                type: string
+            # cpu_per_container:
+            #     description: "CPU required per Container (eg. 512)"
+            #     required: false
+            #     type: string
+            #     default: "512"
+            # memory_per_container:
+            #     description: "Memory required per Container (eg. 1024)"
+            #     required: false
+            #     type: string
+            #     default: "1024"
+            # tcp_port:
+            #     description: "TCP port application will run on."
+            #     required: true
+            #     type: string
 
         secrets:
             AWS_ACCESS_KEY_ID:
@@ -130,22 +130,22 @@ jobs:
         environment:
           name: ${{ inputs.cluster_environment }}
         steps:
-        - name: Set IMAGE_REGISTRY and AWS_ACCOUNT_ID
-          run: |
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
-            echo "IMAGE_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
-        
         - name: Checkout repository
           uses: actions/checkout@v4
-
+          
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws-region: ${{ inputs.aws_region }}
-
+            
+        - name: Set IMAGE_REGISTRY and AWS_ACCOUNT_ID
+          run: |
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+            echo "IMAGE_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> $GITHUB_ENV
+            
         - name: Login to Amazon ECR
           id: login-ecr
           uses: aws-actions/amazon-ecr-login@v2
@@ -153,7 +153,7 @@ jobs:
         - name: Prepare image URI
           id: image-uri
           run: |
-            IMAGE_URI="$IMAGE_REGISTRY/${{ inputs.release_name }}:${{ inputs.version }}"
+            IMAGE_URI="$IMAGE_REGISTRY/${{ inputs.image_name }}:${{ inputs.version }}"
             echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
 
         - name: Download existing ECS task definition
@@ -188,7 +188,7 @@ jobs:
                '.containerDefinitions[0].image = $IMAGE |
                 .containerDefinitions[0].environment = $ENV' \
                task-definition.json > updated-task-definition.json
-               
+
         - name: Register updated ECS task definition
           id: task-def
           run: |
