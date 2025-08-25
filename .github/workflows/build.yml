@@ -86,9 +86,7 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: false
         description: AWS Secret Access Key
-      AWS_SESSION_TOKEN:
-        required: true
-        description: AWS SESSION TOKEN
+        
 jobs:
   build-docker:
     runs-on: ubuntu-latest
@@ -114,7 +112,6 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ inputs.aws_region }}
       - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
         if: ${{ inputs.image_registry == 'amazonaws.com' }}
