@@ -57,7 +57,7 @@ on:
                 default: ".aws/task-definition.json"
             ecs_desired_count:
                 description: "Desired number of tasks in ECS service (ECS only)"
-                required: false
+                required: true
                 type: string
                 default: "2"
             enable_rollback:
@@ -230,15 +230,6 @@ jobs:
           run: |
             rm -f raw_secrets.json env_variables.json clean-task-def.json
 
-        - name: Register updated ECS task definition
-          id: task-def
-          run: |
-            NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-              --cli-input-json file://updated-task-definition.json \
-              --query 'taskDefinition.taskDefinitionArn' \
-              --output text)
-            echo "task_definition=$NEW_TASK_DEF_ARN" >> $GITHUB_OUTPUT
-
         - name: Store current task definition for rollback
           if: inputs.enable_rollback == true
           run: |
@@ -252,7 +243,7 @@ jobs:
           id: deploy
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
-            task-definition: ${{ steps.task-def.outputs.task_definition }}
+            task-definition: updated-task-definition.json 
             service: ${{ inputs.ecs_service }}
             cluster: ${{ inputs.ecs_cluster }}
             desired-count: ${{ inputs.ecs_desired_count }}
