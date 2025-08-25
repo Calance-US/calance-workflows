@@ -36,10 +36,6 @@ on:
                 description: Email-ID of DevOps Stakeholders (If multiple stakeholders, seperate email ids with comma)
                 required: true
                 type: string
-            workflows_release:
-                description: "Workflows Release Version of desired workflow"
-                required: true
-                type: string
             
             # ECS-specific inputs
             ecs_cluster:
@@ -65,21 +61,6 @@ on:
                 required: false
                 type: string
                 default: "10"
-
-            # cpu_per_container:
-            #     description: "CPU required per Container (eg. 512)"
-            #     required: false
-            #     type: string
-            #     default: "512"
-            # memory_per_container:
-            #     description: "Memory required per Container (eg. 1024)"
-            #     required: false
-            #     type: string
-            #     default: "1024"
-            # tcp_port:
-            #     description: "TCP port application will run on."
-            #     required: true
-            #     type: string
 
         secrets:
             AWS_ACCESS_KEY_ID:
@@ -118,7 +99,6 @@ jobs:
                     Version: ${{ inputs.version }}
                     Environment: ${{ inputs.cluster_environment }}
                     AWS Region: ${{ inputs.aws_region }}
-                    Workflows Release: ${{ inputs.workflows_release }}
                 
                 Best Regards,
                 DevOps Team
@@ -320,7 +300,6 @@ jobs:
                     🔢 Version: ${{ inputs.version }}
                     🌍 Environment: ${{ inputs.cluster_environment }}
                     🌐 Region: ${{ inputs.aws_region }}
-                    ⚙️  Workflows Version: ${{ inputs.workflows_release }}
 
                 The application is now live and ready for use.
                 
@@ -355,7 +334,6 @@ jobs:
                     🔢 Version: ${{ inputs.version }}
                     🌍 Environment: ${{ inputs.cluster_environment }}
                     🌐 Region: ${{ inputs.aws_region }}
-                    ⚙️  Workflows Version: ${{ inputs.workflows_release }}
 
                 Next Steps:
                 1. Check the GitHub Actions logs for detailed error information
