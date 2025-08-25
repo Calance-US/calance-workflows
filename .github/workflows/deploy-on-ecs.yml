@@ -214,31 +214,10 @@ jobs:
               ' raw_secrets.json > env_variables.json
             fi
             
-            # Validate and show stats
-            if jq empty env_variables.json 2>/dev/null; then
-              ENV_COUNT=$(jq length env_variables.json)
-              echo "✅ Successfully processed $ENV_COUNT environment variables"
-                  
-              # Show variable names for debugging (not values)
-              if [ "$ENV_COUNT" -gt 0 ]; then
-                echo "📋 Variable names:"
-                jq -r '.[].name' env_variables.json | head -10
-                if [ "$ENV_COUNT" -gt 10 ]; then
-                  echo "... and $(($ENV_COUNT - 10)) more"
-                fi
-              fi
-            else
-              echo "❌ Generated invalid JSON:"
-              cat env_variables.json
-              exit 1
-            fi
-            
         - name: Update ECS task definition
           run: |
             jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
               task-definition.json > clean-task-def.json
-
-            cat clean-task-def.json
             
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
                --slurpfile ENV_VARS env_variables.json \
@@ -254,7 +233,6 @@ jobs:
         - name: Register updated ECS task definition
           id: task-def
           run: |
-            cat updated-task-definition.json  \
             NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
               --cli-input-json file://updated-task-definition.json \
               --query 'taskDefinition.taskDefinitionArn' \
