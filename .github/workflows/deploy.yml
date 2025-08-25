@@ -1,0 +1,160 @@
+---
+name: Deploy to Kubernetes
+on:
+  workflow_call:
+    inputs:
+      repository_name:
+        description: Name of the service to be deployed (usually it is the same as
+          the repository name)
+        required: true
+        type: string
+      image_name:
+        description: Image name of our application's dockerfile
+        required: true
+        type: string
+      release_name:
+        description: Application release name
+        required: false
+        type: string
+        default: "${{ github.event.repository.name }}"
+      service_name:
+        description: Application service name
+        required: false
+        type: string
+        default: "${{ github.event.repository.name }}"
+      cluster_environment:
+        description: Cluster environment to deploy your image
+        required: true
+        type: string
+      version:
+        description: Application version
+        required: true
+        type: string
+      commit_id:
+        description: Latest commit SHA of the build
+        required: true
+        type: string
+      env_specific_namespaces:
+        description: 'Enable generating namespace value according to the cluster-environment
+          (ex: assuming hrms namespace is configured, testing version will use hrms-testing
+          as the namespace while production version will use hrms as the namespace'
+        required: false
+        type: boolean
+        default: false
+      image_registry:
+        description: Name of Image Registry
+        required: true
+        type: string
+      jenkins_job_name:
+        description: Name of Jenkins Job Name
+          For deployment to Nutanix & Atcost Cluster => kubernetes-deploy-on-nutanix
+          For deployment to Finca Cluster => Finca Deployment
+        required: true
+        type: string
+      workflows_release:
+        description: Workflows Release Version of current deployment
+          If you are using deploy.yml@v1.0.8, then workflows_release => v1.0.8
+        required: true
+        type: string
+      helm_values_repository:
+        description: Name of repo that has helm values files
+        required: true
+        type: string
+      codeowners_email_ids:
+        description: Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma)
+        required: true
+        type: string
+      devops_stakeholders_email_ids:
+        description: Email-ID of DevOps Stakeholders (If multiple stakeholders, seperate email ids with comma)
+        required: true
+        type: string
+
+    secrets:
+      JENKINS_URL:
+        required: true
+        description: Jenkins URL
+      JENKINS_USER:
+        required: true
+        description: Jenkins USER
+      JENKINS_TOKEN:
+        required: true
+        description: Jenkins TOKEN
+      SMTP_PASSWORD:
+        required: true
+        description: SMTP Server Password
+jobs:
+  trigger-jenkins-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify about beginning of deployment
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          username: noreply@itrnetwork.com
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Deployment Notification of ${{ inputs.release_name }}:${{ inputs.version }}
+          to: ${{ inputs.codeowners_email_ids }}
+          from: DevOps Team
+          cc: ${{ inputs.devops_stakeholders_email_ids }}
+          body: |
+            Dear CodeOwner/s,
+            
+            We are pleased to inform you that a deployment process for ${{ inputs.release_name }} is about to commence.
+
+            Deployment Details:
+
+              Application: ${{ inputs.release_name }}
+              Version: ${{ inputs.version }}
+              Environment: ${{ inputs.cluster_environment }}
+            
+            Best Regards,
+            DevOps Team 
+      
+      - name: Trigger Jenkins Job
+        uses: Calance-US/build-jenkins-job@main
+        with:
+          jenkins-url: ${{ secrets.JENKINS_URL }}
+          jenkins-token: ${{ secrets.JENKINS_TOKEN }}
+          user: ${{ secrets.JENKINS_USER }}
+          job-path: job/${{ inputs.jenkins_job_name }}
+          job-params: |-
+            {
+              "SERVICE_NAME" : "${{ inputs.service_name }}", 
+              "RELEASE_NAME" : "${{ inputs.release_name }}", 
+              "IMAGE_NAME" : "${{ inputs.image_name }}", 
+              "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}", 
+              "VERSION": "${{ inputs.version }}", 
+              "COMMIT_ID": "${{ inputs.commit_id }}",
+              "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+              "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
+              "HELM_VALUES_REPOSITORY": "${{ inputs.helm_values_repository }}"
+            }
+
+      - name: Notify when deployment fails
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          username: noreply@itrnetwork.com
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Deployment Failure Alert-${{ inputs.release_name }}:${{ inputs.version }}-CodeOwners Attention Required
+          to: ${{ inputs.codeowners_email_ids }}
+          from: DevOps Team
+          cc: ${{ inputs.devops_stakeholders_email_ids }}
+          body: |
+            Dear CodeOwner/s,
+            
+            We regret to inform you that the deployment process for ${{ inputs.release_name }}:${{ inputs.version }} has encountered an unexpected issue and has failed.
+
+            Deployment Details:
+
+              Application: ${{ inputs.release_name }}
+              Version: ${{ inputs.version }}
+              Environment: ${{ inputs.cluster_environment }}
+
+            We kindly request your prompt attention to address the deployment failure. To streamline communication and expedite the resolution process, please connect directly with us.
+            
+            Best Regards,
+              DevOps Team   
