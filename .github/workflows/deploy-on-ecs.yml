@@ -65,6 +65,11 @@ on:
                 required: false
                 type: boolean
                 default: false
+            ecs_wait_time:
+                description: "ECS stability waste time"
+                required: false
+                type: string
+                default: "10"
 
             # cpu_per_container:
             #     description: "CPU required per Container (eg. 512)"
@@ -230,15 +235,6 @@ jobs:
           run: |
             rm -f raw_secrets.json env_variables.json clean-task-def.json
 
-        - name: Store current task definition for rollback
-          if: inputs.enable_rollback == true
-          run: |
-            aws ecs describe-services \
-              --cluster ${{ inputs.ecs_cluster }} \
-              --services ${{ inputs.ecs_service }} \
-              --query 'services[0].taskDefinition' \
-              --output text > current_task_def.txt
-
         - name: Deploy to Amazon ECS
           id: deploy
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -248,7 +244,7 @@ jobs:
             cluster: ${{ inputs.ecs_cluster }}
             desired-count: ${{ inputs.ecs_desired_count }}
             wait-for-service-stability: true
-            wait-for-minutes: 15
+            wait-for-minutes: ${{ inputs.ecs_wait_time }}
 
         - name: Verify deployment success
           id: verify
@@ -284,31 +280,6 @@ jobs:
               echo "❌ Deployment verification failed"
               echo "deployment_status=failed" >> $GITHUB_OUTPUT
               exit 1
-            fi
-
-        - name: Rollback on failure
-          if: failure() && inputs.enable_rollback == true
-          run: |
-            echo "🔄 Initiating automatic rollback..."
-            
-            if [ -f current_task_def.txt ]; then
-              PREVIOUS_TASK_DEF=$(cat current_task_def.txt)
-              echo "Rolling back to: $PREVIOUS_TASK_DEF"
-              
-              aws ecs update-service \
-                --cluster ${{ inputs.ecs_cluster }} \
-                --service ${{ inputs.ecs_service }} \
-                --task-definition $PREVIOUS_TASK_DEF \
-                --force-new-deployment
-              
-              echo "Rollback initiated. Waiting for service stability..."
-              aws ecs wait services-stable \
-                --cluster ${{ inputs.ecs_cluster }} \
-                --services ${{ inputs.ecs_service }}
-              
-              echo "✅ Rollback completed successfully"
-            else
-              echo "❌ No previous task definition found for rollback"
             fi
 
         - name: Display deployment summary
