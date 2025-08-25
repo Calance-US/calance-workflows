@@ -224,7 +224,7 @@ jobs:
           id: task-def
           run: |
             cat temp-task-def.json \
-            cat updated-task-defination.json \
+            cat updated-task-definition.json  \
             NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
               --cli-input-json file://updated-task-definition.json \
               --query 'taskDefinition.taskDefinitionArn' \
