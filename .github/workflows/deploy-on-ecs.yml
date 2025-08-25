@@ -60,11 +60,6 @@ on:
                 required: true
                 type: string
                 default: "2"
-            enable_rollback:
-                description: "Enable automatic rollback on deployment failure (ECS only)"
-                required: false
-                type: boolean
-                default: false
             ecs_wait_time:
                 description: "ECS stability waste time"
                 required: false
