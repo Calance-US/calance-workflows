@@ -187,43 +187,73 @@ jobs:
               --output json > task-definition.json
 
         - name: Retrieve secrets from AWS secrets manager
-          id: get-secrets
           run: |
             SECRET_PATH="${{inputs.service_name}}-${{inputs.cluster_environment}}"
-            SECRET_JSON=$(aws secretsmanager get-secret-value \
+                
+            aws secretsmanager get-secret-value \
               --secret-id "$SECRET_PATH" \
               --region "${{ inputs.aws_region }}" \
               --query SecretString \
-              --output text)
-
-            if [ -n "$SECRET_JSON" ] && [ "$SECRET_JSON" != "null" ]; then
-              ENV_JSON=$(echo "$SECRET_JSON" | jq -c 'to_entries | map({name: .key, value: .value})')
+              --output text > raw_secrets.json
+                
+            if [ ! -s raw_secrets.json ] || [ "$(cat raw_secrets.json)" = "null" ]; then
+              echo "[]" > env_variables.json
+              echo "⚠️  No secrets found or secret is null"
             else
-              ENV_JSON="[]"
+              jq -c '
+                if type == "object" then
+                  to_entries 
+                  | map(select(.key | test("^(GITHUB_|RUNNER_|CI|ACTIONS_|SYSTEM_|BASH_|SHELL|PATH|HOME|USER|PWD)") | not))
+                  | map({
+                      name: .key, 
+                      value: (if .value == null then "" else (.value | tostring) end)
+                    })
+                else
+                  []
+                end
+              ' raw_secrets.json > env_variables.json
             fi
-
-            ESCAPED_ENV_JSON=$(echo "$ENV_JSON" | jq -Rs '.')
-            echo "env_json=$ENV_JSON" >> $GITHUB_OUTPUT
-
-        - name: Update ECS task definition with new image and env
+            
+            # Validate and show stats
+            if jq empty env_variables.json 2>/dev/null; then
+              ENV_COUNT=$(jq length env_variables.json)
+              echo "✅ Successfully processed $ENV_COUNT environment variables"
+                  
+              # Show variable names for debugging (not values)
+              if [ "$ENV_COUNT" -gt 0 ]; then
+                echo "📋 Variable names:"
+                jq -r '.[].name' env_variables.json | head -10
+                if [ "$ENV_COUNT" -gt 10 ]; then
+                  echo "... and $(($ENV_COUNT - 10)) more"
+                fi
+              fi
+            else
+              echo "❌ Generated invalid JSON:"
+              cat env_variables.json
+              exit 1
+            fi
+            
+        - name: Update ECS task definition
           run: |
-            # Remove invalid ECS fields
             jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-              task-definition.json > temp-task-def.json
+              task-definition.json > clean-task-def.json
 
-            # Unescape the JSON before passing to jq
-            ENV_JSON=$(echo '${{ steps.get-secrets.outputs.env_json }}' | jq -r '.')
-
+            cat clean-task-def.json
+            
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
-               --argjson ENV "$ENV_JSON" \
-               '.containerDefinitions[0].image = $IMAGE | .containerDefinitions[0].environment = $ENV' \
-               temp-task-def.json > updated-task-definition.json
-
+               --slurpfile ENV_VARS env_variables.json \
+               '.containerDefinitions[0].image = $IMAGE | 
+                .containerDefinitions[0].environment = $ENV_VARS[0]' \
+               clean-task-def.json > updated-task-definition.json
+                        
+        - name: Clean up
+          if: always()
+          run: |
+            rm -f raw_secrets.json env_variables.json clean-task-def.json
 
         - name: Register updated ECS task definition
           id: task-def
           run: |
-            cat temp-task-def.json \
             cat updated-task-definition.json  \
             NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
               --cli-input-json file://updated-task-definition.json \
