@@ -197,7 +197,7 @@ jobs:
               --output text)
 
             if [ -n "$SECRET_JSON" ] && [ "$SECRET_JSON" != "null" ]; then
-              ENV_JSON=$(echo "$SECRET_JSON" | jq -r 'to_entries | map({name: .key, value: .value})')
+              ENV_JSON=$(echo "$SECRET_JSON" | jq -c 'to_entries | map({name: .key, value: .value})')
             else
               ENV_JSON="[]"
             fi
