@@ -203,13 +203,19 @@ jobs:
             fi
             echo "env_json=$ENV_JSON" >> $GITHUB_OUTPUT
 
+            ESCAPED_ENV_JSON=$(echo "$ENV_JSON" | jq -Rs '.')
+            echo "env_json=$ESCAPED_ENV_JSON" >> $GITHUB_OUTPUT
+
         - name: Update ECS task definition with new image and env
           run: |
+            # Unescape JSON before passing to --argjson
+            ENV_JSON=$(echo '${{ steps.get-secrets.outputs.env_json }}' | jq -r '.')
+    
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
-               --argjson ENV "${{ steps.get-secrets.outputs.env_json }}" \
-               '.containerDefinitions[0].image = $IMAGE |
-                .containerDefinitions[0].environment = $ENV' \
-               task-definition.json > updated-task-definition.json
+            --argjson ENV "$ENV_JSON" \
+            '.containerDefinitions[0].image = $IMAGE |
+            .containerDefinitions[0].environment = $ENV' \
+            task-definition.json > updated-task-definition.json
 
         - name: Register updated ECS task definition
           id: task-def
