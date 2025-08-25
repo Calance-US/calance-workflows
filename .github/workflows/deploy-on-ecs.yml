@@ -133,7 +133,7 @@ jobs:
           id: image-uri
           run: |
             IMAGE_URI="${{ env.IMAGE_REGISTRY }}/${{ inputs.image_name }}:${{ inputs.version }}"
-            echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+            echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
         - name: Check ECS cluster, service, and task definition existence
           run: |
@@ -226,20 +226,20 @@ jobs:
             echo "Verifying ECS deployment..."
             
             SERVICE_STATUS=$(aws ecs describe-services \
-              --cluster ${{ inputs.ecs_cluster }} \
-              --services ${{ inputs.ecs_service }} \
+              --cluster "${{ inputs.ecs_cluster }}" \
+              --services "${{ inputs.ecs_service }}" \
               --query 'services[0].deployments[0].status' \
               --output text)
             
             RUNNING_COUNT=$(aws ecs describe-services \
-              --cluster ${{ inputs.ecs_cluster }} \
-              --services ${{ inputs.ecs_service }} \
+              --cluster "${{ inputs.ecs_cluster }}" \
+              --services "${{ inputs.ecs_service }}" \
               --query 'services[0].runningCount' \
               --output text)
             
             DESIRED_COUNT=$(aws ecs describe-services \
-              --cluster ${{ inputs.ecs_cluster }} \
-              --services ${{ inputs.ecs_service }} \
+              --cluster "${{ inputs.ecs_cluster }}" \
+              --services "${{ inputs.ecs_service }}" \
               --query 'services[0].desiredCount' \
               --output text)
             
@@ -249,10 +249,10 @@ jobs:
             
             if [ "$SERVICE_STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" = "$DESIRED_COUNT" ]; then
               echo "✅ Deployment successful!"
-              echo "deployment_status=success" >> $GITHUB_OUTPUT
+              echo "deployment_status=success" >> "$GITHUB_OUTPUT"
             else
               echo "❌ Deployment verification failed"
-              echo "deployment_status=failed" >> $GITHUB_OUTPUT
+              echo "deployment_status=failed" >> "$GITHUB_OUTPUT"
               exit 1
             fi
 

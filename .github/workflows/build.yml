@@ -211,15 +211,18 @@
   
         - name: Build Summary
           run: |
-            echo "## Build Summary" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Image Name**: ${{ inputs.image_name }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Registry**: ${{ inputs.image_registry }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Version**: ${{ steps.version.outputs.build_version }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Environment**: ${{ steps.cluster_environment.outputs.cluster_environment }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Commit**: ${{ steps.version.outputs.commit_id }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "- **Primary Image URI**: ${{ steps.build_info.outputs.image_uri }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "### All Tags Built:" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            echo "${{ steps.meta.outputs.tags }}" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "## Build Summary"
+              echo "- **Image Name**: ${{ inputs.image_name }}"
+              echo "- **Registry**: ${{ inputs.image_registry }}"
+              echo "- **Version**: ${{ steps.version.outputs.build_version }}"
+              echo "- **Environment**: ${{ steps.cluster_environment.outputs.cluster_environment }}"
+              echo "- **Commit**: ${{ steps.version.outputs.commit_id }}"
+              echo "- **Primary Image URI**: ${{ steps.build_info.outputs.image_uri }}"
+              echo ""
+              echo "### All Tags Built:"
+              echo '```'
+              echo "${{ steps.meta.outputs.tags }}"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          
