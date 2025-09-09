@@ -114,9 +114,7 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-prod.outputs.deleted != '' ||
-          steps.delete-packages-prod.outputs.failed != '' ||
-          steps.delete-packages-prod.outputs.needs-github-assistance != ''
+          steps.delete-packages-prod.outputs.deleted != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -124,9 +122,9 @@ jobs:
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-prod.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls || 'None' }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_failed_urls || 'None' }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls || 'None' }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls || 'None' }}
   clean-ghcr-testing:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -185,9 +183,7 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-testing.outputs.deleted != '' ||
-          steps.delete-packages-testing.outputs.failed != '' ||
-          steps.delete-packages-testing.outputs.needs-github-assistance != ''
+          steps.delete-packages-testing.outputs.deleted != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -257,9 +253,7 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-non-semver.outputs.deleted != '' ||
-          steps.delete-packages-non-semver.outputs.failed != '' ||
-          steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
+          steps.delete-packages-non-semver.outputs.deleted != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -321,9 +315,7 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-untagged.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-untagged.outputs.deleted != '' ||
-          steps.delete-packages-untagged.outputs.failed != '' ||
-          steps.delete-packages-untagged.outputs.needs-github-assistance != ''
+          steps.delete-packages-untagged.outputs.deleted != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
