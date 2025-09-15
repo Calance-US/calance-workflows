@@ -299,3 +299,4 @@ jobs:
         echo "Labels: ${{ github.event.inputs.agent_labels }}"
         echo ""
         echo "The agent is now online and ready to accept builds!"
+
