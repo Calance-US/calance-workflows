@@ -1,0 +1,301 @@
+name: Setup Jenkins Agent
+
+on:    
+  workflow_dispatch:
+    inputs:
+      server_ip:
+        description: 'Server IP Address'
+        required: true
+        type: string
+      pem_file_s3_path:
+        description: 'S3 path to PEM file (e.g., s3://my-keys-bucket/client1-key.pem)'
+        required: true
+        type: string
+      server_username:
+        description: 'SSH Username'
+        required: true
+        type: choice
+        options:
+        - ubuntu
+        - ec2-user
+        - admin
+        - centos
+        - root
+      agent_name:
+        description: 'Jenkins Agent Name (optional - will generate if empty)'
+        required: false
+        type: string
+      agent_labels:
+        description: 'Jenkins Agent Labels'
+        required: false
+        default: 'linux auto'
+        type: string
+      aws_region:
+        description: 'AWS region'
+        required: true
+        type: string
+
+env:
+  JENKINS_URL: ${{ secrets.JENKINS_URL }}
+  JENKINS_USER: ${{ secrets.JENKINS_USER }}
+  JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+
+jobs:
+  setup-agent:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ github.event.inputs.aws_region }}
+    
+    - name: Generate agent name if not provided
+      id: agent_name
+      run: |
+        if [ -z "${{ github.event.inputs.agent_name }}" ]; then
+          AGENT_NAME="agent-$(date +%s)-$(echo ${{ github.event.inputs.server_ip }} | tr '.' '-')"
+        else
+          AGENT_NAME="${{ github.event.inputs.agent_name }}"
+        fi
+        echo "name=${AGENT_NAME}" >> $GITHUB_OUTPUT
+        echo "Generated agent name: ${AGENT_NAME}"
+    
+    - name: Download PEM file from S3
+      run: |
+        aws s3 cp "${{ github.event.inputs.pem_file_s3_path }}" ./server-key.pem
+        chmod 600 ./server-key.pem
+        echo "✅ Downloaded PEM file from S3"
+    
+    - name: Test SSH connection
+      run: |
+        ssh -i ./server-key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
+          ${{ github.event.inputs.server_username }}@${{ github.event.inputs.server_ip }} \
+          "echo 'SSH connection successful'"
+    
+    - name: Create Jenkins node via API
+      run: |
+        AGENT_NAME="${{ steps.agent_name.outputs.name }}"
+        
+        curl -f -X POST "${JENKINS_URL}/computer/doCreateItem" \
+          --user "${JENKINS_USER}:${JENKINS_TOKEN}" \
+          --data-urlencode "name=${AGENT_NAME}" \
+          --data-urlencode "mode=hudson.slaves.DumbSlave" \
+          --data-urlencode "type=hudson.slaves.DumbSlave" \
+          --data-urlencode "json={
+            \"name\":\"${AGENT_NAME}\",
+            \"nodeDescription\":\"Auto-provisioned agent - ${{ github.event.inputs.server_ip }}\",
+            \"numExecutors\":\"1\",
+            \"remoteFS\":\"/home/jenkins\",
+            \"labelString\":\"${{ github.event.inputs.agent_labels }}\",
+            \"mode\":\"NORMAL\",
+            \"retentionStrategy\":{\"stapler-class\":\"hudson.slaves.RetentionStrategy\$Always\"},
+            \"nodeProperties\":{\"stapler-class-bag\":\"true\"},
+            \"launcher\":{
+              \"stapler-class\":\"hudson.slaves.JNLPLauncher\",
+            }
+          }" || echo "Node might already exist"
+        
+        echo "✅ Jenkins node created: ${AGENT_NAME}"
+    
+    - name: Get Jenkins agent secret
+      id: agent_secret
+      run: |
+        AGENT_NAME="${{ steps.agent_name.outputs.name }}"
+        
+        # Get JNLP content
+        JNLP_CONTENT=$(curl -f -s --user "${JENKINS_USER}:${JENKINS_TOKEN}" \
+          "${JENKINS_URL}/computer/${AGENT_NAME}/jenkins-agent.jnlp")
+        
+        # Extract secret from JNLP
+        SECRET=$(echo "$JNLP_CONTENT" | grep -oP '<argument>\K[a-f0-9]{64}(?=</argument>)' | head -1)
+        
+        if [ -z "$SECRET" ]; then
+          echo "❌ Failed to extract agent secret"
+          exit 1
+        fi
+        
+        echo "secret=${SECRET}" >> $GITHUB_OUTPUT
+        echo "✅ Retrieved agent secret"
+
+    - name: Setup Jenkins agent on remote server
+      run: |
+        AGENT_NAME="${{ steps.agent_name.outputs.name }}"
+        AGENT_SECRET="${{ steps.agent_secret.outputs.secret }}"
+        
+        cat > setup-agent.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        AGENT_NAME="$1"
+        AGENT_SECRET="$2"
+        JENKINS_URL="$3"
+        
+        echo "🚀 Starting Jenkins agent setup..."
+        echo "Agent: ${AGENT_NAME}"
+        echo "Agent Secret: ${AGENT_SECRET}"
+        echo "Jenkins URL: ${JENKINS_URL}"
+        
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "📦 Installing Java on Debian/Ubuntu..."
+            sudo apt-get update >/dev/null 2>&1
+            sudo apt-get install -y openjdk-17-jre wget curl >/dev/null 2>&1
+            JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+
+            echo "🐳 Installing Docker..."
+            sudo apt-get install -y docker.io >/dev/null 2>&1
+            sudo systemctl enable --now docker
+        elif command -v yum >/dev/null 2>&1; then
+            echo "📦 Installing Java on RHEL/CentOS/Amazon Linux..."
+            sudo yum update -y >/dev/null 2>&1
+            sudo yum install -y java-17-openjdk wget curl >/dev/null 2>&1
+            JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+
+            echo "🐳 Installing Docker..."
+            sudo yum install -y docker
+            sudo systemctl enable --now docker
+        elif command -v dnf >/dev/null 2>&1; then
+            echo "📦 Installing Java on Fedora..."
+            sudo dnf install -y java-17-openjdk wget curl >/dev/null 2>&1
+            JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+
+            echo "🐳 Installing Docker..."
+            sudo dnf install -y docker
+            sudo systemctl enable --now docker
+        else
+            echo "❌ Unsupported operating system"
+            exit 1
+        fi
+        
+        echo "👤 Creating jenkins user..."
+        sudo useradd -m -s /bin/bash jenkins 2>/dev/null || echo "User already exists"
+        sudo mkdir -p /home/jenkins
+        sudo chown -R jenkins:jenkins /home/jenkins
+
+        echo "+ Adding jenkins to docker group..."
+        sudo usermod -aG docker jenkins
+        
+        echo "⬇️ Downloading Jenkins agent..."
+        sudo -u jenkins wget -q "https://${JENKINS_URL}/jnlpJars/agent.jar" -O /home/jenkins/agent.jar
+        
+        echo "📝 Creating startup script..."
+        sudo tee /home/jenkins/start-agent.sh > /dev/null << AGENT_SCRIPT
+        #!/bin/bash
+        export JAVA_HOME="${JAVA_HOME}"
+        cd /home/jenkins
+
+        echo "\$(date): Starting Jenkins agent ${AGENT_NAME}..." >> /var/log/jenkins-agent.log
+
+        java -jar agent.jar \\
+          -url "https://${JENKINS_URL}/" \\
+          -secret "${AGENT_SECRET}" \\
+          -name "${AGENT_NAME}" \\
+          -webSocket \\
+          -workDir /home/jenkins \\
+          >> /var/log/jenkins-agent.log 2>&1
+        AGENT_SCRIPT
+        
+        sudo chmod +x /home/jenkins/start-agent.sh
+        sudo chown jenkins:jenkins /home/jenkins/start-agent.sh
+        sudo touch /var/log/jenkins-agent.log
+        sudo chown jenkins:jenkins /var/log/jenkins-agent.log
+        
+        echo "⚙️ Creating systemd service..."
+        sudo tee /etc/systemd/system/jenkins-agent.service > /dev/null << SERVICE_FILE
+        [Unit]
+        Description=Jenkins Build Agent
+        After=network.target
+        
+        [Service]
+        User=jenkins
+        WorkingDirectory=/home/jenkins
+        ExecStart=/home/jenkins/start-agent.sh
+        Restart=always
+        RestartSec=30
+        
+        [Install]
+        WantedBy=multi-user.target
+        SERVICE_FILE
+        
+        echo "🔄 Starting Jenkins agent service..."
+        sudo systemctl daemon-reload
+        sudo systemctl enable jenkins-agent >/dev/null 2>&1
+        sudo systemctl stop jenkins-agent 2>/dev/null || true
+        sudo systemctl start jenkins-agent
+        
+        sleep 5
+        if sudo systemctl is-active --quiet jenkins-agent; then
+            echo "✅ Jenkins agent service is running"
+            echo "📊 Service status:"
+            sudo systemctl status jenkins-agent --no-pager -l
+        else
+            echo "❌ Jenkins agent service failed to start"
+            echo "📋 Service logs:"
+            sudo journalctl -u jenkins-agent --no-pager -l
+            exit 1
+        fi
+        
+        echo "🎉 Jenkins agent setup completed successfully!"
+        echo "Agent name: ${AGENT_NAME}"
+        echo "Log file: /var/log/jenkins-agent.log"
+        EOF
+        
+        scp -i ./server-key.pem -o StrictHostKeyChecking=no setup-agent.sh \
+          ${{ github.event.inputs.server_username }}@${{ github.event.inputs.server_ip }}:/tmp/
+        
+        ssh -i ./server-key.pem -o StrictHostKeyChecking=no \
+          ${{ github.event.inputs.server_username }}@${{ github.event.inputs.server_ip }} \
+          "chmod +x /tmp/setup-agent.sh && /tmp/setup-agent.sh '${AGENT_NAME}' '${AGENT_SECRET}' '${JENKINS_URL}'"
+    
+    - name: Verify agent connection
+      run: |
+        set -euo pipefail
+        AGENT_NAME="${{ steps.agent_name.outputs.name }}"
+        echo "🔍 Verifying agent connection..."
+
+        STATUS="false" 
+        for i in $(seq 1 10); do
+          RESPONSE=$(curl -H "Authorization: Basic $(echo -n "${JENKINS_USER}:${JENKINS_TOKEN}" | base64)" "https://${JENKINS_URL}/computer/${AGENT_NAME}/api/json" || false)
+
+          if [ "$RESPONSE" != "false" ] && echo "$RESPONSE" | grep -q '"offline":false'; then
+            STATUS="true"
+            break
+          fi
+      
+          echo "Attempt $i: Agent not yet online, waiting 12 seconds..."
+          sleep 12
+        done
+
+        ssh -i ./server-key.pem -o StrictHostKeyChecking=no \
+            ${{ github.event.inputs.server_username }}@${{ github.event.inputs.server_ip }} \
+            "echo '=== Service Status ===' && sudo systemctl status jenkins-agent --no-pager && echo '=== Recent Logs ===' && sudo tail -20 /var/log/jenkins-agent.log"
+
+        if [ "${STATUS:-false}" != "true" ]; then
+          echo "❌ Agent failed to come online within 2 minutes"
+          exit 1
+        fi
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f ./server-key.pem setup-agent.sh
+        echo "🧹 Cleanup completed"
+    
+    - name: Summary
+      if: success()
+      run: |
+        echo "🎉 Jenkins Agent Setup Summary"
+        echo "=============================="
+        echo "Agent Name: ${{ steps.agent_name.outputs.name }}"
+        echo "Server IP: ${{ github.event.inputs.server_ip }}"
+        echo "Jenkins URL: ${JENKINS_URL}/computer/${{ steps.agent_name.outputs.name }}/"
+        echo "Labels: ${{ github.event.inputs.agent_labels }}"
+        echo ""
+        echo "The agent is now online and ready to accept builds!"
+
+
