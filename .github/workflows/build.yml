@@ -85,11 +85,11 @@ jobs:
           ref: ${{ inputs.branch_name || github.ref_name }}
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          docker system prune -af
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/share/boost || true
+          docker system prune -af || true
       - name: Log in to github Container registry where image is pushed and pulled
           from
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
