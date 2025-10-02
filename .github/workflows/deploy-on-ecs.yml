@@ -13,7 +13,7 @@ on:
                 type: string
             service_name:
                 description: "Service Name"
-                required: true
+                required: false
                 type: string
                 default: "${{ github.event.repository.name }}"
             version:
