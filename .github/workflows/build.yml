@@ -29,9 +29,6 @@ on:
       SMTP_HOST: 
         required: true
         description: SMTP Server Host
-      SMTP_EMAIL: 
-        required: true
-        description: SMTP Server Email
       SMTP_USER: 
         required: true
         description: SMTP Server User
@@ -185,7 +182,7 @@ jobs:
             -F "file=@$SCAN_FILE" \
             -F "scan_type=Trivy Scan" \
             -F "product_name=${{ github.event.repository.name }}" \
-            -F "engagement_name=$VERSION Container Security Scan $ENVIRONMENT" \
+            -F "engagement_name=Image Security Scan $ENVIRONMENT" \
             -F "version=$VERSION" \
             -F "test_title=Trivy Scan $VERSION" \
             -F "auto_create_context=true" \
@@ -212,7 +209,6 @@ jobs:
           smtp-port: ${{secrets.SMTP_PORT}}
           smtp-username: ${{secrets.SMTP_USER}}
           smtp-password: ${{secrets.SMTP_PASSWORD}}
-          sender-email: ${{secrets.SMTP_EMAIL}}
           trivy_notification_receivers: ${{inputs.trivy_notification_receivers}}
           repository: ${{github.event.repository.name}}
           tag: ${{github.ref_name}}
