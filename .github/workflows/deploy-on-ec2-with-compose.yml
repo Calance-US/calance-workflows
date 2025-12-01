@@ -1,20 +1,8 @@
-name: Deploy to EC2 instances with Jenkins Agent
+name: Deploy to EC2 instances using docker compose with jenkins agent
 
 on: 
     workflow_call:
         inputs:
-            image_name:
-                description: "Image name (Use it in this way:- Calance-US/repo-name)"
-                required: true
-                type: string
-            image_registry:
-                description: "Image Registry where image is pushed"
-                required: true
-                type: string
-            credentials_id:
-                description: "Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store"
-                required: true
-                type: string
             service_name:
                 description: "Service/Repository name"
                 required: false
@@ -24,38 +12,14 @@ on:
                 description: "Release Name"
                 required: true
                 type: string
-            version:
-                description: "Application version"
-                required: true
-                type: string
             cluster_environment:
                 description: "Cluster Environment"
                 required: true
-                type: string
-            command:
-                description: "Command that is required to run"
-                required: false
-                type: string
-            port:
-                description: "Port at which service will be running"
-                required: false
                 type: string
             aws_region:
                 description: "AWS Region Name"
                 required: true
                 type: string
-            docker_network:
-                description: "Docker Network"
-                required: true
-                type: string
-            mount_path:
-                description: "Mount Path (For multiple volume mounts, add a comma seperated string)"
-                required: false
-                type: string
-            enable_gpu:
-                description: "Enable if container requires GPU"
-                required: false
-                type: boolean
             jenkins_job_name:
                 description: "Name of Jenkins Job Name
                     For deployment of Protocol Scoring Applications => Protocol Scoring Deployment
@@ -67,14 +31,6 @@ on:
                     If you are using deploy-on-ec2.yml@v1.0.8, then workflows_release => v1.0.8"
                 required: true
                 type: string
-            log_driver:
-                description: "Logging Driver of Container" 
-                required: false
-                type: string
-            log_driver_options:
-                description: "Log Driver Options (For multiple log driver options, add a comma seperated string)" 
-                required: false
-                type: string   
             codeowners_email_ids:
                 description: Email-ID of CodeOwner/s (If multiple codeowners, seperate email ids with comma)
                 required: true
@@ -141,22 +97,10 @@ jobs:
             job-path: "job/${{ inputs.jenkins_job_name }}"
             job-params: |
                 {
-                    "IMAGE_NAME" : "${{ inputs.image_name }}",
-                    "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
-                    "CREDENTIALS_ID": "${{ inputs.credentials_id }}",
-                    "VERSION": "${{ inputs.version }}",
-                    "COMMAND": "${{ inputs.command }}",
                     "SERVICE_NAME": "${{ inputs.service_name }}",
-                    "CLUSTER_ENVIRONMENT": "${{ inputs.cluster_environment }}",
-                    "PORT": "${{ inputs.port }}",
                     "RELEASE_NAME": "${{ inputs.release_name }}",
-                    "AWS_REGION": "${{ inputs.aws_region }}",
-                    "DOCKER_NETWORK": "${{ inputs.docker_network }}",
-                    "MOUNT_PATH": "${{ inputs.mount_path }}",
-                    "ENABLE_GPU": "${{ inputs.enable_gpu }}",
                     "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
-                    "LOG_DRIVER": "${{ inputs.log_driver }}",
-                    "LOG_DRIVER_OPTIONS": "${{ inputs.log_driver_options }}",
+                    "AWS_REGION": "${{ inputs.aws_region }}",
                     "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
                     "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
                 }
