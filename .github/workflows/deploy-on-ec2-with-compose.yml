@@ -12,6 +12,14 @@ on:
                 description: "Release Name"
                 required: true
                 type: string
+            image_registry:
+                description: "Image Registry where image is pushed"
+                required: true
+                type: string
+            credentials_id:
+                description: "Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store"
+                required: true
+                type: string
             cluster_environment:
                 description: "Cluster Environment"
                 required: true
@@ -98,6 +106,8 @@ jobs:
             job-params: |
                 {
                     "SERVICE_NAME": "${{ inputs.service_name }}",
+                    "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+                    "CREDENTIALS_ID": "${{ inputs.credentials_id }}",
                     "RELEASE_NAME": "${{ inputs.release_name }}",
                     "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
                     "AWS_REGION": "${{ inputs.aws_region }}",
