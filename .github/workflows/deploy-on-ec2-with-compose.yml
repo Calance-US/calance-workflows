@@ -20,6 +20,10 @@ on:
                 description: "Credentials ID for pulling image from Image Registry defined in Jenkins Credentials Store"
                 required: true
                 type: string
+            version:
+                description: "Application version"
+                required: true
+                type: string
             cluster_environment:
                 description: "Cluster Environment"
                 required: true
