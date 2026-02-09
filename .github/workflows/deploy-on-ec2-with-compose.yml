@@ -111,6 +111,7 @@ jobs:
                 {
                     "SERVICE_NAME": "${{ inputs.service_name }}",
                     "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
+                    "VERSION": "${{ inputs.version }}"
                     "CREDENTIALS_ID": "${{ inputs.credentials_id }}",
                     "RELEASE_NAME": "${{ inputs.release_name }}",
                     "WORKFLOWS_RELEASE": "${{ inputs.workflows_release }}",
