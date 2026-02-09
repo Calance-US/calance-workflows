@@ -110,6 +110,7 @@ jobs:
             job-params: |
                 {
                     "SERVICE_NAME": "${{ inputs.service_name }}",
+                    "VERSION": "${{ inputs.version }}"
                     "IMAGE_REGISTRY": "${{ inputs.image_registry }}",
                     "CREDENTIALS_ID": "${{ inputs.credentials_id }}",
                     "RELEASE_NAME": "${{ inputs.release_name }}",
