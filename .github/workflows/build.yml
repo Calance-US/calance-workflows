@@ -82,6 +82,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_trivy:
+        description: Enable Trivy scan
+        required: false
+        type: boolean
+        default: false
       trivy_scan_timeout:
         description: Trivy scan timeout
         required: false
@@ -89,30 +94,41 @@ on:
         default: 15m0s
       trivy_notification_receivers:
         description: Trivy scan results notification receivers
-        required: true
+        required: false
         type: string
 
     secrets:
+      # GHCR
       IMAGE_REGISTRY_PASSWORD:
-        required: true
+        required: false
         description: Secret for Image Registry
+
+      # ECS
+      AWS_ACCESS_KEY_ID:
+        required: false
+        description: AWS Access Key ID
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+        description: AWS Secret Access Key
+
+      # TRIVY
       DEFECTDOJO_API_TOKEN:
-        required: true
+        required: false
         description: DEFECTDOJO api token
       DEFECTDOJO_URL:
-        required: true
+        required: false
         description: DEFECDOJO url
       SMTP_HOST: 
-        required: true
+        required: false
         description: SMTP Server Host
       SMTP_USER: 
-        required: true
+        required: false
         description: SMTP Server User
       SMTP_PORT:
-        required: true
+        required: false
         description: SMTP Server Port
       SMTP_PASSWORD:
-        required: true
+        required: false
         description: SMTP Server Password
 jobs:
   validate-creds:
@@ -145,6 +161,30 @@ jobs:
             else
               echo "❌ Unsupported image_registry: ${{ inputs.image_registry }}"
               exit 1
+            fi
+
+            if [[ "${{ inputs.enable_trivy }}" == "true" ]]; then
+              echo "Trivy is enabled → validating secrets..."
+
+              if [[ -z "${{ secrets.DEFECTDOJO_API_TOKEN }}" ]]; then
+                echo "❌ DEFECTDOJO_API_TOKEN is required when enable_trivy=true"
+                exit 1
+              fi
+
+              if [[ -z "${{ secrets.DEFECTDOJO_URL }}" ]]; then
+                echo "❌ DEFECTDOJO_URL is required when enable_trivy=true"
+                exit 1
+              fi
+
+              if [[ -n "${{ inputs.trivy_notification_receivers }}" ]]; then
+                if [[ -z "${{ secrets.SMTP_HOST }}" || \
+                      -z "${{ secrets.SMTP_USER }}" || \
+                      -z "${{ secrets.SMTP_PORT }}" || \
+                      -z "${{ secrets.SMTP_PASSWORD }}" ]]; then
+                  echo "❌ SMTP secrets required when notifications are enabled"
+                  exit 1
+                fi
+              fi
             fi
 
   build-docker:
@@ -233,6 +273,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Get the scan result as Json format
+        if: ${{ inputs.enable_trivy }}
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
@@ -241,6 +282,7 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
           timeout: ${{ inputs.trivy_scan_timeout }}
       - name: Upload scan results to Calance trivy dashboard
+        if: ${{ inputs.enable_trivy }}
         run: |
           echo "Uploading Trivy scan results to dashboard..."
 
@@ -274,6 +316,7 @@ jobs:
             exit 1
           fi
       - name: Extracting Vulnerability index for Notification
+        if: ${{ inputs.enable_trivy && inputs.trivy_notification_receivers != '' }}
         uses: Calance-US/calance-workflows/actions/vulnerability-notification@3214-trivy-workflow-update-into-build
         with:
           smtp-server: ${{secrets.SMTP_HOST}}
@@ -284,12 +327,13 @@ jobs:
           repository: ${{github.event.repository.name}}
           tag: ${{github.ref_name}}
       - name: Upload Trivy scan results as an artifact
+        if: ${{ inputs.enable_trivy }}
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
           path: ${{ github.workspace }}/trivy-report.json
       - name: Check Trivy scan results
-        if: ${{ inputs.enable_trivy_gate }}
+        if: ${{ inputs.enable_trivy && inputs.enable_trivy_gate }}
         run: |
           CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities[] | select(.Severity=="CRITICAL")] | length' trivy-report.json)
           echo "Found $CRITICAL_COUNT critical vulnerabilities"
