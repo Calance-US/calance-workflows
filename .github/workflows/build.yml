@@ -1,94 +1,121 @@
 ---
-  name: Calance generic CI-CD
-  on:
-    workflow_call:
-      outputs:
-        version:
-          description: Application Version
-          value: ${{ jobs.build-docker.outputs.version }}
-        cluster_environment:
-          description: 'Cluster environment where application will be deployed, ex:
-            testing, production, etc. '
-          value: ${{ jobs.build-docker.outputs.cluster_environment }}
-        image_name:
-          description: Providing the name of the image to be built
-          value: ${{ jobs.build-docker.outputs.image_name }}
-        commit_id:
-          description: The commit SHA that triggered the workflow
-          value: ${{ jobs.build-docker.outputs.commit_id }}
-      
-      inputs:
-  
-        #COMMON
-        image_registry:
-          description: Image Registry Name (GHCR or ECR) # ghcr.io or amazonaws.com
-          type: string
-          required: true
-        docker_context_path:
-          description: Docker context path
-          required: false
-          type: string
-          default: .
-        dockerfile_path:
-          description: Path to the Dockerfile
-          required: false
-          type: string
-          default: ./Dockerfile
-        image_name:
-          description: Name for the image that will be built (defaults to repository
-            name)
-          required: true
-          type: string
-        branch_name:
-          description: The branch we are going to build. If kept empty, the git ref
-            that triggered the workflow is used
-          type: string
-          default: ''
-        dot_env_file_testing:
-          description: Build time environment variables as multiline string for testing
-            environment
-          required: false
-          type: string
-          default: ''
-        dot_env_file_production:
-          description: Build time environment variables as multiline string for production
-            environment
-          required: false
-          type: string
-          default: ''
-        dot_env_file_dev:
-          description: Build time environment variables as multiline string for dev
-            environment
-          required: false
-          type: string
-          default: ''
+name: Calance generic CI-CD
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: Application Version
+        value: ${{ jobs.build-docker.outputs.version }}
+      cluster_environment:
+        description: 'Cluster environment where application will be deployed, ex:
+          testing, production, etc. '
+        value: ${{ jobs.build-docker.outputs.cluster_environment }}
+      image_name:
+        description: Providing the name of the image to be built
+        value: ${{ jobs.build-docker.outputs.image_name }}
+      commit_id:
+        description: The commit SHA that triggered the workflow
+        value: ${{ jobs.build-docker.outputs.commit_id }}
 
-        # GHCR specific
-        image_registry_username:
-          description: Username of Image Registry for logging
-          type: string
-          required: false
+    inputs:
+
+      # COMMON
+      image_registry:
+        description: Image Registry Name
+        type: string
+        required: true
+      docker_context_path:
+        description: Docker context path
+        required: false
+        type: string
+        default: .
+      dockerfile_path:
+        description: Path to the Dockerfile
+        required: false
+        type: string
+        default: ./Dockerfile
+      image_name:
+        description: Name for the image that will be built (defaults to repository
+          name)
+        required: true
+        type: string
+      dot_env_file_testing:
+        description: Build time environment variables as multiline string for testing
+          environment
+        required: false
+        type: string
+        default: ''
+      dot_env_file_production:
+        description: Build time environment variables as multiline string for production
+          environment
+        required: false
+        type: string
+        default: ''
+      dot_env_file_dev:
+        description: Build time environment variables as multiline string for dev
+          environment
+        required: false
+        type: string
+        default: ''
+      branch_name:
+        description: The branch we are going to build. If kept empty, the git ref
+          that triggered the workflow is used
+        type: string
+        default: ''
+
+      # GHCR specific
+      image_registry_username:
+        description: Username of Image Registry for logging
+        type: string
+        required: false
   
-        #ECR specific
-        aws_region:
-          description: AWS region for ECR (required if using ECR)
-          type: string
-          required: false
-          default: 'ap-south-1'
-  
-      secrets:
-        IMAGE_REGISTRY_PASSWORD:
-          required: false
-          description: Secret for Image Registry
-        AWS_ACCESS_KEY_ID:
-          required: false
-          description: AWS Access Key ID
-        AWS_SECRET_ACCESS_KEY:
-          required: false
-          description: AWS Secret Access Key
-          
-  jobs:
-    validate-creds:
+      #ECR specific
+      aws_region:
+        description: AWS region for ECR (required if using ECR)
+        type: string
+        required: false
+        default: 'ap-south-1'
+
+      # Trivy Specific
+      enable_trivy_gate:
+        description: Fail the workflow if critical vulnerabilities are found during Trivy scan
+        required: false
+        type: boolean
+        default: false
+      trivy_scan_timeout:
+        description: Trivy scan timeout
+        required: false
+        type: string
+        default: 15m0s
+      trivy_notification_receivers:
+        description: Trivy scan results notification receivers
+        required: true
+        type: string
+
+    secrets:
+      IMAGE_REGISTRY_PASSWORD:
+        required: true
+        description: Secret for Image Registry
+      DEFECTDOJO_API_TOKEN:
+        required: true
+        description: DEFECTDOJO api token
+      DEFECTDOJO_URL:
+        required: true
+        description: DEFECDOJO url
+      SMTP_HOST: 
+        required: true
+        description: SMTP Server Host
+      SMTP_USER: 
+        required: true
+        description: SMTP Server User
+      SMTP_PORT:
+        required: true
+        description: SMTP Server Port
+      SMTP_PASSWORD:
+        required: true
+        description: SMTP Server Password
+jobs:
+  validate-creds:
       runs-on: ubuntu-latest
       steps:
         - name: Validate required inputs/secrets
@@ -120,101 +147,158 @@
               exit 1
             fi
 
-    build-docker:
-      runs-on: ubuntu-latest
-      permissions:
-        contents: read
-        packages: write
-      outputs:
-        version: ${{ steps.version.outputs.build_version }}
-        cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
-        image_name: ${{ inputs.image_name }}
-        commit_id: ${{ steps.version.outputs.commit_id }}
-      steps:
-        - name: Checkout repository (clone the repo for use)
-          uses: actions/checkout@v3
-          with:
-            ref: ${{ inputs.branch_name || github.ref_name }}
-  
-        # ECR specific
-        - name: Configure AWS credentials
-          if: ${{ inputs.image_registry == 'amazonaws.com' }}
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ inputs.aws_region }}
-        - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
-          if: ${{ inputs.image_registry == 'amazonaws.com' }}
-          run: |
-            echo ${{ inputs.image_registry }}
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
-            echo "AMAZON_IMAGE_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> "$GITHUB_ENV"
-  
-        # COMMON
-        - name: Log in to container registry
-          uses: docker/login-action@v3
-          with:
-            registry: ${{ inputs.image_registry == 'amazonaws.com' && env.AMAZON_IMAGE_REGISTRY || inputs.image_registry }}
-            username: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_ACCESS_KEY_ID || inputs.image_registry_username }}
-            password: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_SECRET_ACCESS_KEY || secrets.IMAGE_REGISTRY_PASSWORD }}
-        - name: Extract metadata (tags, labels) for Docker
-          id: meta
-          uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-          with:
-            images: |
-              ${{ inputs.image_registry == 'ghcr.io' && inputs.image_registry || env.AMAZON_IMAGE_REGISTRY }}/${{ inputs.image_name }}
-            tags: |
-              ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
-        - name: Setting application version (comes from image tag/version) and commit_id
-          id: version
-          run: |
-            echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
-            echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-        - name: Identifying cluster in which application should be deployed
-          id: cluster_environment
-          uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
-          with:
-            docker_json_metadata: ${{ steps.meta.outputs.json }}
-        - name: Generate .env file
-          if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev != ''
-          run: |
-            if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-              echo "${{ inputs.dot_env_file_testing }}" >> "${{ inputs.docker_context_path }}/.env"
-            elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-              echo "${{ inputs.dot_env_file_dev }}" >> "${{ inputs.docker_context_path }}/.env"
-            else
-              echo "${{ inputs.dot_env_file_production }}" >> "${{ inputs.docker_context_path }}/.env"
-            fi
-        - name: Prepare build information
-          id: build_info
-          run: |
-            IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
-            echo "image_uri=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
-            echo "Primary image URI: ${IMAGE_TAG}"
-        - name: Build and push Docker image
-          uses: docker/build-push-action@v5
-          with:
-            context: ${{ inputs.docker_context_path }}
-            file: ${{ inputs.dockerfile_path }}
-            push: true
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
-        - name: Build Summary
-          run: |
-            {
-              echo "## Build Summary"
-              echo "- **Image Name**: ${{ inputs.image_name }}"
-              echo "- **Registry**: ${{ inputs.image_registry }}"
-              echo "- **Version**: ${{ steps.version.outputs.build_version }}"
-              echo "- **Environment**: ${{ steps.cluster_environment.outputs.cluster_environment }}"
-              echo "- **Commit**: ${{ steps.version.outputs.commit_id }}"
-              echo "- **Primary Image URI**: ${{ steps.build_info.outputs.image_uri }}"
-              echo ""
-              echo "### All Tags Built:"
-              echo '```'
-              echo "${{ steps.meta.outputs.tags }}"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-          
+  build-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.version.outputs.build_version }}
+      cluster_environment: ${{ steps.cluster_environment.outputs.cluster_environment }}
+      image_name: ${{ inputs.image_name }}
+      commit_id: ${{ steps.version.outputs.commit_id }}
+    steps:
+      - name: Checkout repository (clone the repo for use)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch_name || github.ref_name }}
+
+      # ECR specific
+      - name: Configure AWS credentials
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+      - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
+        run: |
+          echo ${{ inputs.image_registry }}
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
+          echo "AMAZON_IMAGE_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> "$GITHUB_ENV"
+      
+      # COMMON
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.image_registry == 'amazonaws.com' && env.AMAZON_IMAGE_REGISTRY || inputs.image_registry }}
+          username: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_ACCESS_KEY_ID || inputs.image_registry_username }}
+          password: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_SECRET_ACCESS_KEY || secrets.IMAGE_REGISTRY_PASSWORD }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: |
+            ${{ inputs.image_registry == 'ghcr.io' && inputs.image_registry || env.AMAZON_IMAGE_REGISTRY }}/${{ inputs.image_name }}
+          tags: |
+            ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
+      - name: Setting application version (comes from image tag/version) and commit_id
+        id: version
+        run: |
+          echo "build_version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}" >> "$GITHUB_OUTPUT"
+          echo "commit_id=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - name: Identifying cluster in which application should be deployed
+        id: cluster_environment
+        uses: Calance-US/calance-workflows/actions/cluster-env-setter@main
+        with:
+          docker_json_metadata: ${{ steps.meta.outputs.json }}
+      - name: Generate .env file
+        if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev != ''
+        run: |
+          if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
+            echo "${{ inputs.dot_env_file_testing }}" >> "${{ inputs.docker_context_path }}/.env"
+          elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
+            echo "${{ inputs.dot_env_file_dev }}" >> "${{ inputs.docker_context_path }}/.env"
+          else
+            echo "${{ inputs.dot_env_file_production }}" >> "${{ inputs.docker_context_path }}/.env"
+          fi
+      - name: Prepare build information
+        id: build_info
+        run: |
+          IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "image_uri=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Primary image URI: ${IMAGE_TAG}"
+
+      # Build step
+      - name: Build Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ inputs.docker_context_path }}
+          file: ${{ inputs.dockerfile_path }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Get the scan result as Json format
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: json
+          output: trivy-report.json
+          severity: CRITICAL,HIGH,MEDIUM
+          timeout: ${{ inputs.trivy_scan_timeout }}
+      - name: Upload scan results to Calance trivy dashboard
+        run: |
+          echo "Uploading Trivy scan results to dashboard..."
+
+          VERSION=${{ steps.version.outputs.build_version }}
+          ENVIRONMENT="${{ steps.cluster_environment.outputs.cluster_environment }}"
+          SCAN_FILE="trivy-report.json"
+
+          HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X POST \
+            -H "Authorization: Token ${{ secrets.DEFECTDOJO_API_TOKEN }}" \
+            -F "file=@$SCAN_FILE" \
+            -F "scan_type=Trivy Scan" \
+            -F "product_name=${{ github.event.repository.name }}" \
+            -F "engagement_name=Image Security Scan $ENVIRONMENT" \
+            -F "version=$VERSION" \
+            -F "test_title=Trivy Scan $VERSION" \
+            -F "auto_create_context=true" \
+            -F "tags=$VERSION,ci-cd,container-security" \
+            -F "environment=$ENVIRONMENT" \
+            -F "branch_tag=${{ github.ref_name }}" \
+            -F "commit_hash=${{ github.sha }}" \
+            -F "close_old_findings=true" \
+            "${{ secrets.DEFECTDOJO_URL }}/api/v2/reimport-scan/")
+
+          echo "Status Code: $HTTP_STATUS"
+          cat response.json
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✓ Upload successful"
+          else
+            echo "✗ Upload failed with status $HTTP_STATUS"
+            exit 1
+          fi
+      - name: Extracting Vulnerability index for Notification
+        uses: Calance-US/calance-workflows/actions/vulnerability-notification@3214-trivy-workflow-update-into-build
+        with:
+          smtp-server: ${{secrets.SMTP_HOST}}
+          smtp-port: ${{secrets.SMTP_PORT}}
+          smtp-username: ${{secrets.SMTP_USER}}
+          smtp-password: ${{secrets.SMTP_PASSWORD}}
+          trivy_notification_receivers: ${{inputs.trivy_notification_receivers}}
+          repository: ${{github.event.repository.name}}
+          tag: ${{github.ref_name}}
+      - name: Upload Trivy scan results as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: ${{ github.workspace }}/trivy-report.json
+      - name: Check Trivy scan results
+        if: ${{ inputs.enable_trivy_gate }}
+        run: |
+          CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities[] | select(.Severity=="CRITICAL")] | length' trivy-report.json)
+          echo "Found $CRITICAL_COUNT critical vulnerabilities"
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "Too many critical vulnerabilities. Exiting workflow."
+            exit 1
+          fi
+      - name: Push Docker image
+        if: ${{ !inputs.enable_trivy_gate || success() }}
+        run: |
+          echo "Pushing Docker image to registry..."
+          docker push ${{ steps.meta.outputs.tags }}
