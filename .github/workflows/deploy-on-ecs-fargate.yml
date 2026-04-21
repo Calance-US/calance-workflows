@@ -64,7 +64,18 @@ on:
                 required: false
                 type: string
                 default: "10"
-
+            SMTP_HOST: 
+                required: true
+                description: "SMTP Server Host"
+                type: string
+            SMTP_USER: 
+                required: true
+                description: "SMTP Server User"
+                type: string
+            SMTP_PORT:
+                required: true
+                description: "SMTP Server Port"
+                type: string
         secrets:
             AWS_ACCESS_KEY_ID:
                 required: true
