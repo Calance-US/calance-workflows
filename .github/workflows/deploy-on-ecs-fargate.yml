@@ -66,13 +66,13 @@ on:
                 default: "10"
             SMTP_HOST: 
                 required: true
-                description: SMTP Server Host
+                description: "SMTP Server Host"
             SMTP_USER: 
                 required: true
-                description: SMTP Server User
+                description: "SMTP Server User"
             SMTP_PORT:
                 required: true
-                description: SMTP Server Port
+                description: "SMTP Server Port"
         secrets:
             AWS_ACCESS_KEY_ID:
                 required: true
