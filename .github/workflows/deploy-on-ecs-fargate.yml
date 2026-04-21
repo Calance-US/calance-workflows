@@ -67,12 +67,15 @@ on:
             SMTP_HOST: 
                 required: true
                 description: "SMTP Server Host"
+                type: string
             SMTP_USER: 
                 required: true
                 description: "SMTP Server User"
+                type: string
             SMTP_PORT:
                 required: true
                 description: "SMTP Server Port"
+                type: string
         secrets:
             AWS_ACCESS_KEY_ID:
                 required: true
@@ -82,7 +85,7 @@ on:
                 description: "AWS Secret Key for the User"
             SMTP_PASSWORD:
                 required: true
-                description: SMTP Server Password
+                description: "SMTP Server Password"
             AWS_SESSION_TOKEN:
                 required: true
                 description: "AWS Session Token (required only when using temporary ASIA credentials)"
