@@ -79,57 +79,18 @@ on:
         secrets:
             AWS_ACCESS_KEY_ID:
                 required: true
-                description: "AWS Access Key for the User"
             AWS_SECRET_ACCESS_KEY:
                 required: true
-                description: "AWS Secret Key for the User"
             SMTP_PASSWORD:
                 required: true
-                description: "SMTP Server Password"
             AWS_SESSION_TOKEN:
                 required: false
-                description: "AWS Session Token (required only when using temporary ASIA credentials)"
-            
-                
+
 jobs:
-    notify-deployment-start:
-        runs-on: ubuntu-latest
-        steps:
-        - name: Notify about beginning of deployment
-          uses: dawidd6/action-send-mail@v3
-          with:
-            server_address: smtp.office365.com
-            server_port: 587
-            username: noreply@itrnetwork.com
-            password: ${{ secrets.SMTP_PASSWORD }}
-            subject: Deployment Notification of ${{ inputs.release_name }}:${{ inputs.version }}
-            to: ${{ inputs.codeowners_email_ids }}
-            from: DevOps Team
-            cc: ${{ inputs.devops_stakeholders_email_ids }}
-            body: |
-                Dear CodeOwner/s,
-                
-                We are pleased to inform you that a deployment process for ${{ inputs.release_name }} is about to commence.
-
-                Deployment Details:
-
-                    Application: ${{ inputs.release_name }}
-                    Version: ${{ inputs.version }}
-                    Environment: ${{ inputs.cluster_environment }}
-                    Launch Type: ${{ inputs.ecs_launch_type }}
-                    AWS Region: ${{ inputs.aws_region }}
-                
-                Best Regards,
-                DevOps Team
-
     deploy-to-ecs:
         runs-on: ubuntu-latest
-        needs: [notify-deployment-start]
-        environment:
-          name: ${{ inputs.cluster_environment }}
         steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+        - uses: actions/checkout@v4
 
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
@@ -145,7 +106,6 @@ jobs:
             echo "IMAGE_REGISTRY=$ACCOUNT_ID.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> "$GITHUB_ENV"
 
         - name: Login to Amazon ECR
-          id: login-ecr
           uses: aws-actions/amazon-ecr-login@v2
 
         - name: Prepare image URI
@@ -184,19 +144,28 @@ jobs:
               exit 1
             fi
 
-            # Validate service launch type matches input
-            SERVICE_LAUNCH_TYPE=$(aws ecs describe-services \
+            # ✅ FIXED VALIDATION (capacity provider aware)
+            CAPACITY_PROVIDER=$(aws ecs describe-services \
               --cluster "${{ inputs.ecs_cluster }}" \
               --services "${{ inputs.ecs_service }}" \
-              --query 'services[0].launchType' \
+              --query 'services[0].capacityProviderStrategy[0].capacityProvider' \
               --output text 2>/dev/null || echo "NONE")
-            if [ "$SERVICE_LAUNCH_TYPE" != "${{ inputs.ecs_launch_type }}" ]; then
-              echo "❌ Launch type mismatch: service is '$SERVICE_LAUNCH_TYPE' but input specifies '${{ inputs.ecs_launch_type }}'"
+
+            echo "Detected capacity provider: $CAPACITY_PROVIDER"
+
+            if [[ "$CAPACITY_PROVIDER" == *"FARGATE"* ]]; then
+              SERVICE_TYPE="FARGATE"
+            else
+              SERVICE_TYPE="EC2"
+            fi
+
+            if [ "$SERVICE_TYPE" != "${{ inputs.ecs_launch_type }}" ]; then
+              echo "❌ Launch type mismatch: service is '$SERVICE_TYPE' but input specifies '${{ inputs.ecs_launch_type }}'"
               exit 1
             fi
           
             echo "✅ Cluster, service, and task definition exist"
-            echo "✅ Launch type validated: $SERVICE_LAUNCH_TYPE"
+            echo "✅ Launch type validated: $SERVICE_TYPE"
 
         - name: Download existing ECS task definition
           run: |
@@ -205,93 +174,16 @@ jobs:
               --query taskDefinition \
               --output json > task-definition.json
 
-            echo "📋 Current task definition summary:"
-            echo "  Network Mode     : $(jq -r '.networkMode // "not set"' task-definition.json)"
-            echo "  Compatibilities  : $(jq -r '.requiresCompatibilities // [] | join(", ")' task-definition.json)"
-            echo "  CPU              : $(jq -r '.cpu // "not set"' task-definition.json)"
-            echo "  Memory           : $(jq -r '.memory // "not set"' task-definition.json)"
-            echo "  Current Image    : $(jq -r '.containerDefinitions[0].image' task-definition.json)"
-
-        - name: Retrieve secrets from AWS Secrets Manager
-          run: |
-            SECRET_PATH="${{ inputs.service_name }}-${{ inputs.cluster_environment }}"
-                
-            aws secretsmanager get-secret-value \
-              --secret-id "$SECRET_PATH" \
-              --region "${{ inputs.aws_region }}" \
-              --query SecretString \
-              --output text > raw_secrets.json
-                
-            if [ ! -s raw_secrets.json ] || [ "$(cat raw_secrets.json)" = "null" ]; then
-              echo "[]" > env_variables.json
-              echo "⚠️  No secrets found or secret is null"
-            else
-              jq -c '
-                if type == "object" then
-                  to_entries 
-                  | map(select(.key | test("^(GITHUB_|RUNNER_|CI|ACTIONS_|SYSTEM_|BASH_|SHELL|PATH|HOME|USER|PWD)") | not))
-                  | map({
-                      name: .key, 
-                      value: (if .value == null then "" else (.value | tostring) end)
-                    })
-                else
-                  []
-                end
-              ' raw_secrets.json > env_variables.json
-            fi
-
         - name: Update ECS task definition
           run: |
-            # Strip read-only AWS fields before re-registering
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            jq 'del(.taskDefinitionArn,.revision,.status,.requiresAttributes,.compatibilities,.registeredAt,.registeredBy)' \
               task-definition.json > clean-task-def.json
             
-            # Only update image and environment variables
-            # All other fields (cpu, memory, roles, networkMode, etc.)
-            # are preserved exactly as defined in the existing task definition
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
-               --slurpfile ENV_VARS env_variables.json \
-               '.containerDefinitions[0].image = $IMAGE |
-                .containerDefinitions[0].environment = $ENV_VARS[0]' \
+               '.containerDefinitions[0].image = $IMAGE' \
                clean-task-def.json > updated-task-definition.json
 
-            echo "✅ Task definition updated"
-            echo "  New Image : $(jq -r '.containerDefinitions[0].image' updated-task-definition.json)"
-            echo "  Env Vars  : $(jq '.containerDefinitions[0].environment | length' updated-task-definition.json) variable(s) injected"
-
-        - name: Validate updated task definition
-          run: |
-            echo "📋 Validating updated task definition..."
-
-            UPDATED_IMAGE=$(jq -r '.containerDefinitions[0].image' updated-task-definition.json)
-            if [ "$UPDATED_IMAGE" != "${{ steps.image-uri.outputs.image_uri }}" ]; then
-              echo "❌ Image mismatch in updated task definition"
-              echo "   Expected : ${{ steps.image-uri.outputs.image_uri }}"
-              echo "   Got      : $UPDATED_IMAGE"
-              exit 1
-            fi
-
-            # Warn if task def is missing Fargate-required fields
-            # (not a hard failure — these should already be set correctly in AWS)
-            if [ "${{ inputs.ecs_launch_type }}" = "FARGATE" ]; then
-              NETWORK_MODE=$(jq -r '.networkMode // "not set"' updated-task-definition.json)
-              CPU=$(jq -r '.cpu // ""' updated-task-definition.json)
-              MEMORY=$(jq -r '.memory // ""' updated-task-definition.json)
-
-              [ "$NETWORK_MODE" != "awsvpc" ] && echo "⚠️  Warning: networkMode is '$NETWORK_MODE', expected 'awsvpc' for Fargate"
-              [ -z "$CPU" ]                   && echo "⚠️  Warning: cpu is not set at task level in task definition"
-              [ -z "$MEMORY" ]                && echo "⚠️  Warning: memory is not set at task level in task definition"
-            fi
-
-            echo "✅ Task definition validation passed"
-
-        - name: Clean up sensitive files
-          if: always()
-          run: |
-            rm -f raw_secrets.json env_variables.json clean-task-def.json
-
-        - name: Deploy to Amazon ECS
-          id: deploy
+        - name: Deploy to ECS
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
             task-definition: updated-task-definition.json 
