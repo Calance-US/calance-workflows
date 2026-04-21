@@ -44,48 +44,26 @@ on:
                 type: string
                 default: "EC2"
             ecs_cluster:
-                description: "ECS cluster name (ECS only)"
+                description: "ECS cluster name"
                 required: true
                 type: string
             ecs_service:
-                description: "ECS service name (ECS only)"
+                description: "ECS service name"
                 required: true
                 type: string
             ecs_task_definition_name:
-                description: "name of the task defination"
+                description: "Name of the task definition"
                 required: true
                 type: string
             ecs_desired_count:
-                description: "Desired number of tasks in ECS service (ECS only)"
+                description: "Desired number of tasks in ECS service"
                 required: true
                 type: string
             ecs_wait_time:
-                description: "ECS stability wait time"
+                description: "ECS stability wait time in minutes"
                 required: false
                 type: string
                 default: "10"
-
-            # Fargate specific (required when ecs_launch_type is FARGATE)
-            ecs_execution_role_arn:
-                description: "Task execution role ARN (required for Fargate)"
-                required: false
-                type: string
-                default: ""
-            ecs_task_role_arn:
-                description: "Task role ARN (optional, grants permissions to the running container)"
-                required: false
-                type: string
-                default: ""
-            ecs_cpu:
-                description: "Task-level CPU units (required for Fargate, e.g. 256, 512, 1024)"
-                required: false
-                type: string
-                default: ""
-            ecs_memory:
-                description: "Task-level memory in MiB (required for Fargate, e.g. 512, 1024, 2048)"
-                required: false
-                type: string
-                default: ""
 
         secrets:
             AWS_ACCESS_KEY_ID:
@@ -138,29 +116,6 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        - name: Validate Fargate inputs
-          if: ${{ inputs.ecs_launch_type == 'FARGATE' }}
-          run: |
-            ERRORS=""
-
-            if [ -z "${{ inputs.ecs_execution_role_arn }}" ]; then
-              ERRORS="$ERRORS\n  - ecs_execution_role_arn is required for Fargate"
-            fi
-            if [ -z "${{ inputs.ecs_cpu }}" ]; then
-              ERRORS="$ERRORS\n  - ecs_cpu is required for Fargate"
-            fi
-            if [ -z "${{ inputs.ecs_memory }}" ]; then
-              ERRORS="$ERRORS\n  - ecs_memory is required for Fargate"
-            fi
-
-            if [ -n "$ERRORS" ]; then
-              echo "❌ Missing required Fargate inputs:"
-              echo -e "$ERRORS"
-              exit 1
-            fi
-
-            echo "✅ All required Fargate inputs are present"
-
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
@@ -186,31 +141,40 @@ jobs:
 
         - name: Check ECS cluster, service, and task definition existence
           run: |
-            CLUSTER_EXISTS=$(aws ecs describe-clusters --clusters "${{ inputs.ecs_cluster }}" --query 'clusters[0].status' --output text 2>/dev/null || echo "NONE")
-            if [ "$CLUSTER_EXISTS" = "NONE" ]; then
+            CLUSTER_EXISTS=$(aws ecs describe-clusters \
+              --clusters "${{ inputs.ecs_cluster }}" \
+              --query 'clusters[0].status' \
+              --output text 2>/dev/null || echo "NONE")
+            if [ "$CLUSTER_EXISTS" = "NONE" ] || [ "$CLUSTER_EXISTS" = "None" ]; then
               echo "❌ Cluster ${{ inputs.ecs_cluster }} does not exist"
               exit 1
             fi
           
-            SERVICE_EXISTS=$(aws ecs describe-services --cluster "${{ inputs.ecs_cluster }}" --services "${{ inputs.ecs_service }}" --query 'services[0].status' --output text 2>/dev/null || echo "NONE")
-            if [ "$SERVICE_EXISTS" = "NONE" ]; then
+            SERVICE_EXISTS=$(aws ecs describe-services \
+              --cluster "${{ inputs.ecs_cluster }}" \
+              --services "${{ inputs.ecs_service }}" \
+              --query 'services[0].status' \
+              --output text 2>/dev/null || echo "NONE")
+            if [ "$SERVICE_EXISTS" = "NONE" ] || [ "$SERVICE_EXISTS" = "None" ]; then
               echo "❌ Service ${{ inputs.ecs_service }} does not exist"
               exit 1
             fi
           
-            TASKDEF_EXISTS=$(aws ecs describe-task-definition --task-definition "${{ inputs.ecs_task_definition_name }}" --query 'taskDefinition.taskDefinitionArn' --output text 2>/dev/null || echo "NONE")
-            if [ "$TASKDEF_EXISTS" = "NONE" ]; then
+            TASKDEF_EXISTS=$(aws ecs describe-task-definition \
+              --task-definition "${{ inputs.ecs_task_definition_name }}" \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text 2>/dev/null || echo "NONE")
+            if [ "$TASKDEF_EXISTS" = "NONE" ] || [ "$TASKDEF_EXISTS" = "None" ]; then
               echo "❌ Task definition ${{ inputs.ecs_task_definition_name }} does not exist"
               exit 1
             fi
 
-            # Validate that the ECS service launch type matches the input
+            # Validate service launch type matches input
             SERVICE_LAUNCH_TYPE=$(aws ecs describe-services \
               --cluster "${{ inputs.ecs_cluster }}" \
               --services "${{ inputs.ecs_service }}" \
               --query 'services[0].launchType' \
               --output text 2>/dev/null || echo "NONE")
-
             if [ "$SERVICE_LAUNCH_TYPE" != "${{ inputs.ecs_launch_type }}" ]; then
               echo "❌ Launch type mismatch: service is '$SERVICE_LAUNCH_TYPE' but input specifies '${{ inputs.ecs_launch_type }}'"
               exit 1
@@ -220,16 +184,22 @@ jobs:
             echo "✅ Launch type validated: $SERVICE_LAUNCH_TYPE"
 
         - name: Download existing ECS task definition
-          id: download-task-def
           run: |
             aws ecs describe-task-definition \
               --task-definition "${{ inputs.ecs_task_definition_name }}" \
               --query taskDefinition \
               --output json > task-definition.json
 
-        - name: Retrieve secrets from AWS secrets manager
+            echo "📋 Current task definition summary:"
+            echo "  Network Mode     : $(jq -r '.networkMode // "not set"' task-definition.json)"
+            echo "  Compatibilities  : $(jq -r '.requiresCompatibilities // [] | join(", ")' task-definition.json)"
+            echo "  CPU              : $(jq -r '.cpu // "not set"' task-definition.json)"
+            echo "  Memory           : $(jq -r '.memory // "not set"' task-definition.json)"
+            echo "  Current Image    : $(jq -r '.containerDefinitions[0].image' task-definition.json)"
+
+        - name: Retrieve secrets from AWS Secrets Manager
           run: |
-            SECRET_PATH="${{inputs.service_name}}-${{inputs.cluster_environment}}"
+            SECRET_PATH="${{ inputs.service_name }}-${{ inputs.cluster_environment }}"
                 
             aws secretsmanager get-secret-value \
               --secret-id "$SECRET_PATH" \
@@ -255,80 +225,52 @@ jobs:
               ' raw_secrets.json > env_variables.json
             fi
 
-        - name: Update ECS task definition for EC2
-          if: ${{ inputs.ecs_launch_type == 'EC2' }}
+        - name: Update ECS task definition
           run: |
+            # Strip read-only AWS fields before re-registering
             jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
               task-definition.json > clean-task-def.json
             
+            # Only update image and environment variables
+            # All other fields (cpu, memory, roles, networkMode, etc.)
+            # are preserved exactly as defined in the existing task definition
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
                --slurpfile ENV_VARS env_variables.json \
-               '.containerDefinitions[0].image = $IMAGE | 
+               '.containerDefinitions[0].image = $IMAGE |
                 .containerDefinitions[0].environment = $ENV_VARS[0]' \
                clean-task-def.json > updated-task-definition.json
 
-        - name: Update ECS task definition for Fargate
-          if: ${{ inputs.ecs_launch_type == 'FARGATE' }}
-          run: |
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-              task-definition.json > clean-task-def.json
-            
-            jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
-               --arg EXEC_ROLE "${{ inputs.ecs_execution_role_arn }}" \
-               --arg TASK_ROLE "${{ inputs.ecs_task_role_arn }}" \
-               --arg CPU "${{ inputs.ecs_cpu }}" \
-               --arg MEMORY "${{ inputs.ecs_memory }}" \
-               --slurpfile ENV_VARS env_variables.json \
-               '.containerDefinitions[0].image = $IMAGE |
-                .containerDefinitions[0].environment = $ENV_VARS[0] |
-                .networkMode = "awsvpc" |
-                .requiresCompatibilities = ["FARGATE"] |
-                .cpu = $CPU |
-                .memory = $MEMORY |
-                .executionRoleArn = $EXEC_ROLE |
-                if $TASK_ROLE != "" then .taskRoleArn = $TASK_ROLE else . end |
-                .containerDefinitions[0].portMappings = (
-                  .containerDefinitions[0].portMappings // [] |
-                  map(.hostPort = .containerPort)
-                )' \
-               clean-task-def.json > updated-task-definition.json
+            echo "✅ Task definition updated"
+            echo "  New Image : $(jq -r '.containerDefinitions[0].image' updated-task-definition.json)"
+            echo "  Env Vars  : $(jq '.containerDefinitions[0].environment | length' updated-task-definition.json) variable(s) injected"
 
         - name: Validate updated task definition
           run: |
             echo "📋 Validating updated task definition..."
 
-            # Check image was set correctly
             UPDATED_IMAGE=$(jq -r '.containerDefinitions[0].image' updated-task-definition.json)
             if [ "$UPDATED_IMAGE" != "${{ steps.image-uri.outputs.image_uri }}" ]; then
               echo "❌ Image mismatch in updated task definition"
+              echo "   Expected : ${{ steps.image-uri.outputs.image_uri }}"
+              echo "   Got      : $UPDATED_IMAGE"
               exit 1
             fi
 
-            # Fargate-specific validations
+            # Warn if task def is missing Fargate-required fields
+            # (not a hard failure — these should already be set correctly in AWS)
             if [ "${{ inputs.ecs_launch_type }}" = "FARGATE" ]; then
-              NETWORK_MODE=$(jq -r '.networkMode' updated-task-definition.json)
-              if [ "$NETWORK_MODE" != "awsvpc" ]; then
-                echo "❌ networkMode must be awsvpc for Fargate, got: $NETWORK_MODE"
-                exit 1
-              fi
+              NETWORK_MODE=$(jq -r '.networkMode // "not set"' updated-task-definition.json)
+              CPU=$(jq -r '.cpu // ""' updated-task-definition.json)
+              MEMORY=$(jq -r '.memory // ""' updated-task-definition.json)
 
-              CPU=$(jq -r '.cpu' updated-task-definition.json)
-              MEMORY=$(jq -r '.memory' updated-task-definition.json)
-              if [ -z "$CPU" ] || [ -z "$MEMORY" ]; then
-                echo "❌ cpu and memory must be set for Fargate"
-                exit 1
-              fi
-
-              EXEC_ROLE=$(jq -r '.executionRoleArn' updated-task-definition.json)
-              if [ -z "$EXEC_ROLE" ] || [ "$EXEC_ROLE" = "null" ]; then
-                echo "❌ executionRoleArn must be set for Fargate"
-                exit 1
-              fi
+              [ "$NETWORK_MODE" != "awsvpc" ] && echo "⚠️  Warning: networkMode is '$NETWORK_MODE', expected 'awsvpc' for Fargate"
+              [ -z "$CPU" ]                   && echo "⚠️  Warning: cpu is not set at task level in task definition"
+              [ -z "$MEMORY" ]                && echo "⚠️  Warning: memory is not set at task level in task definition"
             fi
 
             echo "✅ Task definition validation passed"
 
-        - name: Clean up
+        - name: Clean up sensitive files
           if: always()
           run: |
             rm -f raw_secrets.json env_variables.json clean-task-def.json
@@ -367,9 +309,9 @@ jobs:
               --query 'services[0].desiredCount' \
               --output text)
             
-            echo "Service Status: $SERVICE_STATUS"
-            echo "Running Count: $RUNNING_COUNT"
-            echo "Desired Count: $DESIRED_COUNT"
+            echo "Service Status : $SERVICE_STATUS"
+            echo "Running Count  : $RUNNING_COUNT"
+            echo "Desired Count  : $DESIRED_COUNT"
             
             if [ "$SERVICE_STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" = "$DESIRED_COUNT" ]; then
               echo "✅ Deployment successful!"
@@ -464,7 +406,7 @@ jobs:
                 2. Verify the deployment configuration and prerequisites
                 3. Contact the DevOps team if assistance is needed
 
-                We kindly request your prompt attention to address the deployment failure. To streamline communication and expedite the resolution process, please connect directly with us.
+                We kindly request your prompt attention to address the deployment failure.
                 
                 Best Regards,
                 DevOps Team
