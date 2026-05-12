@@ -16,30 +16,14 @@ on:
       commit_id:
         description: The commit SHA that triggered the workflow
         value: ${{ jobs.build-docker.outputs.commit_id }}
-    secrets:
-      IMAGE_REGISTRY_PASSWORD:
-        required: true
-        description: Secret for Image Registry
-      DEFECTDOJO_API_TOKEN:
-        required: true
-        description: DEFECTDOJO api token
-      DEFECTDOJO_URL:
-        required: true
-        description: DEFECDOJO url
-      SMTP_HOST: 
-        required: true
-        description: SMTP Server Host
-      SMTP_USER: 
-        required: true
-        description: SMTP Server User
-      SMTP_PORT:
-        required: true
-        description: SMTP Server Port
-      SMTP_PASSWORD:
-        required: true
-        description: SMTP Server Password
 
     inputs:
+
+      # COMMON
+      image_registry:
+        description: Image Registry Name
+        type: string
+        required: true
       docker_context_path:
         description: Docker context path
         required: false
@@ -78,16 +62,28 @@ on:
           that triggered the workflow is used
         type: string
         default: ''
-      image_registry:
-        description: Image Registry Name
-        type: string
-        required: true
+
+      # GHCR specific
       image_registry_username:
         description: Username of Image Registry for logging
         type: string
-        required: true
+        required: false
+  
+      #ECR specific
+      aws_region:
+        description: AWS region for ECR (required if using ECR)
+        type: string
+        required: false
+        default: 'ap-south-1'
+
+      # Trivy Specific
       enable_trivy_gate:
         description: Fail the workflow if critical vulnerabilities are found during Trivy scan
+        required: false
+        type: boolean
+        default: false
+      enable_trivy:
+        description: Enable Trivy scan
         required: false
         type: boolean
         default: false
@@ -98,9 +94,99 @@ on:
         default: 15m0s
       trivy_notification_receivers:
         description: Trivy scan results notification receivers
-        required: true
+        required: false
         type: string
+
+    secrets:
+      # GHCR
+      IMAGE_REGISTRY_PASSWORD:
+        required: false
+        description: Secret for Image Registry
+
+      # ECS
+      AWS_ACCESS_KEY_ID:
+        required: false
+        description: AWS Access Key ID
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+        description: AWS Secret Access Key
+
+      # TRIVY
+      DEFECTDOJO_API_TOKEN:
+        required: false
+        description: DEFECTDOJO api token
+      DEFECTDOJO_URL:
+        required: false
+        description: DEFECDOJO url
+      SMTP_HOST: 
+        required: false
+        description: SMTP Server Host
+      SMTP_USER: 
+        required: false
+        description: SMTP Server User
+      SMTP_PORT:
+        required: false
+        description: SMTP Server Port
+      SMTP_PASSWORD:
+        required: false
+        description: SMTP Server Password
 jobs:
+  validate-creds:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Validate required inputs/secrets
+          run: |
+            if [[ "${{ inputs.image_registry }}" == "ghcr.io" ]]; then
+              if [[ -z "${{ inputs.image_registry_username }}" ]]; then
+                echo "❌ image_registry_username is required for ghcr.io"
+                exit 1
+              fi
+              if [[ -z "${{ secrets.IMAGE_REGISTRY_PASSWORD }}" ]]; then
+                echo "❌ IMAGE_REGISTRY_PASSWORD secret is required for ghcr.io"
+                exit 1
+              fi
+            elif [[ "${{ inputs.image_registry }}" == "amazonaws.com" ]]; then
+              if [[ -z "${{ inputs.aws_region }}" ]]; then
+                echo "❌ aws_region is required for amazonaws.com"
+                exit 1
+              fi
+              if [[ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]]; then
+                echo "❌ AWS_ACCESS_KEY_ID secret is required for amazonaws.com"
+                exit 1
+              fi
+              if [[ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]]; then
+                echo "❌ AWS_SECRET_ACCESS_KEY secret is required for amazonaws.com"
+                exit 1
+              fi
+            else
+              echo "❌ Unsupported image_registry: ${{ inputs.image_registry }}"
+              exit 1
+            fi
+
+            if [[ "${{ inputs.enable_trivy }}" == "true" ]]; then
+              echo "Trivy is enabled → validating secrets..."
+
+              if [[ -z "${{ secrets.DEFECTDOJO_API_TOKEN }}" ]]; then
+                echo "❌ DEFECTDOJO_API_TOKEN is required when enable_trivy=true"
+                exit 1
+              fi
+
+              if [[ -z "${{ secrets.DEFECTDOJO_URL }}" ]]; then
+                echo "❌ DEFECTDOJO_URL is required when enable_trivy=true"
+                exit 1
+              fi
+
+              if [[ -n "${{ inputs.trivy_notification_receivers }}" ]]; then
+                if [[ -z "${{ secrets.SMTP_HOST }}" || \
+                      -z "${{ secrets.SMTP_USER }}" || \
+                      -z "${{ secrets.SMTP_PORT }}" || \
+                      -z "${{ secrets.SMTP_PASSWORD }}" ]]; then
+                  echo "❌ SMTP secrets required when notifications are enabled"
+                  exit 1
+                fi
+              fi
+            fi
+
   build-docker:
     runs-on: ubuntu-latest
     permissions:
@@ -116,19 +202,36 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.branch_name || github.ref_name }}
-      - name: Log in to github Container registry where image is pushed and pulled
-          from
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+
+      # ECR specific
+      - name: Configure AWS credentials
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ${{ inputs.image_registry }}
-          username: ${{ inputs.image_registry_username }}
-          password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+      - name: Set AMAZON_IMAGE_REGISTRY and AWS_ACCOUNT_ID
+        if: ${{ inputs.image_registry == 'amazonaws.com' }}
+        run: |
+          echo ${{ inputs.image_registry }}
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "AWS_ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
+          echo "AMAZON_IMAGE_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com" >> "$GITHUB_ENV"
+      
+      # COMMON
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.image_registry == 'amazonaws.com' && env.AMAZON_IMAGE_REGISTRY || inputs.image_registry }}
+          username: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_ACCESS_KEY_ID || inputs.image_registry_username }}
+          password: ${{ inputs.image_registry == 'amazonaws.com' && secrets.AWS_SECRET_ACCESS_KEY || secrets.IMAGE_REGISTRY_PASSWORD }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: |
-            ${{ inputs.image_registry }}/${{ inputs.image_name }}
+            ${{ inputs.image_registry == 'ghcr.io' && inputs.image_registry || env.AMAZON_IMAGE_REGISTRY }}/${{ inputs.image_name }}
           tags: |
             ${{ inputs.branch_name || 'type=semver,pattern={{version}}' }}
       - name: Setting application version (comes from image tag/version) and commit_id
@@ -145,12 +248,20 @@ jobs:
         if: inputs.dot_env_file_testing != '' || inputs.dot_env_file_production != '' || inputs.dot_env_file_dev != ''
         run: |
           if [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "testing" ]]; then
-            echo "${{ inputs.dot_env_file_testing }}" >> ${{ inputs.docker_context_path }}/.env
+            echo "${{ inputs.dot_env_file_testing }}" >> "${{ inputs.docker_context_path }}/.env"
           elif [[ "${{ steps.cluster_environment.outputs.cluster_environment }}" == "dev" ]]; then
-            echo "${{ inputs.dot_env_file_dev }}" >> ${{ inputs.docker_context_path }}/.env
+            echo "${{ inputs.dot_env_file_dev }}" >> "${{ inputs.docker_context_path }}/.env"
           else
-            echo "${{ inputs.dot_env_file_production }}" >> ${{ inputs.docker_context_path }}/.env
+            echo "${{ inputs.dot_env_file_production }}" >> "${{ inputs.docker_context_path }}/.env"
           fi
+      - name: Prepare build information
+        id: build_info
+        run: |
+          IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "image_uri=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Primary image URI: ${IMAGE_TAG}"
+
+      # Build step
       - name: Build Docker image
         uses: docker/build-push-action@v3
         with:
@@ -162,6 +273,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Get the scan result as Json format
+        if: ${{ inputs.enable_trivy }}
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
@@ -170,6 +282,7 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
           timeout: ${{ inputs.trivy_scan_timeout }}
       - name: Upload scan results to Calance trivy dashboard
+        if: ${{ inputs.enable_trivy }}
         run: |
           echo "Uploading Trivy scan results to dashboard..."
 
@@ -203,7 +316,8 @@ jobs:
             exit 1
           fi
       - name: Extracting Vulnerability index for Notification
-        uses: Calance-US/calance-workflows/actions/vulnerability-notification@3214-trivy-workflow-update-into-build
+        if: ${{ inputs.enable_trivy && inputs.trivy_notification_receivers != '' }}
+        uses: Calance-US/calance-workflows/actions/vulnerability-notification@3059-calance-workflow-ecs
         with:
           smtp-server: ${{secrets.SMTP_HOST}}
           smtp-port: ${{secrets.SMTP_PORT}}
@@ -213,12 +327,13 @@ jobs:
           repository: ${{github.event.repository.name}}
           tag: ${{github.ref_name}}
       - name: Upload Trivy scan results as an artifact
+        if: ${{ inputs.enable_trivy }}
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
           path: ${{ github.workspace }}/trivy-report.json
       - name: Check Trivy scan results
-        if: ${{ inputs.enable_trivy_gate }}
+        if: ${{ inputs.enable_trivy && inputs.enable_trivy_gate }}
         run: |
           CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities[] | select(.Severity=="CRITICAL")] | length' trivy-report.json)
           echo "Found $CRITICAL_COUNT critical vulnerabilities"
