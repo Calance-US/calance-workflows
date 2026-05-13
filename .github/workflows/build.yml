@@ -203,7 +203,7 @@ jobs:
             exit 1
           fi
       - name: Extracting Vulnerability index for Notification
-        uses: Calance-US/calance-workflows/actions/vulnerability-notification@3214-trivy-workflow-update-into-build
+        uses: Calance-US/calance-workflows/actions/vulnerability-notification@v3.0.2
         with:
           smtp-server: ${{secrets.SMTP_HOST}}
           smtp-port: ${{secrets.SMTP_PORT}}
