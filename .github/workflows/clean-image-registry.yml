@@ -68,7 +68,7 @@ jobs:
               exit 1
           fi
       - name: List packages with tags before deletion for prod
-        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         id: list-packages-with-tags-before-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -87,7 +87,7 @@ jobs:
           keep-at-least: ${{ inputs.prod_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
       - name: List packages with tags after deletion for prod
-        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+        uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         id: list-packages-with-tags-after-deletion
         with:
           image_name: ${{ inputs.image_name }}
@@ -106,7 +106,6 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github
           assistance for prod
-        if: steps.delete-packages-prod.outputs.failed != '' || steps.delete-packages-prod.outputs.needs-github-assistance != ''
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-prod
         with:
@@ -114,7 +113,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-prod.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-prod.outputs.deleted != ''
+          steps.delete-packages-prod.outputs.deleted != '' ||
+          steps.delete-packages-prod.outputs.failed != '' ||
+          steps.delete-packages-prod.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -122,9 +123,9 @@ jobs:
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-prod.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-prod.outputs.packages_failed_urls || 'None' }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls || 'None' }}
+              value: ${{ steps.get-packages-url-prod.outputs.packages_needs_github_assistance_urls }}
   clean-ghcr-testing:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -136,7 +137,7 @@ jobs:
               echo "Provided value of testing_keep_at_least cannot be less than 2"
               exit 1
           fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for testing
         id: list-packages-with-tags-before-deletion
         with:
@@ -155,7 +156,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.testing_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for testing
         id: list-packages-with-tags-after-deletion
         with:
@@ -175,7 +176,6 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github
           assistance for testing
-        if: steps.delete-packages-testing.outputs.failed != '' || steps.delete-packages-testing.outputs.needs-github-assistance != ''
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-testing
         with:
@@ -183,7 +183,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-testing.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-testing.outputs.deleted != ''
+          steps.delete-packages-testing.outputs.deleted != '' ||
+          steps.delete-packages-testing.outputs.failed != '' ||
+          steps.delete-packages-testing.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -191,9 +193,9 @@ jobs:
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-testing.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls || 'None' }}
+              value: ${{ steps.get-packages-url-testing.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls || 'None' }}
+              value: ${{ steps.get-packages-url-testing.outputs.packages_needs_github_assistance_urls }}
   clean-ghcr-non-semver:
     name: Delete old unused container images
     runs-on: ubuntu-latest
@@ -205,7 +207,7 @@ jobs:
               echo "Provided value of non_semver_keep_at_least cannot be less than 2"
               exit 1
           fi
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for non-semver
         id: list-packages-with-tags-before-deletion
         with:
@@ -225,7 +227,7 @@ jobs:
           image-names: ${{ inputs.image_name }}
           keep-at-least: ${{ inputs.non_semver_keep_at_least }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for non-semver
         id: list-packages-with-tags-after-deletion
         with:
@@ -245,7 +247,6 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github
           assistance for non-semver
-        if: steps.delete-packages-non-semver.outputs.failed != '' || steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-non-semver
         with:
@@ -253,7 +254,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-non-semver.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-non-semver.outputs.deleted != ''
+          steps.delete-packages-non-semver.outputs.deleted != '' ||
+          steps.delete-packages-non-semver.outputs.failed != '' ||
+          steps.delete-packages-non-semver.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -261,15 +264,15 @@ jobs:
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-non-semver.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls || 'None' }}
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls || 'None' }}
+              value: ${{ steps.get-packages-url-non-semver.outputs.packages_needs_github_assistance_urls }}
   clean-ghcr-untagged:
     name: Delete old unused container images
     runs-on: ubuntu-latest
     needs: clean-ghcr-non-semver
     steps:
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags before deletion for untagged
         id: list-packages-with-tags-before-deletion
         with:
@@ -287,7 +290,7 @@ jobs:
           untagged-only: true
           image-names: ${{ inputs.image_name }}
           token: ${{ secrets.IMAGE_CLEANUP_TOKEN }}
-      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.2
+      - uses: Calance-US/calance-list-packages-with-tags-action@v1.0.1
         name: List packages with tags after deletion for untagged
         id: list-packages-with-tags-after-deletion
         with:
@@ -307,7 +310,6 @@ jobs:
             return packages_deleted
       - name: Get URLs for packages that failed deletion and packages that needs github
           assistance for untagged
-        if: steps.delete-packages-untagged.outputs.failed != '' || steps.delete-packages-untagged.outputs.needs-github-assistance != ''
         uses: Calance-US/calance-get-packages-url-action@v1.0.0
         id: get-packages-url-untagged
         with:
@@ -315,7 +317,9 @@ jobs:
           packages_needs_github_assistance: ${{ steps.delete-packages-untagged.outputs.needs-github-assistance }}
       - uses: toko-bifrost/ms-teams-deploy-card@master
         if: |
-          steps.delete-packages-untagged.outputs.deleted != ''
+          steps.delete-packages-untagged.outputs.deleted != '' ||
+          steps.delete-packages-untagged.outputs.failed != '' ||
+          steps.delete-packages-untagged.outputs.needs-github-assistance != ''
         with:
           github-token: ${{ github.token }}
           webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
@@ -323,6 +327,6 @@ jobs:
             - name: Packages successfully deleted
               value: ${{ steps.packages-deleted-untagged.outputs.result }}
             - name: Packages failed to delete
-              value: ${{ steps.get-packages-url-untagged.outputs.packages_failed_urls || 'None' }}
+              value: ${{ steps.get-packages-url-untagged.outputs.packages_failed_urls }}
             - name: Packages that needs Github Assistance for deletion
-              value: ${{ steps.get-packages-url-untagged.outputs.packages_needs_github_assistance_urls || 'None' }}
+              value: ${{ steps.get-packages-url-untagged.outputs.packages_needs_github_assistance_urls }}
