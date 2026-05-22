@@ -25,8 +25,8 @@ try {
   // for money-quiz dev environment
   else if (repository.includes('money-quiz')) {
     core.setOutput('cluster_environment','dev')
-  } else if (repository.includes('PEMS-Northstar')) {
-    core.setOutput('cluster_environment','testing')
+  } else if (repository.toLowerCase().includes('pems')) {
+    core.setOutput('cluster_environment', 'testing')
   } else {
     throw new Error('Invalid image tag')
   }
