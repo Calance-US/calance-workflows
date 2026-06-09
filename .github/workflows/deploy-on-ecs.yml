@@ -185,7 +185,7 @@ jobs:
             fi
         - name: Update ECS task definition
           run: |
-            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' \
               task-definition.json > clean-task-def.json
             
             jq --arg IMAGE "${{ steps.image-uri.outputs.image_uri }}" \
