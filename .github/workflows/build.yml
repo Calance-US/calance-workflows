@@ -102,7 +102,12 @@ on:
       IMAGE_REGISTRY_PASSWORD:
         required: false
         description: Secret for Image Registry
-
+        
+      # GitHub token
+      TOKEN_GITHUB:
+        required: false
+        description: Secret for github repository
+        
       # ECS
       AWS_ACCESS_KEY_ID:
         required: false
