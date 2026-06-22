@@ -276,9 +276,8 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-        secrets: |
-          github_token=${{ secrets.TOKEN_GITHUB }}
+          secrets: |
+            github_token=${{ secrets.TOKEN_GITHUB }}
       - name: Get the scan result as Json format
         if: ${{ inputs.enable_trivy }}
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
