@@ -20,6 +20,9 @@ on:
       IMAGE_REGISTRY_PASSWORD:
         required: true
         description: Secret for Image Registry
+      TOKEN_GITHUB:
+        required: false
+        description: Secret for github repository
     inputs:
       docker_context_path:
         description: Docker context path
@@ -136,3 +139,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          secrets: |
+            github_token=${{ secrets.TOKEN_GITHUB }}
